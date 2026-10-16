@@ -1,0 +1,142 @@
+{
+  "version": "2.0.0",
+  "captured": "2026-10-16",
+  "economy": {
+    "manual": [
+      {
+        "name": "fresh",
+        "sha256": "e9e5d9156674702bdb00ef62aa472001f4158f038be1648cb5921392897d6989",
+        "cash": 0,
+        "inventory": 0
+      },
+      {
+        "name": "gather",
+        "sha256": "cc71b648284434c5e1a2b742897a75c9066bb912f1a29e27013923e445650eac",
+        "cash": 0,
+        "inventory": 4
+      },
+      {
+        "name": "cook",
+        "sha256": "0f541442f51a1c65a52fa197bfa167fad837b4338014e2fa1f4489ab5799646c",
+        "cash": 0,
+        "inventory": 3
+      },
+      {
+        "name": "counter-escrow",
+        "sha256": "673283357be0295c19a58ba2028062391a06a8f4221be20804ff8c748b3c79ef",
+        "cash": 0,
+        "inventory": 0
+      },
+      {
+        "name": "collect",
+        "sha256": "754376de8e2aa9c559e4023c0258d1a4ed3b94eb156709afbf84688e7bf4f65d",
+        "cash": 71,
+        "inventory": 0
+      },
+      {
+        "name": "restore",
+        "sha256": "754376de8e2aa9c559e4023c0258d1a4ed3b94eb156709afbf84688e7bf4f65d",
+        "cash": 71,
+        "inventory": 0
+      }
+    ],
+    "automation": [
+      {
+        "name": "fresh",
+        "sha256": "e9e5d9156674702bdb00ef62aa472001f4158f038be1648cb5921392897d6989",
+        "cash": 0,
+        "inventory": 0
+      },
+      {
+        "name": "built",
+        "sha256": "8bf772c8aef822c365d4fb60bcae32b2a8568d5845211fb459249235a023928d",
+        "cash": 2830,
+        "inventory": 0
+      },
+      {
+        "name": "run-15",
+        "sha256": "698b3b779b305844f9166a1f3506dcdda0c6f58ec0b66844cef8cf812727b779",
+        "cash": 2968,
+        "inventory": 0
+      },
+      {
+        "name": "run-45",
+        "sha256": "780f106060bb31d671a3effcffde8b03b9ede13dabe1064d740f866a37e2250f",
+        "cash": 3542,
+        "inventory": 0
+      },
+      {
+        "name": "run-120",
+        "sha256": "ae2306352c6c99ef2d99253053425d78cf5f4d95f7e124ca0341c1fd06d94d44",
+        "cash": 3992,
+        "inventory": 0
+      },
+      {
+        "name": "restore",
+        "sha256": "d4dc5f99325148f881ea261ca4e2e55257a5a4733988c2d4e4095dfc2800c242",
+        "cash": 3992,
+        "inventory": 0
+      }
+    ],
+    "diplomacy": [
+      {
+        "name": "fresh",
+        "sha256": "e9e5d9156674702bdb00ef62aa472001f4158f038be1648cb5921392897d6989",
+        "cash": 0,
+        "inventory": 0
+      },
+      {
+        "name": "trade-start",
+        "sha256": "e71f0db465b11838a8fcb1696ba97c12d7b2da708a2f3fc839f957c287305dc7",
+        "cash": 46940,
+        "inventory": 0
+      },
+      {
+        "name": "world-60",
+        "sha256": "d6ca8e11a97ab4eb8bbfaaba2df4f248147f0c1a97ac04d86becea06bb26a147",
+        "cash": 46940,
+        "inventory": 0
+      },
+      {
+        "name": "world-120",
+        "sha256": "e08fcc482e8e551eedbe80dee37fc8511c1109e45b4fd62c6bc6f26421f53e25",
+        "cash": 46940,
+        "inventory": 0
+      },
+      {
+        "name": "world-180",
+        "sha256": "e8a923f46a856bba264b9f961428a738f9db53434f235c1622af085ecd3acf3c",
+        "cash": 46940,
+        "inventory": 0
+      },
+      {
+        "name": "restore",
+        "sha256": "3f12d28f9b3462ee6f51488f5da479dd3b8dda4e452f4002008b52dce5dd5610",
+        "cash": 46940,
+        "inventory": 0
+      }
+    ]
+  },
+  "endgame": {
+    "hegemony": {
+      "sha256": "e16190e747edb633ab64670ea610db5451292e2f78c1e2570b6b0bfff45799b1",
+      "victory": "hegemony",
+      "events": 3
+    },
+    "wonder": {
+      "sha256": "5ffee4686494ec3440941e2abbc79e5220fc573637b45b059f4880f90a07b88b",
+      "victory": "wonder",
+      "events": 3
+    },
+    "relics": {
+      "sha256": "5d0e037fa06bfdc5710fba8a5d432439bdda6db6642eb079c6925ddbc5d56c8a",
+      "victory": "relics",
+      "events": 3
+    },
+    "conquest": {
+      "sha256": "97c2b41bdc766e51362fdbfa1f6d7013b3d61f4c725e7cacaed73d895989179c",
+      "victory": "conquest",
+      "events": 1
+    }
+  }
+}

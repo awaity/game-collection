@@ -1,0 +1,65 @@
+[
+  {
+    "name": "forest",
+    "x": -8.4,
+    "z": 0,
+    "seconds": 5,
+    "sha256": "6bbdd2588004f4c3cb8da54f207df229ba7553e36a83e16b7b61e7864974c6f4"
+  },
+  {
+    "name": "hunt",
+    "x": 0,
+    "z": 8.6,
+    "seconds": 8,
+    "sha256": "b13ccd3d79f43baa35a8a7e1d30ea58acaf38605685b6235b33211cec2b06f9c"
+  },
+  {
+    "name": "fire",
+    "x": 1.65,
+    "z": 0.6,
+    "seconds": 7,
+    "sha256": "2cc2d8655ca81904d4bc01dd94f1b123e424f76f3852f25eb9401d7d9c1283af"
+  },
+  {
+    "name": "market",
+    "x": 0,
+    "z": -4.45,
+    "seconds": 6,
+    "sha256": "3b428c619c8ee8db3b1a76f5d5a10c565104142d6bb599a9913ddb9f6e88c2e7"
+  },
+  {
+    "name": "hire-wood",
+    "x": -4.85,
+    "z": 2.1,
+    "seconds": 4,
+    "sha256": "2f5d69b8be9213980ed6ba9e741afe593c928415243dda4f987589ab7365a641"
+  },
+  {
+    "name": "hire-raw",
+    "x": -0.15,
+    "z": 4.2,
+    "seconds": 4,
+    "sha256": "4de293e7461295e402b46e46c580782272b3bca10e62578d554eef28290d9f0d"
+  },
+  {
+    "name": "wood-belt",
+    "x": -3.45,
+    "z": -1.65,
+    "seconds": 4,
+    "sha256": "a7cd5e696538dcc86c5cc51d3b64a633cde21bb6f28d414b0d0f31e1a737a04c"
+  },
+  {
+    "name": "raw-belt",
+    "x": 3.3,
+    "z": 2.95,
+    "seconds": 4,
+    "sha256": "830cd6570768961ac5b45afeb82c1b7ff4996f19689979c30dd2face48ef9fef"
+  },
+  {
+    "name": "automation",
+    "x": 0,
+    "z": -4.45,
+    "seconds": 60,
+    "sha256": "27d92bfb2c10df9eda292ad62f7934de7aa897fa55c4d8f5361d65be19927d3e"
+  }
+]
