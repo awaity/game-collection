@@ -1,0 +1,5 @@
+export class Night{
+ phase:'ready'|'playing'|'paused'|'dead'='ready';x=0;z=0;hp=100;time=0;kills=0;xp=0;nextId=0;cooldown=0;enemies:{id:number;x:number;z:number;hp:number}[]=[];
+ start(){this.phase='playing'}pause(){if(this.phase==='playing')this.phase='paused'}resume(){if(this.phase==='paused')this.phase='playing'}
+ step(x=0,z=0){if(this.phase!=='playing')return;const dt=1/60;this.time+=dt;this.x+=x*dt*3;this.z+=z*dt*3;if(this.enemies.length<Math.min(12,Math.ceil(this.time/2))){const angle=this.nextId*2.4;this.enemies.push({id:this.nextId++,x:this.x+Math.cos(angle)*7,z:this.z+Math.sin(angle)*7,hp:3})}for(const e of this.enemies){const dx=this.x-e.x,dz=this.z-e.z,d=Math.hypot(dx,dz)||1;e.x+=dx/d*dt*.6;e.z+=dz/d*dt*.6;if(d<.6)this.hp-=dt*10}this.cooldown-=dt;if(this.cooldown<=0){this.cooldown=.35;const e=this.enemies.filter(e=>Math.hypot(e.x-this.x,e.z-this.z)<4).sort((a,b)=>Math.hypot(a.x-this.x,a.z-this.z)-Math.hypot(b.x-this.x,b.z-this.z))[0];if(e&&--e.hp<=0){this.enemies.splice(this.enemies.indexOf(e),1);this.kills++;this.xp++}}if(this.hp<=0)this.phase='dead'}
+}
