@@ -33,13 +33,22 @@ try {
   let ready = false;
   for (let i = 0; i < 80; i++) { if (server.exitCode !== null) throw new Error(serverError || `Preview exited with ${server.exitCode}`); try { if ((await fetch(base)).ok) { ready = true; break; } } catch { /* Wait for the local server. */ } await new Promise(resolve => setTimeout(resolve, 100)); }
   assert(ready, 'Production preview did not start');
-  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }, { width: 360, height: 640 }, { width: 844, height: 390 }]) {
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }, { width: 320, height: 568 }, { width: 844, height: 390 }]) {
     const mobile = viewport.width < 700 || viewport.height < 500, tag = `${viewport.width}x${viewport.height}`;
     const context = await browser.newContext({ viewport, deviceScaleFactor: mobile ? 2 : 1, isMobile: mobile, hasTouch: mobile });
     const page = await context.newPage(); page.on('pageerror', e => errors.push(`${tag}: ${e.message}`)); page.on('console', m => { if (m.type() === 'error') errors.push(`${tag}: ${m.text()}`); });
     await page.goto(`${base}/?qa=1`); await page.waitForSelector('[data-action="continue-level"]');
     await page.screenshot({ path: `${artifacts}/home-${tag}.png` }); await validateBounds(page);
-    for (const mode of ['levels', 'adventure', 'challenges', 'almanac']) { await click(page, mode); await validateBounds(page); if (viewport.width === 390) await page.screenshot({ path: `${artifacts}/${mode}-${tag}.png` }); await click(page, 'home'); }
+    for (const mode of ['levels', 'adventure', 'challenges', 'almanac']) {
+      await click(page, mode); await validateBounds(page);
+      if (viewport.width === 390) await page.screenshot({ path: `${artifacts}/${mode}-${tag}.png` });
+      if (mode === 'challenges' || mode === 'almanac') {
+        await click(page, mode === 'challenges' ? 'challenge-page:next' : 'almanac-page:next');await validateBounds(page);
+        await page.screenshot({path:`${artifacts}/${mode}-expanded-${tag}.png`});
+        if(mode==='almanac'){await click(page,'inspect:icebloom');await validateBounds(page);await click(page,'close');await click(page,'almanac:zombies');await click(page,'almanac-page:next');await validateBounds(page);await page.screenshot({path:`${artifacts}/zombies-expanded-${tag}.png`});}
+      }
+      await click(page, 'home');
+    }
     await click(page, 'continue-level'); await validateBounds(page); await click(page, 'start');
     if (mobile) { await page.locator('[data-action="cell:2:0"]').tap(); await page.locator('[data-action="seed:pea"]').tap(); await page.locator('[data-action="cell:2:2"]').tap(); }
     else { await click(page, 'seed:pea'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('Enter'); }
@@ -63,11 +72,19 @@ try {
       assert.deepEqual(await page.evaluate(() => window.__GARDEN__.view.save.adventure?.perks), ['damage']); await page.reload(); await click(page, 'adventure'); await click(page, 'adventure:continue'); assert.equal(await page.evaluate(() => window.__GARDEN__.view.brief?.id), '2'); await click(page, 'close'); await click(page, 'home');
       await click(page, 'challenges'); await click(page, 'challenge:drought'); await click(page, 'start'); assert.equal((await playToResult(page)).state, 'won'); await click(page, 'result:back');
       assert((await page.evaluate(() => window.__GARDEN__.view.save.challenges.drought.score)) > 0);
-      for (const id of ['rush', 'fortress', 'endless']) {
+      for (const id of ['rush', 'fortress', 'endless', 'frostfire', 'explosives', 'compact', 'harvest']) {
+        if(!(await page.locator(`[data-action="challenge:${id}"]`).count()))await click(page,'challenge-page:next');
         await click(page, `challenge:${id}`); await click(page, 'start'); const config = await page.evaluate(() => window.__GARDEN__.view.game!.config); assert.equal(config.id, id);
         await page.screenshot({ path: `${artifacts}/challenge-${id}.png` });
-        if (id === 'endless') { const endless = await playToResult(page, 200); assert(endless.wave >= 5); assert.notEqual(endless.state, 'won'); }
-        await click(page, 'pause'); await click(page, 'leave'); await click(page, 'leave:confirm'); await click(page, 'challenges');
+        if (id === 'endless') {
+          assert.equal(config.allowed.length,14);await click(page,'seeds:next');await validateBounds(page);await page.screenshot({path:`${artifacts}/all-plants-${tag}.png`});
+          await click(page,'seed:threepeater');await click(page,'cell:2:2');await click(page,'seeds:prev');await click(page,'seed:ice');await click(page,'cell:4:2');
+          await page.addScriptTag({content:strategy.outputFiles[0].text});
+          const frozen=await page.evaluate(()=>{const app=window.__GARDEN__;for(let n=0;n<1600&&app.view.screen==='playing';n++){window.GardenStrategy.defend(app.view.game!);app.advance(.1);if(app.view.game!.zombies.some(z=>z.freeze>.9&&z.x<8.5))return true;}return false;});
+          assert(frozen,'real ice projectile freezes a naturally spawned zombie');await page.screenshot({path:`${artifacts}/ice-freeze-${tag}.png`});
+          const endless = await playToResult(page, 400); assert(endless.wave >= 5); assert.notEqual(endless.state, 'won');
+        } else if(['frostfire','explosives','compact','harvest'].includes(id)) {assert.equal((await playToResult(page)).state,'won',id);await page.screenshot({path:`${artifacts}/result-${id}.png`});}
+        if(await page.evaluate(()=>window.__GARDEN__.view.screen==='playing')){await click(page,'pause');await click(page,'leave');await click(page,'leave:confirm');}else{await click(page,'result:back');await click(page,'home');}await click(page,'challenges');
       }
     }
     checks.push(`${tag}: rendered all menus, placed plants with ${mobile ? 'touch' : 'keyboard'}, collected sun, paused/resumed, won a battle, verified saved level unlocks`);
@@ -75,6 +92,6 @@ try {
   }
   const normal = await browser.newPage(); await normal.goto(base); assert.equal(await normal.evaluate(() => '__GARDEN__' in window), false); await normal.close();
   assert.deepEqual(errors, []);
-  await writeFile(`${artifacts}/web-verification.json`, JSON.stringify({ date: new Date().toISOString(), checks, errors, extra: ['Adventure upgrade and reload', 'Challenge start and result records', 'Endless wave progression', 'QA interface absent from normal URL'] }, null, 2));
+  await writeFile(`${artifacts}/web-verification.json`, JSON.stringify({ date: new Date().toISOString(), checks, errors, extra: ['Adventure upgrade and reload', 'Challenge start and result records', 'All 14 plants available in endless', 'Actual frozen-zombie screenshot', 'Seven finite challenge entries and four new victories', 'Expanded almanac and seed pages', 'Endless wave progression', 'QA interface absent from normal URL'] }, null, 2));
   console.log(checks.join('\n')); console.log('Browser checks passed; screenshots and report are in artifacts/.');
 } finally { await browser?.close(); server.kill('SIGTERM'); }

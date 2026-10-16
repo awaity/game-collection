@@ -10,7 +10,7 @@ export function boardLayout(v: Pick<View, 'w' | 'h' | 'safeTop' | 'safeBottom'>)
   const top = Math.max(14, v.safeTop + 8);
   const seedY = top + (portrait ? 91 : 54);
   const seedH = portrait ? (v.h < 720 ? 66 : 77) : (v.h < 500 ? 53 : 83);
-  const y = seedY + (portrait ? seedH * 2 + 22 : seedH + 23);
+  const y = seedY + (portrait ? seedH * 2 + 22 : seedH + 23) + 36;
   const maxW = Math.min(1080, v.w - (portrait ? 66 : 116));
   const h = Math.min(portrait ? 355 : 425, v.h - y - (portrait ? 127 : 81) - v.safeBottom);
   const w = Math.min(maxW, h * (portrait ? 1.42 : 2.55));
@@ -74,7 +74,7 @@ export class Renderer {
     label(ctx, '花园守卫', left + 43, top + 22, 16, C.ink, 800);
     this.iconButton('settings', 'gear', { x: v.w - left - 44, y: top, w: 44, h: 44 }, '设置');
     const totalStars = Object.values(v.save.levels).reduce((a, b) => a + b, 0);
-    star(ctx, v.w - left - 119, top + 21, 10); label(ctx, `${totalStars} / 36`, v.w - left - 101, top + 22, 13, C.ink, 700);
+    star(ctx, v.w - left - 119, top + 21, 10); label(ctx, `${totalStars} / ${LEVELS.length * 3}`, v.w - left - 101, top + 22, 13, C.ink, 700);
     if (mobile) {
       const compact = v.h < 740;
       label(ctx, '小小植物，大大守护。', 24, top + 89, compact ? 27 : 30, C.ink, 900, 'left', v.w - 40);
@@ -97,7 +97,7 @@ export class Renderer {
       gardenIllustration(ctx, { x: left + textW + 22, y: mid - 116, w: Math.min(710, v.w - left - textW - 26), h: Math.min(450, v.h * .63) }, v.save.settings.reducedMotion ? 0 : v.time);
       this.button('continue-level', Object.keys(v.save.levels).length ? `继续守卫  ·  第 ${unlockedLevel(v.save)} 关` : '开始守卫', { x: left, y: mid + 156, w: textW, h: 62 }, 'primary');
       this.modeCard('adventure', '冒险远征', '五场战斗，一路成长', 'sunflower', { x: left, y: mid + 238, w: (textW - 16) / 2, h: 102 });
-      this.modeCard('challenges', '挑战模式', '四种规则，等你挑战', 'cherry', { x: left + (textW + 16) / 2, y: mid + 238, w: (textW - 16) / 2, h: 102 });
+      this.modeCard('challenges', '挑战模式', '八种规则，全植物无尽', 'cherry', { x: left + (textW + 16) / 2, y: mid + 238, w: (textW - 16) / 2, h: 102 });
       const footY = Math.min(v.h - 74, mid + 375);
       this.button('levels', '关卡地图', { x: left, y: footY, w: 130, h: 44 });
       this.button('almanac', '植物与僵尸图鉴', { x: left + 146, y: footY, w: 170, h: 44 });
@@ -115,9 +115,9 @@ export class Renderer {
     const ctx = this.ctx, top = this.heading(v, '关卡地图'), mobile = v.w < 700;
     const x = Math.max(24, (v.w - 900) / 2), w = v.w - x * 2;
     label(ctx, CHAPTERS[v.chapter], v.w / 2, top + 92, 28, C.ink, 900, 'center');
-    label(ctx, `第 ${v.chapter + 1} 章 / 共 3 章`, v.w / 2, top + 128, 13, C.muted, 600, 'center');
+    label(ctx, `第 ${v.chapter + 1} 章 / 共 ${CHAPTERS.length} 章`, v.w / 2, top + 128, 13, C.muted, 600, 'center');
     this.button('chapter:prev', '上一章', { x, y: top + 80, w: 70, h: 44 }, 'light', v.chapter === 0);
-    this.button('chapter:next', '下一章', { x: x + w - 70, y: top + 80, w: 70, h: 44 }, 'light', v.chapter === 2);
+    this.button('chapter:next', '下一章', { x: x + w - 70, y: top + 80, w: 70, h: 44 }, 'light', v.chapter === CHAPTERS.length - 1);
     const mapY = top + 158, mapH = Math.min(410, v.h - mapY - 164 - v.safeBottom);
     box(ctx, { x, y: mapY, w, h: mapH }, v.chapter === 1 ? '#a4bfad' : '#cfdfac', 32, '#afc28f', 2);
     const points = mobile ? [[.2, .2], [.69, .38], [.28, .62], [.73, .81]] : [[.16, .64], [.38, .36], [.64, .6], [.85, .3]];
@@ -157,26 +157,27 @@ export class Renderer {
   private challenges(v: View) {
     const ctx = this.ctx, top = this.heading(v, '挑战模式', '换一种规则，试试你的花园战术。');
     const w = Math.min(v.w - 40, 740), x = (v.w - w) / 2, start = top + 105;
-    const h = Math.min(120, (v.h - start - 56 - v.safeBottom) / 4 - 14);
-    CHALLENGES.forEach((c, i) => {
+    const h = Math.min(120, (v.h - start - 104 - v.safeBottom) / 4 - 14);
+    CHALLENGES.slice(v.challengePage * 4, v.challengePage * 4 + 4).forEach((c, i) => {
       const y = start + i * (h + 14), best = v.save.challenges[c.id];
       box(ctx, { x, y: y + 3, w, h }, '#b1c299', 17); box(ctx, { x, y, w, h }, C.paper, 17, '#bfccaa', 1.5);
       ellipse(ctx, x + 47, y + h / 2, 33, 33, ['#ede3b2', '#d3e5dd', '#e9d7b2', '#d4dfbb'][i]);
       drawPlant(ctx, c.plant, x + 47, y + h / 2 + 3, 57);
       label(ctx, c.name, x + 92, y + h * .29, 19, C.ink, 800);
       label(ctx, c.subtitle, x + 92, y + h * .56, 12, C.muted, 500, 'left', w - 126);
-      label(ctx, best ? c.id === 'endless' ? `最高 ${best.wave} 波 · ${best.score} 分` : `最佳 ${best.score} 分 · 通关 ${best.wins} 次` : '尚未挑战', x + 92, y + h * .8, 11, '#8c7652', 600, 'left', w - 128);
+      label(ctx, best ? c.id === 'endless' ? `已完成 ${best.cleared ?? 0} 波 · ${best.score} 分` : `最佳 ${best.score} 分 · 通关 ${best.wins} 次` : '尚未挑战', x + 92, y + h * .8, 11, '#8c7652', 600, 'left', w - 128);
       arrow(ctx, x + w - 20, y + h / 2, 7);
       this.hit(`challenge:${c.id}`, { x, y, w, h }, `${c.name}，${c.description}`);
     });
+    this.pager(v, 'challenge-page', v.challengePage, Math.ceil(CHALLENGES.length / 4));
   }
   private almanac(v: View) {
     const ctx = this.ctx, top = this.heading(v, '花园图鉴'), mobile = v.w < 700;
     const w = Math.min(v.w - 40, 960), x = (v.w - w) / 2;
     this.button('almanac:plants', '植物伙伴', { x: v.w / 2 - 150, y: top + 65, w: 142, h: 44 }, v.almanac === 'plants' ? 'dark' : 'light');
     this.button('almanac:zombies', '僵尸来客', { x: v.w / 2 + 8, y: top + 65, w: 142, h: 44 }, v.almanac === 'zombies' ? 'dark' : 'light');
-    const keys = v.almanac === 'plants' ? PLANT_ORDER : Object.keys(ZOMBIES) as ZombieKind[], cols = mobile ? 2 : 4, rows = Math.ceil(keys.length / cols);
-    const cw = (w - (cols - 1) * 12) / cols, h = Math.min(mobile ? 124 : 185, (v.h - top - 180 - v.safeBottom) / rows - 12);
+    const all = v.almanac === 'plants' ? PLANT_ORDER : Object.keys(ZOMBIES) as ZombieKind[], keys = all.slice(v.almanacPage * 8, v.almanacPage * 8 + 8), cols = mobile ? 2 : 4, rows = 8 / cols;
+    const cw = (w - (cols - 1) * 12) / cols, h = Math.min(mobile ? 124 : 185, (v.h - top - 230 - v.safeBottom) / rows - 12);
     keys.forEach((k, i) => {
       const xx = x + (i % cols) * (cw + 12), yy = top + 137 + Math.floor(i / cols) * (h + 12);
       box(ctx, { x: xx, y: yy, w: cw, h }, C.paper, 15, '#bfccaa', 1.5);
@@ -187,6 +188,13 @@ export class Renderer {
       label(ctx, v.almanac === 'plants' ? `${PLANTS[k as PlantKind].cost} 阳光 · ${PLANTS[k as PlantKind].role}` : `${ZOMBIES[k as ZombieKind].hp} 生命`, xx + cw / 2, yy + h * .91, 11, C.muted, 500, 'center', cw - 12);
       this.hit(`inspect:${k}`, { x: xx, y: yy, w: cw, h }, `${info.name}，查看详细介绍`);
     });
+    this.pager(v, 'almanac-page', v.almanacPage, Math.ceil(all.length / 8));
+  }
+  private pager(v: View, id: string, page: number, pages: number) {
+    const y = v.h - v.safeBottom - 61, w = Math.min(400, v.w - 48), x = (v.w - w) / 2;
+    this.button(`${id}:prev`, '上一页', {x,y,w:86,h:44}, 'light', page === 0);
+    label(this.ctx, `${page + 1} / ${pages}`, v.w / 2, y + 22, 14, C.ink, 700, 'center');
+    this.button(`${id}:next`, '下一页', {x:x+w-86,y,w:86,h:44}, 'light', page === pages - 1);
   }
   private battle(v: View) {
     if (!v.game) return;
@@ -200,8 +208,8 @@ export class Renderer {
     if (mobile) { box(ctx, { x: left + 130, y: top + 17, w: v.w - left * 2 - 194, h: 10 }, night ? '#35554b' : '#bfce9f', 5); box(ctx, { x: left + 130, y: top + 17, w: (v.w - left * 2 - 194) * g.progress, h: 10 }, C.sun, 5); }
     const rackY = top + (mobile ? 91 : 54), cardH = mobile ? (v.h < 720 ? 66 : 77) : (v.h < 500 ? 53 : 83), cols = mobile ? 4 : 8;
     const rackW = Math.min(v.w - 32, 1060), cardW = (rackW - (cols - 1) * 7) / cols, rackX = (v.w - rackW) / 2;
-    for (let i = 0; i < 8; i++) {
-      const k = PLANT_ORDER[i], info = PLANTS[k], x = rackX + i % cols * (cardW + 7), y = rackY + Math.floor(i / cols) * (cardH + 7), usable = g.config.allowed.includes(k), selected = v.selected === k && !v.shovel;
+    for (let i = 0; i < Math.min(8, PLANT_ORDER.length - v.seedPage * 8); i++) {
+      const k = PLANT_ORDER[v.seedPage * 8 + i], info = PLANTS[k], x = rackX + i % cols * (cardW + 7), y = rackY + Math.floor(i / cols) * (cardH + 7), usable = g.config.allowed.includes(k), selected = v.selected === k && !v.shovel;
       box(ctx, { x, y: y + 3, w: cardW, h: cardH }, selected ? '#b99540' : '#8eab79', 9);
       box(ctx, { x, y, w: cardW, h: cardH }, selected ? '#fff0b5' : usable ? C.paper : '#bdcbb0', 9, selected ? '#d4aa39' : '#96ad7f', selected ? 2.5 : 1.5);
       if (usable) {
@@ -212,13 +220,20 @@ export class Renderer {
         this.hit(`seed:${k}`, { x, y, w: cardW, h: cardH }, `${info.name}，${info.cost} 阳光，${info.role}${g.cooldowns[k] > 0 ? '，冷却中' : ''}`);
       } else { icon(ctx, 'lock', x + cardW / 2, y + cardH * .4, 17, '#7e9272'); label(ctx, '未携带', x + cardW / 2, y + cardH - 12, 11, '#6d8264', 500, 'center'); }
     }
+    const pageY = rackY + (mobile ? cardH * 2 + 7 : cardH) + 5;
+    this.button('seeds:prev', '上一袋 Q', {x:rackX,y:pageY,w:86,h:32}, 'light', v.seedPage === 0);
+    const bagPages = Math.ceil(PLANT_ORDER.length / 8);
+    const bagSummary = v.w < 360 ? `${v.seedPage + 1}/${bagPages} · ${g.config.allowed.length} 种` : `${v.seedPage + 1} / ${bagPages} 袋 · 可用 ${g.config.allowed.length} 种`;
+    label(ctx, bagSummary, v.w / 2, pageY + 16, 12, night ? C.paper : C.ink, 700, 'center', rackW - 188);
+    this.button('seeds:next', '下一袋 E', {x:rackX+rackW-86,y:pageY,w:86,h:32}, 'light', v.seedPage === Math.ceil(PLANT_ORDER.length / 8) - 1);
     drawBoard(ctx, g, b, v.time, v.cursor, v.shovel ? 'shovel' : v.selected, v.save.settings.reducedMotion);
     for (let row = 0; row < 5; row++) for (let col = 0; col < 9; col++) {
       const plant = g.plants.find(p => p.row === row && p.col === col);
       this.hit(`cell:${row}:${col}`, { x: b.x + col * b.cw, y: b.y + row * b.rh, w: b.cw, h: b.rh }, `第 ${row + 1} 行第 ${col + 1} 列，${plant ? PLANTS[plant.kind].name : '空地'}`);
     }
     for (const s of g.suns) this.hit(`sun:${s.id}`, { x: b.x + s.x * b.cw - 22, y: b.y + (s.y + .4) * b.rh - 22, w: 44, h: 44 }, `收集 ${s.value} 阳光`);
-    const toolY = b.y + b.h + 26, toolW = mobile ? (v.w - 48) / 3 : 116, toolX = mobile ? 16 : b.x;
+    label(ctx, g.waveNotice, v.w / 2, b.y + b.h + 23, 11, night ? '#d5e7d0' : C.ink, 600, 'center', v.w - 30);
+    const toolY = b.y + b.h + 34, toolW = mobile ? (v.w - 48) / 3 : 116, toolX = mobile ? 16 : b.x;
     this.button('shovel', v.shovel ? '取消铲除' : '铲子', { x: toolX, y: toolY, w: toolW, h: 44 }, v.shovel ? 'primary' : 'light');
     this.button('speed', `${v.speed}× 速度`, { x: toolX + toolW + 8, y: toolY, w: toolW, h: 44 });
     this.button('help', '玩法提示', { x: toolX + (toolW + 8) * 2, y: toolY, w: toolW, h: 44 });
@@ -242,9 +257,9 @@ export class Renderer {
     label(ctx, won ? '花园守住了！' : endless ? '又守住了一段时光' : '僵尸闯进了花园', v.w / 2, r.y + 146, 26, C.ink, 900, 'center', r.w - 34);
     label(ctx, won ? g.config.mode === 'adventure' && Number(g.config.id) === 5 ? '五处花园，全部守护成功' : '每一株植物，都是小小的英雄。' : '调整植物搭配，再试一次吧。', v.w / 2, r.y + 183, 13, C.muted, 500, 'center', r.w - 30);
     if (won) for (let i = 0; i < 3; i++) star(ctx, v.w / 2 - 40 + i * 40, r.y + 230, 17, i < g.stars);
-    else label(ctx, `${g.wave} 波进攻 · 坚守 ${Math.floor(g.elapsed / 60)} 分 ${Math.floor(g.elapsed % 60)} 秒`, v.w / 2, r.y + 230, 16, C.ink, 700, 'center');
+    else label(ctx, `${endless ? g.clearedWaves + ' 波完成' : g.wave + ' 波进攻'} · 坚守 ${Math.floor(g.elapsed / 60)} 分 ${Math.floor(g.elapsed % 60)} 秒`, v.w / 2, r.y + 230, 16, C.ink, 700, 'center');
     label(ctx, `击退 ${g.kills} 只僵尸     得分 ${g.score}`, v.w / 2, r.y + 279, 16, C.ink, 700, 'center');
-    const next = won && (g.config.mode === 'levels' && Number(g.config.id) < 12 || g.config.mode === 'adventure' && Number(g.config.id) < 5);
+    const next = won && (g.config.mode === 'levels' && Number(g.config.id) < LEVELS.length || g.config.mode === 'adventure' && Number(g.config.id) < 5);
     this.button(next ? 'next' : 'retry', next ? g.config.mode === 'adventure' ? '选择升级，继续冒险' : '下一关' : '再玩一次', { x: r.x + 25, y: r.y + 329, w: r.w - 50, h: 54 }, 'primary');
     this.button('result:back', g.config.mode === 'levels' ? '返回地图' : g.config.mode === 'adventure' ? '返回冒险' : '返回挑战', { x: r.x + 25, y: r.y + 402, w: r.w - 50, h: 48 });
   }
@@ -272,8 +287,8 @@ export class Renderer {
       sunIcon(ctx, r.x + 48, r.y + 240, 11); label(ctx, `${g.startSun} 初始阳光`, r.x + 68, r.y + 240, 14, C.ink, 700);
       label(ctx, g.endless ? '无尽波次' : `${g.waves} 波进攻`, r.x + r.w - 40, r.y + 240, 14, C.ink, 700, 'right');
       label(ctx, '本场种子袋', r.x + 26, r.y + 296, 14, C.ink, 700);
-      const sw = (r.w - 52) / g.allowed.length;
-      g.allowed.forEach((p, i) => { drawPlant(ctx, p, r.x + 26 + (i + .5) * sw, r.y + 341, Math.min(47, sw + 4)); label(ctx, String(PLANTS[p].cost), r.x + 26 + (i + .5) * sw, r.y + 374, 11, C.muted, 600, 'center'); });
+      const cols = Math.min(7, g.allowed.length), sw = (r.w - 52) / cols;
+      g.allowed.forEach((p, i) => { const x = r.x + 26 + (i % cols + .5) * sw, y = r.y + 326 + Math.floor(i / cols) * 43; drawPlant(ctx, p, x, y, Math.min(32, sw)); label(ctx, String(PLANTS[p].cost), x, y + 19, 10, C.muted, 600, 'center'); });
       this.button('start', '开始种植', { x: r.x + 24, y: r.y + 412, w: r.w - 48, h: 54 }, 'primary');
       this.button('close', '返回', { x: v.w / 2 - 48, y: r.y + 482, w: 96, h: 40 });
     } else if (v.modal === 'settings') {
@@ -290,7 +305,7 @@ export class Renderer {
     } else if (v.modal === 'help') {
       const r = this.veil(v, 510);
       label(ctx, '让花园生长起来', v.w / 2, r.y + 43, 24, C.ink, 800, 'center');
-      const tips = ['点种子卡，再点空地种植。每一行都要有攻击植物。', '点金色阳光收集；也可以点左上角阳光数，一次收集全部。', '向日葵生产阳光，坚果挡住僵尸。夜晚没有天降阳光。', '铲子移除植物但不返还阳光。割草机每行只能使用一次。', '电脑：1–8 选植物，方向键选格，回车种植；S 收阳光，X 铲子，空格暂停。'];
+      const tips = ['点种子卡，再点空地种植。每一行都要有攻击植物。', '点金色阳光收集；也可以点左上角阳光数，一次收集全部。', '向日葵生产阳光，坚果挡住僵尸。夜晚没有天降阳光。', '铲子移除植物但不返还阳光。割草机每行只能使用一次。', '电脑：Q / E 翻袋，1–8 选当前袋，方向键选格，回车种植；S 收阳光，X 铲子，空格暂停。'];
       let y = r.y + 98;
       tips.forEach((t, i) => { ellipse(ctx, r.x + 30, y, 4, 4, '#7da653'); y += wrap(ctx, t, r.x + 44, y, r.w - 70, 13, C.muted, 22, 3) + (i === 4 ? 0 : 13); });
       this.button('close', '我知道了', { x: r.x + 26, y: r.y + r.h - 77, w: r.w - 52, h: 52 }, 'primary');

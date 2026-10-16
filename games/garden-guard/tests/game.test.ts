@@ -28,7 +28,7 @@ test('sun must be collected, expires, and production follows night and drought r
   const expiry = new Game({ ...levelConfig(1), skySun: false }); expiry.suns.push({ id: 999, x: 2, y: 2, target: 2, value: 25, age: 15.9 }); expiry.update(.2); assert.equal(expiry.suns.length, 0);
 });
 
-const zombie = (row = 0, x = 6, hp = 165, kind: 'walker' | 'paper' = 'walker') => ({ id: 1000 + row, kind, row, x, hp, maxHp: hp, slow: 0, flash: 0, age: 0, eating: false });
+const zombie = (row = 0, x = 6, hp = 165, kind: 'walker' | 'paper' = 'walker') => ({ id: 1000 + row, kind, row, x, hp, maxHp: hp, slow: 0, flash: 0, age: 0, eating: false, freeze: 0, thaw: 0, ability: 10, summons: 0, vaulted: false });
 test('projectiles hit the nearest enemy in their lane; ice applies a temporary slow', () => {
   const g = new Game({ ...levelConfig(8), startSun: 2000 });
   g.plant('ice', 0, 0); g.zombies = [zombie(0, 4), { ...zombie(0, 6), id: 2000 }, zombie(1, 4)];
@@ -69,7 +69,7 @@ test('save parsing rejects damage, unlocks only contiguous wins and preserves be
   s.adventure = { round: 1, perks: [], seed: 1, awaitingPerk: true }; assert.deepEqual(parseSave(JSON.stringify(s)), s);
 });
 
-test('all twelve levels are winnable through legal placement and resource collection', t => {
+test('all sixteen levels are winnable through legal placement and resource collection', t => {
   for (const l of LEVELS) {
     const g = play(new Game(levelConfig(l.id)));
     t.diagnostic(`Level ${l.id}: ${g.state}, ${g.stars} stars, ${g.kills} kills, ${Math.round(g.elapsed)} seconds`);
@@ -95,5 +95,5 @@ test('finite challenges are winnable and endless progresses beyond finite wave c
   const endless = play(new Game(challengeConfig('endless')), 400);
   assert(endless.wave > 4); assert.notEqual(endless.state, 'won');
   assert(endless.zombies.length <= 80); assert(endless.projectiles.length <= 160); assert(endless.suns.length <= 36);
-  assert.equal(new Set(PLANT_ORDER).size, 8);
+  assert.equal(new Set(PLANT_ORDER).size, 14);
 });

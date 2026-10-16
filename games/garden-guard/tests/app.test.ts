@@ -45,11 +45,14 @@ test('every screen and modal keeps its controls inside supported mobile and desk
     const check = (screen: string) => { for (const hit of app.hits) assert(hit.x >= -1 && hit.y >= -1 && hit.x + hit.w <= app.view.w + 1 && hit.y + hit.h <= app.view.h + 1, `${w}x${h} ${screen}: ${hit.id} out of bounds (${hit.x},${hit.y},${hit.w},${hit.h}) in ${app.view.w}x${app.view.h}`); };
     for (const screen of ['home', 'levels', 'adventure', 'challenges', 'almanac']) {
       app.action(screen); check(screen);
+      if(screen==='challenges'){app.action('challenge-page:next');check('expanded challenges');}
+      if(screen==='almanac'){app.action('almanac-page:next');check('expanded plants');app.action('almanac:zombies');app.action('almanac-page:next');check('expanded zombies');}
       if (screen === 'home') for (const a of app.hits) for (const b of app.hits) if (a !== b) assert(!(a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y), `${w}x${h} safe area: ${a.id} overlaps ${b.id}`);
     }
     app.action('adventure:continue'); check('adventure brief'); app.action('close');
     app.view.save.adventure = { round: 1, perks: [], seed: 123, awaitingPerk: true }; app.action('adventure:continue'); check('perks');
     app.action('home'); app.action('continue-level'); check('brief'); app.action('start'); check('battle');
+    app.action('seeds:next');check('expanded seed bag');app.action('seeds:prev');
     const b = boardLayout(app.view); assert(b.w > 0 && b.h > 0);
     for (const modal of ['pause', 'settings', 'help'] as const) { app.view.modal = modal; app.render(); check(modal); }
     app.view.game!.state = 'lost'; app.view.screen = 'result'; app.view.modal = null; app.render(); check('result');

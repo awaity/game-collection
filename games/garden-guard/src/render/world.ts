@@ -1,6 +1,6 @@
 import type { Biome } from '../core/content';
 import type { Game } from '../core/game';
-import { drawMower, drawPlant, drawZombie } from './actors';
+import { drawIceBlock, drawMower, drawPlant, drawZombie } from './actors';
 import { C, box, ellipse, label, line, path, round, sunIcon, type Ctx, type Rect } from './draw';
 
 export function background(ctx: Ctx, w: number, h: number, night = false) {
@@ -88,10 +88,26 @@ export function drawBoard(ctx: Ctx, game: Game, b: BoardLayout, time: number, cu
     ctx.save(); ctx.beginPath(); ctx.rect(b.x - b.cw, b.y - b.rh, b.w + b.cw + 12, b.h + b.rh); ctx.clip();
     for (const z of game.zombies.filter(z => z.row === row).sort((a, b) => b.x - a.x)) {
       const size = Math.min(b.cw * (z.kind === 'giant' ? 1.6 : 1.3), b.rh * (z.kind === 'giant' ? 1.15 : 1.05));
-      drawZombie(ctx, z.kind, b.x + z.x * b.cw, cy, size, reducedMotion ? 0 : z.age, z.hp / z.maxHp, z.slow > 0);
-      if (z.kind === 'giant' || z.kind === 'bucket') { box(ctx, { x: b.x + z.x * b.cw - 14, y: cy - size * .64, w: 28, h: 3 }, '#6e7351', 2); box(ctx, { x: b.x + z.x * b.cw - 14, y: cy - size * .64, w: 28 * z.hp / z.maxHp, h: 3 }, '#eab774', 2); }
+      drawZombie(ctx, z.kind, b.x + z.x * b.cw, cy, size, reducedMotion ? 0 : z.age, z.hp / z.maxHp, z.slow > 0, z.vaulted);
+      if (z.freeze > 0) drawIceBlock(ctx, b.x + z.x * b.cw, cy, size, z.freeze < .45);
+      if (['giant', 'bucket', 'shield', 'frost', 'medic'].includes(z.kind)) { box(ctx, { x: b.x + z.x * b.cw - 14, y: cy - size * .76, w: 28, h: 3 }, '#6e7351', 2); box(ctx, { x: b.x + z.x * b.cw - 14, y: cy - size * .76, w: 28 * z.hp / z.maxHp, h: 3 }, z.freeze > 0 ? '#c8f7ff' : '#eab774', 2); }
     }
-    for (const shot of game.projectiles.filter(p => p.row === row)) { const x = b.x + shot.x * b.cw; ellipse(ctx, x, cy - b.rh * .13, shot.spore ? 3 : 4.8, shot.spore ? 3 : 4.5, shot.ice ? '#bdeff1' : shot.spore ? '#e4c9e9' : '#d0e991', shot.ice ? '#71b8c7' : '#638f3f', 1.5); }
+    for (const shot of game.projectiles.filter(p => p.row === row)) {
+      const x = b.x + shot.x * b.cw, y = cy - b.rh * .13;
+      if (shot.type === 'corn') {
+        const lift = Math.sin(Math.min(1, (shot.age ?? 0) / shot.duration!) * Math.PI) * b.rh * 1.25;
+        ellipse(ctx,x,cy+b.rh*.3,5,2,'rgba(32,67,35,.2)');ellipse(ctx,x,y-lift,6,7,'#ffe493','#a58938',1.5);line(ctx,[x-2,y-lift-3,x+2,y-lift+3],'#fff4ca',2);
+      } else if (shot.type === 'leaf') {
+        ctx.save();ctx.translate(x,y);ctx.rotate(reducedMotion ? 0 : shot.x * (shot.returning ? -5 : 5));
+        path(ctx,[-9,5,-3,-8,10,-6,6,0,0,-1,-4,7],'#c0e5a6','#477d63',1.5);ctx.restore();
+      } else if (shot.type === 'fire') {
+        path(ctx,[x-17,y-2,x-10,y-6,x-6,y-8,x+5,y-5,x+8,y,x+3,y+5,x-10,y+5,x-7,y+1], '#ed8652');
+        ellipse(ctx,x,y,5.5,4.5,'#ffe994','#b86a38',1);
+      } else {
+        if (shot.ice) line(ctx,[x-12,y,x-5,y],'rgba(184,239,249,.65)',3);
+        ellipse(ctx, x, y, shot.spore ? 3 : 4.8, shot.spore ? 3 : 4.5, shot.ice ? '#d8faff' : shot.spore ? '#e4c9e9' : '#d0e991', shot.ice ? '#71b8c7' : '#638f3f', 1.5);
+      }
+    }
     ctx.restore();
   }
   if (game.config.biome === 'fog') {
@@ -100,7 +116,21 @@ export function drawBoard(ctx: Ctx, game: Game, b: BoardLayout, time: number, cu
   for (const fx of game.effects) {
     const x = b.x + fx.x * b.cw, y = b.y + (fx.row + .5) * b.rh, phase = 1 - fx.life / fx.max;
     ctx.save(); ctx.globalAlpha = fx.life / fx.max;
-    if (fx.kind === 'boom') { ellipse(ctx, x, y, (phase * 1.3 + .3) * b.cw, (phase * 1.2 + .3) * b.rh, '#f9d571'); ellipse(ctx, x, y, phase * b.cw * .7, phase * b.rh * .7, '#fff1b0'); }
+    if (fx.kind === 'lightning') {
+      const tx=b.x+fx.toX!*b.cw,ty=b.y+(fx.toRow!+.5)*b.rh,points=[x,y];
+      for(let i=1;i<6;i++)points.push(x+(tx-x)*i/6, y+(ty-y)*i/6+(reducedMotion?0:(i%2?1:-1)*7));points.push(tx,ty);
+      line(ctx,points,'#9b7dc9',6);line(ctx,points,'#eff3ff',2);
+    } else if (fx.kind === 'freeze') {
+      ctx.strokeStyle='#d9faff';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y,b.cw*(.25+phase*.55),b.rh*(.35+phase*.5),0,0,Math.PI*2);ctx.stroke();
+      if(!reducedMotion)for(let i=0;i<6;i++){const xx=x+Math.cos(i*Math.PI/3)*phase*b.cw,yy=y+Math.sin(i*Math.PI/3)*phase*b.rh;line(ctx,[xx-3,yy,xx+3,yy],'#edffff',1.8);line(ctx,[xx,yy-3,xx,yy+3],'#edffff',1.8);}
+    } else if (fx.kind === 'shatter') {
+      if(!reducedMotion)for(let i=0;i<7;i++){const xx=x+Math.cos(i*.9)*phase*b.cw,yy=y+Math.sin(i*.9)*phase*b.rh;path(ctx,[xx-4,yy+3,xx,yy-6,xx+5,yy+1],'#c5f2ff','#83b9ce',1);}
+    } else if (fx.kind === 'fire') {
+      for(let i=0;i<3;i++){const xx=x+(i-1)*8;path(ctx,[xx-7,y+8,xx-9,y-5,xx-1,y-17-phase*12,xx+2,y-5,xx+8,y-9,xx+7,y+7],'#ee9b62');}
+      ellipse(ctx,x,y,6,9,'#ffec9c');
+    } else if (fx.kind === 'heal') {line(ctx,[x,y-13-phase*12,x,y+1-phase*12],'#d9f2b5',4);line(ctx,[x-7,y-6-phase*12,x+7,y-6-phase*12],'#d9f2b5',4);}
+    else if (fx.kind === 'vault') {if(!reducedMotion)line(ctx,[x-15,y+6,x,y-22,x+15,y-1],'#f4dfa4',3);}
+    else if (fx.kind === 'boom') { const radius=fx.value??1;ellipse(ctx, x, y, (phase * 1.3 + .3) * b.cw * radius, (phase * 1.2 + .3) * b.rh * radius, '#f9d571'); ellipse(ctx, x, y, phase * b.cw * .7 * radius, phase * b.rh * .7 * radius, '#fff1b0'); }
     else if (fx.kind === 'sun') label(ctx, `+${fx.value}`, x, y - phase * 28, 19, '#fff0a0', 800, 'center');
     else if (!reducedMotion) for (let i = 0; i < 5; i++) ellipse(ctx, x + Math.cos(i * 1.3) * phase * 22, y + Math.sin(i * 1.3) * phase * 18, 3, 2, fx.kind === 'hit' ? '#e0f1a0' : '#cae18e');
     ctx.restore();

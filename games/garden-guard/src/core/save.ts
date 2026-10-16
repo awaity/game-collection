@@ -1,9 +1,9 @@
-import { CHALLENGES, PERKS, type PerkId } from './content';
+import { CHALLENGES, LEVELS, PERKS, type PerkId } from './content';
 import type { Game } from './game';
 export const SAVE_KEY = 'garden-guard.save.v1';
 export interface Adventure { round: number; perks: PerkId[]; seed: number; awaitingPerk: boolean }
 export interface Save {
-  version: 1; levels: Record<string, number>; challenges: Record<string, { score: number; wave: number; wins: number }>;
+  version: 1; levels: Record<string, number>; challenges: Record<string, { score: number; wave: number; cleared: number; wins: number }>;
   adventure: Adventure | null; adventuresWon: number;
   settings: { sound: boolean; autoSun: boolean; reducedMotion: boolean };
   totalKills: number;
@@ -15,8 +15,8 @@ export function parseSave(raw: unknown): Save {
   try {
     const v = typeof raw === 'string' ? JSON.parse(raw) : raw;
     if (!v || v.version !== 1) return save;
-    for (let id = 1; id <= 12; id++) { const stars = integer(v.levels?.[String(id)], 3); if (stars) save.levels[String(id)] = stars; }
-    for (const c of CHALLENGES) if (v.challenges?.[c.id]) { const s = v.challenges[c.id]; save.challenges[c.id] = { score: integer(s.score), wave: integer(s.wave), wins: integer(s.wins) }; }
+    for (let id = 1; id <= LEVELS.length; id++) { const stars = integer(v.levels?.[String(id)], 3); if (stars) save.levels[String(id)] = stars; }
+    for (const c of CHALLENGES) if (v.challenges?.[c.id]) { const s = v.challenges[c.id]; save.challenges[c.id] = { score: integer(s.score), wave: integer(s.wave), cleared: integer(s.cleared), wins: integer(s.wins) }; }
     for (const k of ['sound', 'autoSun', 'reducedMotion'] as const) if (typeof v.settings?.[k] === 'boolean') save.settings[k] = v.settings[k];
     save.totalKills = integer(v.totalKills);
     save.adventuresWon = integer(v.adventuresWon);
@@ -27,16 +27,16 @@ export function parseSave(raw: unknown): Save {
 }
 export function unlockedLevel(save: Save): number {
   let next = 1;
-  while (next <= 12 && save.levels[String(next)]) next++;
-  return Math.min(12, next);
+  while (next <= LEVELS.length && save.levels[String(next)]) next++;
+  return Math.min(LEVELS.length, next);
 }
 export function recordResult(save: Save, game: Game): void {
   save.totalKills += game.kills;
   const { mode, id } = game.config;
   if (mode === 'levels' && game.state === 'won') save.levels[id] = Math.max(save.levels[id] ?? 0, game.stars);
   if (mode === 'challenge') {
-    const old = save.challenges[id] ?? { score: 0, wave: 0, wins: 0 };
-    save.challenges[id] = { score: Math.max(old.score, game.score), wave: Math.max(old.wave, game.wave), wins: old.wins + (game.state === 'won' ? 1 : 0) };
+    const old = save.challenges[id] ?? { score: 0, wave: 0, cleared: 0, wins: 0 };
+    save.challenges[id] = { score: Math.max(old.score, game.score), wave: Math.max(old.wave, game.wave), cleared: Math.max(old.cleared ?? 0, game.clearedWaves), wins: old.wins + (game.state === 'won' ? 1 : 0) };
   }
   if (mode === 'adventure' && game.state === 'won' && save.adventure) {
     if (save.adventure.round === 5) { save.adventuresWon++; save.adventure = null; }
