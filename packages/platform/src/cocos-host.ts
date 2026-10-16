@@ -2,6 +2,7 @@ import { reportGameState, type CollectionState } from './web-state';
 
 /** Creator supplies its own canvas, storage and lifecycle on each platform. */
 export interface CocosHost {
+  browser: boolean;
   storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>;
   onHide(callback: () => void): () => void;
 }
@@ -19,7 +20,7 @@ export function createCocosPlatform(host: CocosHost, key: string) {
     onHide: host.onHide,
     state(state: CollectionState) {
       // Native builds never construct a DOM or embed the Web portal.
-      if (typeof document !== 'undefined' && typeof CustomEvent !== 'undefined') reportGameState(state);
+      if (host.browser) reportGameState(state);
     },
   };
 }

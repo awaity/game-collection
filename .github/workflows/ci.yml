@@ -15,8 +15,8 @@ concurrency:
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+    runs-on: windows-latest
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,7 +25,13 @@ jobs:
           node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium
+      - name: 缓存经过校验的官方 Creator 压缩包
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/game-collection-toolchain
+          key: creator-windows-${{ hashFiles('toolchains/cocos.json') }}
+      - run: pnpm cocos:install
+      - run: pnpm exec playwright install chromium
       - run: pnpm check
       - name: 保存完整站点
         uses: actions/upload-artifact@v4

@@ -2,11 +2,11 @@ import { execFileSync } from "node:child_process";
 import { cp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { root, siteDir, base, readCatalog } from "./site-config.mjs";
+import { runPnpm } from './pnpm.mjs';
 
 const { games, targets } = await readCatalog();
-const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const run = (workspace) =>
-  execFileSync(pnpm, ["--filter", workspace, "build"], {
+  runPnpm(["--filter", workspace, "build"], {
     cwd: root,
     stdio: "inherit",
   });

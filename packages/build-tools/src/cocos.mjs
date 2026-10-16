@@ -67,7 +67,7 @@ async function files(dir, prefix = '') {
 
 async function fingerprint(project, target, appId) {
   const h = createHash('sha256').update(JSON.stringify({ toolchain, target, appId }));
-  for (const dir of [path.join(project, 'assets'), path.join(project, 'settings'), path.join(project, 'build-templates'), path.join(root, 'packages/cocos-runtime/src'), path.join(root, 'packages/platform/src')]) {
+  for (const dir of [path.join(project, 'assets'), path.join(project, 'settings'), path.join(project, 'build-templates'), path.join(root, 'packages/cocos-runtime/src'), path.join(root, 'packages/cocos-runtime/assets'), path.join(root, 'packages/platform/src')]) {
     for (const file of await files(dir)) {
       if (file.startsWith('collection/')) continue;
       h.update(path.basename(dir) + '/' + file).update(await readFile(path.join(dir, file)));
@@ -116,8 +116,9 @@ export async function buildCocos(project, target = 'web') {
   // Stage workspace modules as Creator assets. No npm installation inside Creator projects.
   await mkdir(path.join(stage, 'assets/collection/platform'), { recursive: true });
   await copy(path.join(root, 'packages/cocos-runtime/src'), path.join(stage, 'assets/collection'));
-  for (const name of ['cocos-host.ts', 'web-state.ts']) await copy(path.join(root, 'packages/platform/src', name), path.join(stage, 'assets/collection/platform', name));
+  for (const name of ['cocos-host.ts', 'cocos-services.ts', 'web-state.ts']) await copy(path.join(root, 'packages/platform/src', name), path.join(stage, 'assets/collection/platform', name));
   await stableScriptMetadata(path.join(stage, 'assets/collection'), `${slug}/collection`);
+  await copy(path.join(root, 'packages/cocos-runtime/assets'), path.join(stage, 'assets/resources/collection'));
   await writeFile(path.join(stage, 'package.json'), JSON.stringify({ name: slug, uuid: manifest.uuid, version: '3.0.0', creator: manifest.creator }, null, 2));
   const scene = JSON.parse(await readFile(path.join(stage, 'assets/main.scene.meta'), 'utf8')).uuid;
   const config = {
@@ -151,6 +152,16 @@ export async function buildCocos(project, target = 'web') {
   await rm(destination, { recursive: true, force: true });
   await mkdir(path.dirname(destination), { recursive: true });
   await copy(output, destination);
+  if (target === 'web') {
+    const entry = path.join(destination, 'index.html');
+    const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+    const title = escape(manifest.displayName ?? slug);
+    const html = (await readFile(entry, 'utf8')).replace(/<!--[\s\S]*?-->/g, '').replace('<html>', '<html lang="zh-CN">')
+      .replace(/<title>[^<]*<\/title>/, `<title>${title} · 游戏合集</title>`)
+      .replace('</head>', `<meta name="description" content="${escape(manifest.description ?? title)}"><link rel="icon" href="favicon.svg"></head>`);
+    await writeFile(entry, html);
+    await copy(path.join(root, 'apps/portal/public/favicon.svg'), path.join(destination, 'favicon.svg'));
+  }
   if (target !== 'web') {
     const configPath = path.join(destination, 'project.config.json');
     const native = existsSync(configPath) ? JSON.parse(await readFile(configPath, 'utf8')) : {};

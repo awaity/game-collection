@@ -1,0 +1,135 @@
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: collection-vs:vert
+      frag: collection-fs:frag
+      rasterizerState: { cullMode: none }
+      depthStencilState: { depthTest: true, depthWrite: true }
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+          blendSrcAlpha: one
+          blendDstAlpha: one_minus_src_alpha
+      properties:
+        mainColor: { value: [1, 1, 1, 1], editor: { type: color } }
+        mainTexture: { value: white }
+        roadParams: { value: [0, 0, 0, 0] }
+        bossParams: { value: [0, 0, 0, 0] }
+        animationParams: { value: [0, 0, 0, 0] }
+        flashParams: { value: [0, 0, 0, 0] }
+}%
+
+CCProgram collection-vs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/uniforms/cc-local>
+  in vec3 a_position;
+  #if USE_ROAD
+    out vec3 worldPosition;
+  #endif
+  #if USE_TEXTURE || USE_FX || USE_BOSS
+    in vec2 a_texCoord;
+  #endif
+  #if USE_TEXTURE || USE_FX
+    out vec2 uv;
+  #endif
+  #if USE_BOSS
+    uniform Animation { vec4 bossParams; vec4 animationParams; };
+  #endif
+  #if USE_VERTEX_COLOR
+    in vec4 a_color;
+    out vec4 tint;
+  #endif
+  vec4 vert () {
+    #if USE_ROAD
+      worldPosition = (cc_matWorld * vec4(a_position, 1.0)).xyz;
+    #endif
+    #if USE_TEXTURE || USE_FX
+      uv = a_texCoord;
+    #endif
+    #if USE_VERTEX_COLOR
+      tint = a_color;
+    #endif
+    vec3 position = a_position;
+    #if USE_BOSS
+      float hinge=a_texCoord.x,kind=a_texCoord.y,time=animationParams.x;
+      if(abs(kind)>.1){
+        float angle=abs(kind)>2.5?-bossParams.x*2.35:sin(time*7.+kind*1.57)*.26*bossParams.z;
+        float co=cos(angle),si=sin(angle),yy=position.y-hinge;
+        position.y=yy*co-position.z*si+hinge;position.z=yy*si+position.z*co;
+      }
+      position.y+=sin(time*7.)*.025*bossParams.z;
+      float angle=-bossParams.y*1.53+bossParams.w*.86,co=cos(angle),si=sin(angle);
+      position=vec3(position.x,position.y*co-position.z*si,position.y*si+position.z*co);
+      position.y+=bossParams.y*.76;
+    #endif
+    vec4 world = cc_matWorld * vec4(position, 1.0);
+    #if USE_PROJECTED_SHADOW
+      world.xyz += vec3(world.y*.53, -world.y+.002, -world.y*.46);
+    #endif
+    return cc_matViewProj * world;
+  }
+}%
+
+CCProgram collection-fs %{
+  precision highp float;
+  uniform Params { vec4 mainColor; vec4 roadParams; vec4 flashParams; };
+  #if USE_ROAD
+    in vec3 worldPosition;
+    float grainHash(vec2 p) { vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z); }
+  #endif
+  #if USE_TEXTURE
+    uniform sampler2D mainTexture;
+  #endif
+  #if USE_TEXTURE || USE_FX
+    in vec2 uv;
+  #endif
+  #if USE_VERTEX_COLOR
+    in vec4 tint;
+  #endif
+  vec4 frag () {
+    vec4 result = mainColor;
+    #if USE_ROAD
+      float z=worldPosition.z-roadParams.x;
+      float grain=grainHash(floor(vec2(worldPosition.x,z)*65.));
+      vec3 c=vec3(.1332,.1651,.2462)*(.973+grain*.049);
+      float edge=1.-smoothstep(.065,.086,abs(worldPosition.x));
+      float dash=1.-smoothstep(1.7,1.76,mod(z,6.4));
+      c=mix(c,vec3(.79,.87,.92),edge*dash*.87);
+      float side=1.-smoothstep(.032,.045,abs(abs(worldPosition.x)-6.24));
+      c=mix(c,vec3(.56,.67,.78),side*.45);
+      vec3 l=normalize(vec3(-.53,1.,.46)),v=normalize(vec3(0.,21.4,20.3)-worldPosition);
+      vec3 lit=c*(vec3(.39,.46,.61)+vec3(1.,.94,.89)*l.y);
+      float spec=pow(max(0.,normalize(l+v).y),23.)*.03*1.12;
+      lit+=vec3(.8,.94,1.)*spec+c*normalize(vec3(.8,.25,-.7)).y*.19;
+      float rim=pow(1.-max(0.,v.y),3.)*.14;
+      lit+=vec3(.2,.5,.8)*rim;
+      result=vec4(pow(clamp(lit,0.,1.),vec3(1./2.2)),1.);
+    #endif
+    #if USE_VERTEX_COLOR
+      result *= tint;
+    #endif
+    #if USE_TEXTURE
+      result *= texture(mainTexture, uv);
+    #endif
+    #if USE_FLASH
+      result.rgb=pow(clamp(mix(pow(result.rgb,vec3(2.2)),vec3(1.4),flashParams.x),0.,1.),vec3(1./2.2));
+    #endif
+    #if USE_FX
+      vec2 q=(uv-.5)*2.;float d=length(q),a;
+      if(flashParams.y<.5){
+        float edge=exp(-q.x*q.x*6.5),tail=1.-smoothstep(.35,1.,abs(q.y));a=edge*tail;
+        result=vec4(mix(mainColor.rgb,vec3(1.),exp(-q.x*q.x*55.)*.91),mainColor.a*a);
+      }else if(flashParams.y<1.5){
+        float core=exp(-d*d*11.),rays=pow(max(0.,1.-abs(q.x*q.y)*20.),2.)*exp(-d*4.);a=core+rays*.44;
+        result=vec4(mix(mainColor.rgb,vec3(1.),core*.88),mainColor.a*a);
+      }else{
+        a=(1.-smoothstep(.93,1.,d))*smoothstep(.74,.86,d);result=vec4(mainColor.rgb,mainColor.a*a);
+      }
+    #endif
+    if (result.a < 0.02) discard;
+    return result;
+  }
+}%

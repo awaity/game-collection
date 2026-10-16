@@ -46,7 +46,7 @@ const artifacts = path.join(root, "artifacts/native");
 await mkdir(artifacts, { recursive: true });
 try {
   browser = await launchBrowser();
-  for (const game of games)
+  for (const game of games.filter(game => targets[game.slug].engine !== 'cocos'))
     for (const target of targets[game.slug].miniTargets) {
       const dir = path.join(root, "games", game.slug, "dist", target),
         config = JSON.parse(

@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { runPnpm } from './pnpm.mjs';
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { readCatalog, root } from "./site-config.mjs";
@@ -6,7 +6,6 @@ const { games, targets } = await readCatalog(),
   task = process.argv[2];
 if (!["test", "build:mini", "verify:mini"].includes(task))
   throw Error("Unknown game task");
-const pnpm = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 for (const game of games) {
   const target = targets[game.slug],
     pkg = JSON.parse(
@@ -23,7 +22,7 @@ for (const game of games) {
         : [task];
   for (const command of commands) {
     if (!pkg.scripts[command]) throw Error(`${game.slug} lacks ${command}`);
-    execFileSync(pnpm, ["--filter", target.workspace, command], {
+    runPnpm(["--filter", target.workspace, command], {
       cwd: root,
       stdio: "inherit",
     });

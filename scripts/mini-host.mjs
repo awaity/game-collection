@@ -1,9 +1,9 @@
 import { createServer } from "node:http";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { once } from "node:events";
 import path from "node:path";
 import { root } from "./site-config.mjs";
-export async function createMiniHost() {
+export async function createMiniHost({ cocos = false } = {}) {
   const html = `<!doctype html><html><meta charset="utf-8"><body style="margin:0;background:#15212d"><canvas width="390" height="844"></canvas><script>
  const worker=new Worker('/worker.js'),pending=new Map();let id=0;
  worker.onmessage=({data})=>{pending.get(data.id)?.(data.value);pending.delete(data.id);};
@@ -20,7 +20,22 @@ export async function createMiniHost() {
       }
       let file;
       if (pathname === "/worker.js")
-        file = path.join(root, "scripts/mini-host-worker.js");
+        file = path.join(root, cocos ? "scripts/cocos-mini-host-worker.js" : "scripts/mini-host-worker.js");
+      else if (cocos && /^\/games\/[a-z-]+\/dist\/(weixin|douyin)\/__manifest.json$/.test(pathname)) {
+        const dir = path.join(root, pathname.replace(/\/__manifest.json$/, ""));
+        const list = async (folder, prefix = "") => {
+          const items = [];
+          for (const entry of await readdir(folder, { withFileTypes: true })) {
+            const name = path.posix.join(prefix, entry.name);
+            if (entry.isDirectory()) items.push(...await list(path.join(folder, entry.name), name));
+            else items.push(name);
+          }
+          return items;
+        };
+        res.setHeader("Content-Type", "application/json");
+        res.end(JSON.stringify(await list(dir)));
+        return;
+      }
       else if (
         /^\/games\/[a-z-]+\/dist\/(weixin|douyin)\/[a-zA-Z0-9/._-]+$/.test(
           pathname,

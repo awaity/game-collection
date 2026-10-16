@@ -37,3 +37,11 @@ pnpm --filter final-door test
 引擎按实际使用模块裁剪。主包超过平台预算时须改用平台支持的分包方案；不能为了让检查通过而放宽预算。
 
 构建成功、浏览器执行、原生模拟宿主、平台开发者工具、真机各自单独记录。只有实际执行过的阶段可以标记通过。
+
+## 持续集成与实际运行
+
+根 CI 使用 Windows 构建节点，缓存官方压缩包并重新验证 SHA-256；官方 Creator 导出后运行全站及三端检查。`scripts/pnpm.mjs` 优先使用 pnpm 的 Node 入口，避免 Windows 直接 exec `.cmd` 的兼容问题。
+
+`node scripts/verify-cocos.mjs native` 在 DOM-free Worker 宿主执行真实原生包，包括触控、生命周期、剪贴板、原生音频 API 调用与 WebGL 渲染。`node scripts/verify-cocos.mjs web` 检查文件导入导出、窄屏分页等浏览器交互。检查自身创建的浏览器和临时服务器在 finally 中关闭。
+
+测试标志 `__COLLECTION_TEST__` 提供只读快照和实际规则步进入口，便于捕获相同种子/时刻；它不授予资源或修改胜负条件。生产页面默认不生成每帧状态哈希。

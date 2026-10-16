@@ -1,10 +1,11 @@
 import {
-  Camera, Canvas, Color, DirectionalLight, Graphics, Input, Label, Layers,
-  Material, Mesh, MeshRenderer, Node, UITransform, Vec3, Vec4,
-  director, game, Game, input, primitives, utils, view, ResolutionPolicy, sys,
+  Camera, Canvas, Color, DirectionalLight, EffectAsset, Graphics, Input, Label, Layers,
+  LabelOutline, Material, Mesh, MeshRenderer, Node, UITransform, Vec3, Vec4,
+  director, game, Game, input, primitives, resources, utils, view, ResolutionPolicy, sys,
   type EventKeyboard, type EventTouch,
 } from 'cc';
 import { createCocosPlatform } from 'db://assets/collection/platform/cocos-host';
+import { cocosServices, CocosWebControls } from 'db://assets/collection/platform/cocos-services';
 
 export const color = (hex: string) => new Color().fromHEX(hex);
 
@@ -15,11 +16,19 @@ export class GameView {
   readonly camera: Camera;
   readonly canvas = new Node('HUD');
   readonly platform;
+  readonly ready: Promise<void>;
+  effect!: EffectAsset;
+  readonly services = cocosServices(sys.isBrowser);
+  readonly insets = this.services.insets();
+  private readonly webControls = sys.isBrowser ? new CocosWebControls() : null;
   readonly materials = new Map<string, Material>();
   readonly meshes = new Map<string, Mesh>();
   readonly objects = new Map<string, Node>();
   readonly texts = new Map<string, Label>();
-  readonly buttons = new Map<string, { node: Node; label: Label; action: () => void }>();
+  readonly buttons = new Map<string, { node: Node; label: Label; action: () => void; width: number; height: number; accent: boolean }>();
+  private readonly usedObjects = new Set<string>();
+  private readonly usedTexts = new Set<string>();
+  private readonly usedButtons = new Set<string>();
   width = 390;
   height = 844;
   onHide = () => {};
@@ -31,11 +40,23 @@ export class GameView {
   private readonly touchMove = (e: EventTouch) => this.onTouch(e, 'move');
   private readonly touchEnd = (e: EventTouch) => this.onTouch(e, 'end');
   private readonly hidden = () => this.onHide();
+  private frameWidth = 0;
+  private frameHeight = 0;
 
   constructor(key: string, background = '#233c59') {
-    view.setDesignResolutionSize(390, 844, ResolutionPolicy.FIXED_HEIGHT);
+    this.ready = new Promise((resolve, reject) => resources.load('collection/collection-color', EffectAsset, (error, effect) => {
+      if (error) return reject(error);
+      this.effect = effect; resolve();
+    }));
+    const frame = view.getFrameSize();
+    view.setDesignResolutionSize(frame.width, frame.height, ResolutionPolicy.SHOW_ALL);
     view.resizeWithBrowserSize(true);
     this.world.parent = this.scene;
+    // Clear the full window before a game narrows its world camera for a desktop HUD.
+    const backgroundNode=new Node('Full-window background');backgroundNode.parent=this.scene;
+    const backgroundCamera=backgroundNode.addComponent(Camera);backgroundCamera.priority=-1;
+    backgroundCamera.visibility=0;backgroundCamera.clearFlags=Camera.ClearFlag.SOLID_COLOR;
+    backgroundCamera.clearColor=color(background);
     const camNode = new Node('World Camera'); camNode.parent = this.scene;
     this.camera = camNode.addComponent(Camera);
     this.camera.clearColor = color(background);
@@ -61,7 +82,7 @@ export class GameView {
     uiCamera.visibility = Layers.Enum.UI_2D;
     uiCamera.near = .1; uiCamera.far = 2000;
     ui.cameraComponent = uiCamera;
-    this.platform = createCocosPlatform({ storage: sys.localStorage, onHide: callback => {
+    this.platform = createCocosPlatform({ browser: sys.isBrowser, storage: sys.localStorage, onHide: callback => {
       game.on(Game.EVENT_HIDE, callback);
       return () => game.off(Game.EVENT_HIDE, callback);
     } }, key);
@@ -76,18 +97,24 @@ export class GameView {
   }
 
   resize() {
+    const frame = view.getFrameSize();
+    if (frame.width !== this.frameWidth || frame.height !== this.frameHeight) {
+      this.frameWidth = frame.width; this.frameHeight = frame.height;
+      view.setDesignResolutionSize(frame.width, frame.height, ResolutionPolicy.SHOW_ALL);
+    }
     const size = view.getVisibleSize();
     this.width = size.width; this.height = size.height;
     this.canvas.getComponent(UITransform)!.setContentSize(this.width, this.height);
     // World and UI cameras have separate layers; the visible height stays 844.
     this.canvas.setPosition(this.width / 2, this.height / 2, 0);
     this.canvas.getComponent(Canvas)!.cameraComponent!.node.setPosition(this.width / 2, this.height / 2, 1000);
+    this.canvas.getComponent(Canvas)!.cameraComponent!.orthoHeight = this.height / 2;
   }
 
   material(hex: string) {
     if (!this.materials.has(hex)) {
       const material = new Material();
-      material.initialize({ effectName: 'builtin-unlit' });
+      material.initialize(this.effect ? {effectAsset: this.effect} : { effectName: 'builtin-unlit' });
       material.setProperty('mainColor', color(hex));
       this.materials.set(hex, material);
     }
@@ -95,6 +122,7 @@ export class GameView {
   }
 
   shape(id: string, shape: 'box' | 'sphere' | 'cylinder' | 'cone', hex: string, x: number, y: number, z: number, sx = 1, sy = 1, sz = 1) {
+    this.usedObjects.add(id);
     let node = this.objects.get(id);
     if (!node) {
       node = new Node(id); node.parent = this.world;
@@ -109,62 +137,127 @@ export class GameView {
       this.objects.set(id, node);
     }
     node.active = true;
-    node.getComponent(MeshRenderer)!.setSharedMaterial(this.material(hex), 0);
+    const renderer = node.getComponent(MeshRenderer)!;
+    if (renderer.sharedMaterial !== this.material(hex)) renderer.setSharedMaterial(this.material(hex), 0);
     node.setPosition(x, y, z); node.setScale(sx, sy, sz);
     return node;
   }
 
   begin() {
     this.resize();
-    for (const node of this.objects.values()) node.active = false;
-    for (const label of this.texts.values()) label.node.active = false;
-    for (const button of this.buttons.values()) button.node.active = false;
+    this.usedObjects.clear(); this.usedTexts.clear(); this.usedButtons.clear();
   }
 
   text(id: string, value: string, x: number, y: number, size = 18, hex = '#ffffff', width = 360) {
+    this.usedTexts.add(id);
     let label = this.texts.get(id);
     if (!label) {
       const node = new Node(id); node.parent = this.canvas; node.layer = Layers.Enum.UI_2D;
       node.addComponent(UITransform);
-      label = node.addComponent(Label); label.fontFamily = 'sans-serif';
+      label = node.addComponent(Label); label.fontFamily = 'Noto Sans CJK SC';
       label.overflow = Label.Overflow.SHRINK; label.horizontalAlign = Label.HorizontalAlign.CENTER;
       label.verticalAlign = Label.VerticalAlign.CENTER; label.enableWrapText = true;
       this.texts.set(id, label);
     }
     label.node.active = true; label.node.setPosition(x, y, 0);
+    label.horizontalAlign=Label.HorizontalAlign.CENTER;label.isBold=false;
+    label.node.setSiblingIndex(this.canvas.children.length - 1);
     label.node.getComponent(UITransform)!.setContentSize(width, size * 2.6);
     label.fontSize = size; label.lineHeight = size * 1.4;
     label.color = color(hex); if (label.string !== value) label.string = value;
     return label;
   }
 
-  button(id: string, value: string, x: number, y: number, width: number, action: () => void, accent = false) {
+  button(id: string, value: string, x: number, y: number, width: number, action: () => void, accent = false, height = 46) {
+    this.usedButtons.add(id);
     let button = this.buttons.get(id);
     if (!button) {
       const node = new Node(id); node.parent = this.canvas; node.layer = Layers.Enum.UI_2D;
       node.addComponent(UITransform);
       const g = node.addComponent(Graphics); g.fillColor = color(accent ? '#159cfa' : '#203e5c');
       g.strokeColor = color(accent ? '#67d9ff' : '#49667f'); g.lineWidth = 1;
-      g.roundRect(-width / 2, -23, width, 46, 10); g.fill(); g.stroke();
+      g.roundRect(-width / 2, -height/2, width, height, 10); g.fill(); g.stroke();
       const textNode = new Node('Label'); textNode.parent = node; textNode.layer = Layers.Enum.UI_2D;
-      textNode.addComponent(UITransform).setContentSize(width - 12, 44);
+      textNode.addComponent(UITransform).setContentSize(width - 12, height-4);
       const label = textNode.addComponent(Label); label.fontSize = 14; label.lineHeight = 20;
+      label.fontFamily = 'Noto Sans CJK SC';
+      label.isBold = true;
+      label.overflow = Label.Overflow.SHRINK;
       label.horizontalAlign = Label.HorizontalAlign.CENTER; label.verticalAlign = Label.VerticalAlign.CENTER;
-      button = { node, label, action }; this.buttons.set(id, button);
+      button = { node, label, action, width, height, accent }; this.buttons.set(id, button);
       node.on(Node.EventType.TOUCH_END, () => this.buttons.get(id)!.action());
     }
-    button.node.getComponent(UITransform)!.setContentSize(width, 46);
+    button.node.getComponent(UITransform)!.setContentSize(width, height);
+    if (width !== button.width || height !== button.height || accent !== button.accent) {
+      const g = button.node.getComponent(Graphics)!; g.clear();
+      g.fillColor = color(accent ? '#159cfa' : '#203e5c'); g.strokeColor = color(accent ? '#67d9ff' : '#49667f');
+      g.roundRect(-width/2,-height/2,width,height,10); g.fill(); g.stroke();
+      button.width = width; button.height = height; button.accent = accent;
+      button.label.node.getComponent(UITransform)!.setContentSize(width-12,height-4);
+    }
     button.node.active = true; button.node.setPosition(x, y, 0);
-    button.label.string = value; button.action = action;
+    button.node.setSiblingIndex(this.canvas.children.length - 1);
+    button.label.node.active = true; button.label.string = value; button.action = action;
     return button.node;
   }
 
   worldText(id: string, value: string, point: Vec3, size = 18) {
     const projected = this.camera.convertToUINode(point, this.canvas);
-    this.text(id, value, projected.x, projected.y, size);
+    const label = this.text(id, value, projected.x, projected.y, size);
+    label.isBold = true;
+    if (!label.node.getComponent(LabelOutline)) {
+      const outline = label.node.addComponent(LabelOutline); outline.color = color('#18334b'); outline.width = 2;
+    }
+  }
+
+  meshNode(id: string, mesh: Mesh, material: Material, x: number, y: number, z: number, sx = 1, sy = 1, sz = 1) {
+    this.usedObjects.add(id);
+    let node = this.objects.get(id);
+    if (!node) { node = new Node(id); node.parent = this.world; node.addComponent(MeshRenderer); this.objects.set(id, node); }
+    node.active = true;
+    const renderer = node.getComponent(MeshRenderer)!;
+    if (renderer.mesh !== mesh) renderer.mesh = mesh;
+    if (renderer.sharedMaterial !== material) renderer.setSharedMaterial(material, 0);
+    node.setPosition(x, y, z); node.setScale(sx, sy, sz);
+    return node;
+  }
+
+  panel(id: string, x: number, y: number, width: number, height: number, hex = '#102e49ee') {
+    const key = `panel:${id}`;
+    this.usedObjects.add(key);
+    let node = this.objects.get(key);
+    if (!node) {
+      node = new Node(key); node.parent = this.canvas; node.layer = Layers.Enum.UI_2D;
+      node.addComponent(UITransform).setContentSize(width, height);
+      const g = node.addComponent(Graphics); g.fillColor = color(hex);
+      g.roundRect(-width / 2, -height / 2, width, height, Math.min(16,width/2,height/2)); g.fill();
+      this.objects.set(key, node);
+    }
+    const bounds = node.getComponent(UITransform)!;
+    if (bounds.width !== width || bounds.height !== height) {
+      bounds.setContentSize(width,height); const g=node.getComponent(Graphics)!;g.clear();g.fillColor=color(hex);
+      g.roundRect(-width/2,-height/2,width,height,Math.min(16,width/2,height/2));g.fill();
+    }
+    node.active = true; node.setPosition(x, y, 0);
+    node.setSiblingIndex(this.canvas.children.length - 1);
+  }
+
+  end(state: Record<string, unknown>) {
+    for (const [id,node] of this.objects) if (!this.usedObjects.has(id)) node.active = false;
+    for (const [id,label] of this.texts) if (!this.usedTexts.has(id)) label.node.active = false;
+    for (const [id,button] of this.buttons) if (!this.usedButtons.has(id)) button.node.active = false;
+    const controls = Array.from(this.buttons.entries()).filter(([,b]) => b.node.active).map(([id,b]) => ({
+      id, label: b.label.string, x: b.node.position.x + this.width / 2, y: this.height / 2 - b.node.position.y,
+      width: b.node.getComponent(UITransform)!.width, height: b.height, action: b.action,
+    }));
+    this.webControls?.sync(controls, this.width, this.height);
+    const global = globalThis as unknown as {__COLLECTION_TEST__?: boolean; __collectionSnapshot?: unknown};
+    if (global.__COLLECTION_TEST__) global.__collectionSnapshot = { ...state, width: this.width, height: this.height,
+      controls: controls.map(({action, ...button}) => button), labels: Array.from(this.texts.values()).filter(t => t.node.active).map(t => t.string) };
   }
 
   destroy() {
+    this.webControls?.destroy();
     input.off(Input.EventType.KEY_DOWN, this.keyDown); input.off(Input.EventType.KEY_UP, this.keyUp);
     input.off(Input.EventType.TOUCH_START, this.touchStart); input.off(Input.EventType.TOUCH_MOVE, this.touchMove);
     input.off(Input.EventType.TOUCH_END, this.touchEnd); input.off(Input.EventType.TOUCH_CANCEL, this.touchEnd);
