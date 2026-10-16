@@ -1,0 +1,80 @@
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: frost-vs:vert
+      frag: frost-fs:frag
+      rasterizerState: { cullMode: none }
+      depthStencilState: { depthTest: true, depthWrite: true }
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+      properties:
+        mainTexture: { value: white }
+        groundTexture: { value: white }
+        mainColor: { value: [1, 1, 1, 1] }
+        emission: { value: [0, 0, 0, 0] }
+        surface: { value: [0, 0, 0, 0] }
+        light: { value: [1, 1, 0, 0] }
+}%
+CCProgram frost-vs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #if USE_INSTANCING
+    in vec4 a_matWorld0;
+    in vec4 a_matWorld1;
+    in vec4 a_matWorld2;
+  #endif
+  #include <builtin/functionalities/world-transform>
+  in vec3 a_position;
+  in vec3 a_normal;
+  in vec2 a_texCoord;
+  out vec3 normal;
+  out vec2 uv;
+  out vec3 worldPosition;
+  vec4 vert(){
+    mat4 world;CCGetWorldMatrix(world);
+    vec4 p=world*vec4(a_position,1.);
+    #if USE_SHADOW
+      p.xz+=p.y*vec2(9./35.,-10./35.);p.y=.033;
+    #endif
+    normal=normalize(mat3(world[0].xyz/max(.00001,dot(world[0].xyz,world[0].xyz)),world[1].xyz/max(.00001,dot(world[1].xyz,world[1].xyz)),world[2].xyz/max(.00001,dot(world[2].xyz,world[2].xyz)))*a_normal);
+    uv=a_texCoord;worldPosition=p.xyz;
+    return cc_matViewProj*p;
+  }
+}%
+CCProgram frost-fs %{
+  precision highp float;
+  in vec2 uv;
+  in vec3 normal;
+  in vec3 worldPosition;
+  uniform sampler2D mainTexture;
+  uniform sampler2D groundTexture;
+  uniform Params {vec4 mainColor;vec4 emission;vec4 surface;vec4 light;};
+  vec4 frag(){
+    vec4 tex=texture(mainTexture,vec2(uv.x,1.-uv.y));float alpha=tex.a*mainColor.a;if(alpha<max(.005,surface.y))discard;
+    vec3 c=mainColor.rgb*pow(tex.rgb,vec3(2.2)),n=normalize(normal);
+    if(surface.x<.5){
+      vec3 hemi=mix(vec3(.434,.451,.565),vec3(.716,.839,1.),n.y*.5+.5)*light.y;
+      float sun=max(0.,dot(n,normalize(vec3(-9.,35.,10.))));
+      c*=hemi+vec3(1.,.863,.708)*1.12*light.x*sun+vec3(1.,.939,.855)*.08;
+      c+=emission.rgb;
+    }
+    #if USE_WATER
+      vec2 p=(uv-.5)*2.;float r=length(p),t=light.z;
+      float w=sin(p.x*15.+sin(p.y*13.+t*.45)*1.6+t*.50),w2=sin(p.y*19.-sin(p.x*10.-t*.42)*1.7-t*.34);
+      float caustic=pow(max(0.,1.-abs(w+w2)*.62),12.)*.18,a=atan(p.y,p.x),ribbon=sin(r*26.+a*4.-t*.50)*.5+.5;
+      c=mix(vec3(.010,.23,.51),vec3(.022,.61,.68),.28+smoothstep(.23,1.,r)*.52+ribbon*.09)+vec3(.06,.22,.22)*caustic;
+      c=mix(c,vec3(.47,.83,.87),smoothstep(.91,.995,r)*.70);
+    #endif
+    c*=.92;c=pow(clamp((c*(2.51*c+.03))/(c*(2.43*c+.59)+.14),0.,1.),vec3(1./2.2));
+    #if USE_SHADOW
+      vec2 guv=worldPosition.xz/vec2(14.1,12.)+.5;
+      float inside=step(0.,guv.x)*step(0.,guv.y)*step(guv.x,1.)*step(guv.y,1.);
+      vec4 ground=texture(groundTexture,guv);
+      c=mix(vec3(.61,.66,.75),vec3(.43,.28,.25),ground.a*inside);alpha=1.;
+    #endif
+    return vec4(c,alpha);
+  }
+}%
