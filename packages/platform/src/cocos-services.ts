@@ -80,6 +80,8 @@ export interface CanvasControl { id: string; label: string; x: number; y: number
 export class CocosWebControls {
   private root: HTMLDivElement;
   private buttons = new Map<string, HTMLButtonElement>();
+  private state = '';
+  private activated = false;
   constructor() {
     document.documentElement.dataset.collectionEngine = 'cocos';
     this.root = document.createElement('div');
@@ -99,9 +101,15 @@ export class CocosWebControls {
         this.root.append(button); this.buttons.set(control.id, button);
       }
       button.hidden = false; button.setAttribute('aria-label', control.label);
-      button.onclick = control.action;
+      button.onclick = () => { control.action(); this.activated = true; };
       Object.assign(button.style, {left: `${control.x / width * 100}%`, top: `${control.y / height * 100}%`, width: `${control.width / width * 100}%`, height: `${control.height / height * 100}%`});
     }
+    const state = document.documentElement.dataset.collectionState ?? '';
+    // Creator listens for keyboard events on its canvas. Starting/resuming from
+    // a semantic Web button must hand keyboard control back to the game.
+    if (state === 'playing' && (this.state !== state || this.activated)) document.getElementById('GameCanvas')?.focus({ preventScroll: true });
+    this.state = state;
+    this.activated = false;
   }
   destroy() { this.root.remove(); }
 }
