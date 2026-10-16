@@ -1,8 +1,28 @@
 {
-  "revision": "ca07e8492788c20335051de70f98912270a973c8",
-  "builtAt": "2026-10-16T11:45:25.341Z",
+  "revision": "f16ccf019babba2005f94938f372c9b18d7ede7e",
+  "builtAt": "2026-10-16T17:09:25.081Z",
   "base": "/game-collection/",
   "games": [
+    {
+      "slug": "endless-night",
+      "path": "/game-collection/games/endless-night/"
+    },
+    {
+      "slug": "frost-trail",
+      "path": "/game-collection/games/frost-trail/"
+    },
+    {
+      "slug": "surge-squad",
+      "path": "/game-collection/games/surge-squad/"
+    },
+    {
+      "slug": "final-door",
+      "path": "/game-collection/games/final-door/"
+    },
+    {
+      "slug": "garden-guard",
+      "path": "/game-collection/games/garden-guard/"
+    },
     {
       "slug": "plane-battle",
       "path": "/game-collection/games/plane-battle/"
