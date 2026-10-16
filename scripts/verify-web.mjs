@@ -5,6 +5,7 @@ import path from "node:path";
 import { createSiteServer } from "./preview-site.mjs";
 import { readCatalog, root, base } from "./site-config.mjs";
 import { launchBrowser } from "./browser.mjs";
+import { presentCocos } from "./cocos-browser.mjs";
 const { games } = await readCatalog(),
   results = [],
   artifacts = path.join(root, "artifacts/web");
@@ -151,13 +152,21 @@ try {
       for (const game of scenarios.filter(game=>!process.env.VERIFY_GAME||game.slug===process.env.VERIFY_GAME)) {
         if (['frost-trail','endless-night'].includes(game.slug)) {
           await page.goto(`${origin}${base}games/${game.slug}/?qa=1`);
-          const ready = () => page.waitForFunction(() => window.__collectionSnapshot?.controls?.length && window.__collectionSnapshot.phase !== 'loading', null, {timeout:90000});
+          const ready = async () => {
+            await page.waitForFunction(() => window.__collectionSnapshot, null, {timeout:90000});
+            for(let i=0;i<240;i++){
+              const s=await presentCocos(page);
+              if(s?.controls?.length && s.phase !== 'loading')return;
+              await page.waitForTimeout(60);
+            }
+            throw Error('Creator scene failed to load');
+          };
           const clickId = async (id) => {
             await ready();
             const controls = await page.evaluate(() => __collectionSnapshot.controls), b=controls.find(c=>c.id===id);
             assert.ok(b, 'Missing control '+id);
             await press(page.getByRole('button',{name:b.label,exact:true}).nth(controls.filter(c=>c.label===b.label).findIndex(c=>c.id===id)));
-            await page.waitForTimeout(150);
+            await ready();
           };
           const choose = async (id) => {for(let i=0;i<30;i++){await ready();if(await page.evaluate(id=>__collectionSnapshot.controls.some(c=>c.id===id),id)){await clickId(id);return}await clickId('page-next')}throw Error('Missing paged control '+id)};
           await ready();await fits();
