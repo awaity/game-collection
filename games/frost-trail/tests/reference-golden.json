@@ -1,6 +1,12 @@
 {
   "version": "2.0.0",
-  "captured": "2026-10-16",
+  "captured": "2026-10-17",
+  "randomInputs": {
+    "caravan": {
+      "safe": 0.99,
+      "ambush": 0
+    }
+  },
   "economy": {
     "manual": [
       {
@@ -112,6 +118,44 @@
       {
         "name": "restore",
         "sha256": "3f12d28f9b3462ee6f51488f5da479dd3b8dda4e452f4002008b52dce5dd5610",
+        "cash": 46940,
+        "inventory": 0
+      }
+    ],
+    "diplomacy-ambush": [
+      {
+        "name": "fresh",
+        "sha256": "e9e5d9156674702bdb00ef62aa472001f4158f038be1648cb5921392897d6989",
+        "cash": 0,
+        "inventory": 0
+      },
+      {
+        "name": "trade-start",
+        "sha256": "e71f0db465b11838a8fcb1696ba97c12d7b2da708a2f3fc839f957c287305dc7",
+        "cash": 46940,
+        "inventory": 0
+      },
+      {
+        "name": "world-60",
+        "sha256": "c65e9c0687458155cb9f543a959b5ecf34e2d3ff3818d490a2b221838ce00863",
+        "cash": 46940,
+        "inventory": 0
+      },
+      {
+        "name": "world-120",
+        "sha256": "f2b6c7cdcfb8abe226ef38215f8c449675658dd3b2df35168b6962a26731fe78",
+        "cash": 46940,
+        "inventory": 0
+      },
+      {
+        "name": "world-180",
+        "sha256": "5a78571af6626743a7f9dfc8a4299bc389fd3a411e7e99987a926b5314e1dbff",
+        "cash": 46940,
+        "inventory": 0
+      },
+      {
+        "name": "restore",
+        "sha256": "ebe79bb95a3de15403bd7ae7fa2c02cd5f1b362699a97d0e2d9f88b64a871529",
         "cash": 46940,
         "inventory": 0
       }

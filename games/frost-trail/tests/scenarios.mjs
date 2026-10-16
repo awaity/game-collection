@@ -1,6 +1,9 @@
 /** Shared scripted inputs; fixture outputs are captured from the unmodified reference. */
 export function runEconomy({GameState,CampProduction,CounterStaff,CollisionWorld},mode){
  const s=new GameState();s.seedCode='ABC234';const p=new CampProduction(s),staff=new CounterStaff(s,new CollisionWorld()),checks=[];
+ // The source exposes caravan RNG as an injectable function. Cover both
+ // outcomes explicitly so reference snapshots never depend on Math.random.
+ s.caravans.rng=()=>mode==='diplomacy-ambush'?0:.99;
  const checkpoint=name=>checks.push({name,state:s.snapshot()});
  const advance=seconds=>{for(let i=0;i<seconds*60;i++){const dt=1/60;s.elapsed+=dt;s.dayNight.update(dt);s.aiCamps.update(dt);s.annexation.update(dt);s.caravans.update(dt);s.tickSieges(dt);s.endgame.update(dt);s.tickCooking(dt);p.update(dt);staff.update(dt)}};
  checkpoint('fresh');
