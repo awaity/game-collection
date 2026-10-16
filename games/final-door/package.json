@@ -1,0 +1,24 @@
+{
+  "name": "final-door",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "uuid": "cf47cabe-1892-4813-b5b6-bd19bfb41461",
+  "creator": { "version": "3.8.8" },
+  "packageManager": "pnpm@11.23.0",
+  "scripts": {
+    "build": "node ../../packages/build-tools/src/cocos.mjs web",
+    "build:weixin": "node ../../packages/build-tools/src/cocos.mjs weixin",
+    "build:douyin": "node ../../packages/build-tools/src/cocos.mjs douyin",
+    "build:mini": "pnpm build:weixin && pnpm build:douyin",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts"
+  },
+  "devDependencies": {
+    "@game-collection/build-tools": "workspace:*",
+    "@game-collection/cocos-runtime": "workspace:*",
+    "@game-collection/platform": "workspace:*",
+    "typescript": "5.9.3",
+    "tsx": "4.20.6"
+  }
+}
