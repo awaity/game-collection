@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <meta name="theme-color" content="#e4ebe1" />
+    <meta name="description" content="广告里的小游戏，这次真的能玩。左移打门升级，右移开枪清尸潮，守住最后一道防线。" />
+    <title>尸潮防线 — 左右开火，绝地翻盘</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23183f3d'/%3E%3Cpath d='M19 15h26v24L32 50 19 39Z' fill='%23f5c451'/%3E%3Cpath d='m35 20-9 15h7l-4 11 12-17h-8Z' fill='%23183f3d'/%3E%3C/svg%3E" />
+    <script type="module" crossorigin src="./assets/index-BKB2z-V5.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-DUvse351.css">
+  </head>
+  <body>
+    <main class="page">
+      <aside class="brief">
+        <a class="wordmark" href="./" aria-label="尸潮防线首页"><svg viewBox="0 0 36 40" aria-hidden="true"><path d="M3 2h30v24L18 38 3 26Z" fill="currentColor"/><path d="m20 8-9 14h7l-3 10 12-17h-8Z" fill="#f5c451"/></svg><span>尸潮防线<small>DEADLINE</small></span></a>
+        <div class="brief-copy"><span class="small-stamp">广告里的那一局，来真的。</span><h1>左右开火。<br>绝地翻盘。</h1><p>武器在左，尸潮在右。<br>留给你的，只有下一次走位。</p></div>
+        <div class="field-guide"><div><span class="direction left">↖</span><p><b>左边打门</b><small>打爆装备门，火力翻倍</small></p></div><div><span class="direction right">↗</span><p><b>右边清场</b><small>转身开火，守住防线</small></p></div></div>
+        <div class="keyboard-help"><span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> 移动</span><span><kbd>空格</kbd> 暂停 <kbd>E</kbd> 空袭</span></div>
+        <p class="side-note">不看广告，也能一直玩。</p>
+      </aside>
+      <section class="game-frame" aria-label="尸潮防线游戏">
+        <canvas id="game" tabindex="0" aria-label="尸潮防线，左右拖动或按 A、D 移动，自动开枪，E 呼叫空袭，空格暂停。"></canvas>
+        <div id="accessible-controls" class="accessible-controls" aria-label="游戏菜单"></div>
+        <p id="game-status" class="sr-only" aria-live="polite"></p>
+        <div id="boot-error" hidden><h2>战场加载失败</h2><p>请刷新页面重试。</p><button onclick="location.reload()">重新加载</button></div>
+      </section>
+      <aside class="armory">
+        <div class="armory-heading"><span class="line-dot"></span><h2>活下去，靠火力。</h2></div>
+        <ol class="weapon-list">
+          <li><svg viewBox="0 0 100 42" aria-hidden="true"><path d="M9 15h57v10H38l-4 12H22l4-12H9Z" fill="currentColor"/><path d="M65 18h26v5H65M43 11h12v5H43" fill="currentColor"/></svg><div><b>突击步枪</b><p>一人，一枪，开局。</p></div></li>
+          <li><svg viewBox="0 0 100 42" aria-hidden="true"><path d="M13 9h24v24H13ZM36 12h48v5H36Zm0 9h52v5H36Zm0 9h48v5H36ZM20 32h10v8H20Z" fill="currentColor"/></svg><div><b>六管加特林</b><p>让尸潮见识弹幕。</p></div></li>
+          <li><svg viewBox="0 0 100 42" aria-hidden="true"><path d="M9 12h17v22H9Zm18-5h51l15 8v14l-15 8H27Zm7 28h12v7H34Z" fill="currentColor"/><path d="M78 14h11v16H78" fill="#e4ebe1"/></svg><div><b>雷霆火炮</b><p>一发入魂，整片清场。</p></div></li>
+        </ol>
+        <div class="field-note"><span>生存小贴士</span><p>升级很香，<br>但别把后背留给僵尸太久。</p><span class="note-arrow">↙</span></div>
+        <div class="edition">一局三波 · 击败尸王<br><span>原创轻量街机 / 试玩版 0.1</span></div>
+      </aside>
+    </main>
+    <script type="module" src="../../assets/collection-navigation.js"></script>
+</body>
+</html>
