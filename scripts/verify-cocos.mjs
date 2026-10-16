@@ -7,4 +7,5 @@ for(const game of games){
  if(targets[game.slug].engine!=='cocos')continue;
  const args=game.slug==='final-door'?['scripts/verify-final-door.mjs',mode]:['scripts/verify-cocos-game.mjs',game.slug,mode];
  execFileSync(process.execPath,args,{cwd:root,stdio:'inherit'});
+ if(game.slug==='endless-night')execFileSync(process.execPath,['scripts/verify-endless-content.mjs',mode],{cwd:root,stdio:'inherit'});
 }

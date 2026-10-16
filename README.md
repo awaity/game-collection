@@ -6,23 +6,33 @@
 
 | 游戏 | 在线入口 | 共用技术 | 构建目标 |
 | --- | --- | --- | --- |
+| 无尽长夜 | [提灯](https://awaity.github.io/game-collection/games/endless-night/) | Cocos Creator 3.8.8 + TypeScript + Rapier | Web / 微信 / 抖音 |
+| 雪原小营 | [经营](https://awaity.github.io/game-collection/games/frost-trail/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
+| 电涌小队 | [蓄能](https://awaity.github.io/game-collection/games/surge-squad/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
+| 最后一道门 | [突围](https://awaity.github.io/game-collection/games/final-door/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
 | 花园守卫 | [种植](https://awaity.github.io/game-collection/games/garden-guard/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
 | 飞机大战 | [起飞](https://awaity.github.io/game-collection/games/plane-battle/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
 | 尸潮防线 | [守线](https://awaity.github.io/game-collection/games/zombie-lane/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
 | 弹幕小队 | [出击](https://awaity.github.io/game-collection/games/volley-run/) | JavaScript + Three.js r140 | Web / 微信 / 抖音 |
 
-四款游戏均提供独立原生小游戏 `game.js` 工程。平台包已纳入构建和无 DOM 模拟宿主验证，弹幕小队使用实际 WebGL 和本地 GLB 模型；**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
+八款游戏均提供独立原生小游戏 `game.js` 工程。平台包纳入构建和无 DOM 模拟宿主验证；四款复杂游戏由官方 Cocos Creator 导出，弹幕小队使用实际 WebGL 和本地 GLB 模型。**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
 
 ## 目录与边界
 
 ```text
 apps/portal/                  Vue 3 + Vite + TS 大厅
+games/endless-night/           无尽长夜，四角色、五烽火与守夜人试炼
+games/frost-trail/             雪原小营，采集生产、扩张与四种终局
+games/surge-squad/             电涌小队，充能、激光与三章闯关
+games/final-door/              最后一道门，三路线、真实仿真与输入回放
 games/garden-guard/            花园守卫，十二关、冒险、挑战与三端入口
 games/plane-battle/            飞机大战，共享规则、Canvas、UI 与三端入口
 games/zombie-lane/             尸潮防线，共享规则、Canvas、UI 与三端入口
 games/volley-run/              弹幕小队，共享模拟、Three 场景、本地模型
 packages/platform/            输入、时钟、安全区、存储、音频、二进制资源
-packages/build-tools/         原生打包、配置、本地 WAV、主包大小检查
+packages/cocos-runtime/       共用 Creator 视图、输入与语义 Web 控件
+packages/build-tools/         三端打包、官方 Creator、分包与 WASM 校验
+toolchains/cocos.json         Creator 版本、来源校验与平台名称
 catalog/games.json            入口、介绍、操作、实机封面
 catalog/build-targets.json    各游戏工作区、Web 输出、必需资源、原生目标
 shared/browser-navigation.js Web 游戏显式状态驱动的返回大厅入口
@@ -34,11 +44,12 @@ dist/site/                    完整静态站点（不提交源码分支）
 
 ## 开发与验证
 
-需要 Node.js **22.14+**、pnpm **11.23.0**。以下命令在根目录执行。
+需要 Node.js **22.14+**、pnpm **11.23.0**。完整构建还需官方 **Cocos Creator 3.8.8**，支持 Windows、macOS 或启用 Windows interop 的 WSL，详见 [安装与构建](docs/COCOS.md)。以下命令在根目录执行。
 
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
+pnpm cocos:install            # Windows / WSL：安装并校验官方 Creator
 pnpm exec playwright install --with-deps chromium  # 首次浏览器验证
 pnpm dev                      # 大厅 :4190
 pnpm dev:garden-guard          # 花园守卫 :4290
@@ -57,7 +68,7 @@ pnpm check          # 发布前统一检查（含真实浏览器和原生宿主�
 
 `pnpm check` 包含类型检查、规则/回归测试、静态资源与子路径检查、全部原生构建、触控/生命周期宿主验证、手机与桌面的网页流程检查。自动浏览器测试自行启动并在 `finally` 中关闭预览服务；手工启动的开发或预览服务在验证完成后也应关闭。截图与报告写入 `artifacts/`。
 
-可单独执行 `pnpm test`（先构建 Web）、`pnpm verify:mini`（先构建原生）和 `pnpm verify:web`（先构建 Web）。CI 安装 Chromium 后运行同一套检查，归档完整站点、全部原生包及验证证据。
+可单独执行 `pnpm test`（先构建 Web）、`pnpm verify:mini`（先构建原生）和 `pnpm verify:web`（先构建 Web）。CI 在 Windows 节点安装官方 Creator 和 Chromium 后运行同一套检查，归档完整站点、全部原生包及验证证据。
 
 原生输出：`games/<slug>/dist/weixin/`、`games/<slug>/dist/douyin/`。Web 输出为 `dist/web/`，弹幕小队保留 Sites 所需的 `dist/client/`，统一聚合过程读取 catalog 处理差异。
 
@@ -79,10 +90,13 @@ pnpm run deploy
 3. Web 入口调用 `reportGameState('menu' | 'playing' | 'paused' | 'result')`，控制聚合站点的返回按钮。
 4. 为真实浏览器／原生宿主加入该游戏的交互场景，更新根锁文件并执行 `pnpm check`。
 
-所有游戏都必须具备三端目标；后续登录、广告、排行榜等功能放在平台服务层。
+所有游戏都必须具备三端目标；复杂新增游戏使用 Cocos Creator 3.8 LTS + TypeScript，并锁定官方补丁版本。先验证可运行的极简闭环，再迭代到完整参考玩法、画面和交互；极简版不能代替最终验收。后续登录、广告、排行榜等功能放在平台服务层。
 
 ## 文档
 
+- [无尽长夜说明](games/endless-night/README.md) · [雪原小营说明](games/frost-trail/README.md)
+- [电涌小队说明](games/surge-squad/README.md) · [最后一道门说明](games/final-door/README.md)
+- [官方 Cocos 工具链](docs/COCOS.md) · [参考画面对照](design-qa.md)
 - [花园守卫说明](games/garden-guard/README.md) · [迁移记录](games/garden-guard/docs/MIGRATION.md)
 - [飞机大战说明](games/plane-battle/README.md) · [上游来源与修正范围](games/plane-battle/PROVENANCE.md)
 - [尸潮防线说明](games/zombie-lane/README.md)

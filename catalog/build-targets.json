@@ -72,5 +72,33 @@
       "weixin",
       "douyin"
     ]
+  },
+  "endless-night": {
+    "workspace": "endless-night",
+    "engine": "cocos",
+    "webDir": "games/endless-night/dist/web",
+    "requiredAssets": [
+      "favicon.svg",
+      "cocos-js/cc.js",
+      "creator-build.json"
+    ],
+    "miniTargets": [
+      "weixin",
+      "douyin"
+    ]
+  },
+  "frost-trail": {
+    "workspace": "frost-trail",
+    "engine": "cocos",
+    "webDir": "games/frost-trail/dist/web",
+    "requiredAssets": [
+      "favicon.svg",
+      "cocos-js/cc.js",
+      "creator-build.json"
+    ],
+    "miniTargets": [
+      "weixin",
+      "douyin"
+    ]
   }
 }

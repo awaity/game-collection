@@ -76,12 +76,13 @@ try {
     // Exercise the selectable lightweight renderer in software-GPU CI. The
     // product's balanced/high defaults stay unchanged; native tests cover the
     // same scene with real WebGL1/2 and explicit frame advancement.
-    await context.addInitScript(() =>
+    await context.addInitScript(() => {
+      window.__COLLECTION_TEST__ = true;
       localStorage.setItem(
         "volley.settings.v1",
         JSON.stringify({ quality: "low", sound: false }),
-      ),
-    );
+      );
+    });
     const page = await context.newPage(),
       errors = [];
     page.setDefaultTimeout(30000);
@@ -148,6 +149,36 @@ try {
           ? games.filter((g) => g.slug === "plane-battle")
           : games;
       for (const game of scenarios.filter(game=>!process.env.VERIFY_GAME||game.slug===process.env.VERIFY_GAME)) {
+        if (['frost-trail','endless-night'].includes(game.slug)) {
+          await page.goto(`${origin}${base}games/${game.slug}/?qa=1`);
+          const ready = () => page.waitForFunction(() => window.__collectionSnapshot?.controls?.length && window.__collectionSnapshot.phase !== 'loading', null, {timeout:90000});
+          const clickId = async (id) => {
+            await ready();
+            const controls = await page.evaluate(() => __collectionSnapshot.controls), b=controls.find(c=>c.id===id);
+            assert.ok(b, 'Missing control '+id);
+            await press(page.getByRole('button',{name:b.label,exact:true}).nth(controls.filter(c=>c.label===b.label).findIndex(c=>c.id===id)));
+            await page.waitForTimeout(150);
+          };
+          const choose = async (id) => {for(let i=0;i<30;i++){await ready();if(await page.evaluate(id=>__collectionSnapshot.controls.some(c=>c.id===id),id)){await clickId(id);return}await clickId('page-next')}throw Error('Missing paged control '+id)};
+          await ready();await fits();
+          if(game.slug==='endless-night')await choose('calm-start');
+          await page.reload();await ready();await fits();
+          if(game.slug==='endless-night'){
+            await page.locator('.collection-return').waitFor({state:'visible'});
+            await choose('play');await choose('story-next');await choose('heroes-next');await choose('stages-next');await choose('begin');await ready();
+          }
+          await page.waitForFunction(()=>document.documentElement.dataset.collectionState==='playing');
+          assert.equal(await page.locator('.collection-return').isVisible(),false);
+          await page.screenshot({path:path.join(artifacts,`${game.slug}-${size.width}-play.png`)});
+          await clickId('pause');await page.waitForFunction(()=>document.documentElement.dataset.collectionState==='paused');
+          await page.locator('.collection-return').waitFor({state:'visible'});
+          await clickId(game.slug==='frost-trail'?'panel-back':'resume');
+          await page.waitForFunction(()=>document.documentElement.dataset.collectionState==='playing');
+          await clickId('pause');await press(page.locator('.collection-return'));await page.waitForURL(origin+base);
+          assert.equal(await page.locator('.game-card').count(),games.length);
+          results.push({slug:game.slug,width:size.width,flows:['direct-entry','reload','start','pause','resume','return-to-portal']});
+          console.log(`✓ Web ${game.slug} @ ${size.width}px`);continue;
+        }
         const ui = selectors[game.slug];
         await page.goto(`${origin}${base}games/${game.slug}/?qa=1${game.slug==='final-door'?'&mode=capture':''}`);
         await page.locator(ui.start).waitFor({ state: "visible" });
