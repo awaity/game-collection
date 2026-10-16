@@ -44,5 +44,19 @@
       "weixin",
       "douyin"
     ]
+  },
+  "final-door": {
+    "workspace": "final-door",
+    "engine": "cocos",
+    "webDir": "games/final-door/dist/web",
+    "requiredAssets": [
+      "favicon.svg",
+      "cocos-js/cc.js",
+      "creator-build.json"
+    ],
+    "miniTargets": [
+      "weixin",
+      "douyin"
+    ]
   }
 }

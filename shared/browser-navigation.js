@@ -9,6 +9,7 @@ const style = document.createElement("style");
 style.textContent =
   ".collection-return{position:fixed;top:max(12px,env(safe-area-inset-top));right:14px;z-index:1000;padding:10px 14px;background:#fffdf3;color:#263a42;border:1px solid #d9dfd8;border-radius:24px;font:600 12px/1.4 system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #122f2c17}.collection-return[hidden]{display:none}.collection-return:hover{background:#eef0fe}.collection-return:focus-visible{outline:3px solid #645ac8;outline-offset:3px}@media(min-width:721px){.collection-return{left:20px;right:auto;top:18px}}";
 document.head.append(style);
+style.textContent += '[data-collection-engine="cocos"] .collection-return{top:auto;left:auto;right:14px;bottom:max(88px,env(safe-area-inset-bottom))}';
 document.body.append(link);
 const activePointers = new Set();
 function update() {

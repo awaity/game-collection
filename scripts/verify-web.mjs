@@ -15,6 +15,13 @@ await once(server, "listening");
 const origin = `http://127.0.0.1:${server.address().port}`;
 let browser;
 const selectors = {
+  "final-door": {
+    start: 'button[aria-label="接管战斗"]',
+    pause: 'button[aria-label="暂停"]',
+    resume: 'button[aria-label="播放"]',
+    home: 'button[aria-label="更多"]',
+    surface: '#GameCanvas',
+  },
   "garden-guard": {
     start: '[data-action="continue-level"]',
     confirm: '[data-action="start"]',
@@ -133,9 +140,9 @@ try {
         size.width === 320
           ? games.filter((g) => g.slug === "plane-battle")
           : games;
-      for (const game of scenarios) {
+      for (const game of scenarios.filter(game=>!process.env.VERIFY_GAME||game.slug===process.env.VERIFY_GAME)) {
         const ui = selectors[game.slug];
-        await page.goto(`${origin}${base}games/${game.slug}/?qa=1`);
+        await page.goto(`${origin}${base}games/${game.slug}/?qa=1${game.slug==='final-door'?'&mode=capture':''}`);
         await page.locator(ui.start).waitFor({ state: "visible" });
         await page.waitForFunction(
           () => document.documentElement.dataset.collectionState === "menu",
@@ -282,6 +289,10 @@ try {
         console.log(`✓ Web ${game.slug} @ ${size.width}px`);
       }
       assert.deepEqual(errors, []);
+    } catch (error) {
+      await page.screenshot({path:path.join(artifacts,`failure-${size.width}.png`)}).catch(()=>{});
+      await writeFile(path.join(artifacts,`failure-${size.width}.json`),JSON.stringify({url:page.url(),error:String(error),errors,state:await page.evaluate(()=>({collection:document.documentElement.dataset.collectionState,game:typeof render_game_to_text==='function'?render_game_to_text():null})).catch(()=>null)},null,2));
+      throw error;
     } finally {
       await context.close();
     }
