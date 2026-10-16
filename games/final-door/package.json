@@ -1,10 +1,14 @@
 {
   "name": "final-door",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "displayName": "最后一道门",
+  "description": "射击门值、壮大队伍、争夺补给，在海桥上迎击赤潮统领。",
   "private": true,
   "type": "module",
   "uuid": "cf47cabe-1892-4813-b5b6-bd19bfb41461",
-  "creator": { "version": "3.8.8" },
+  "creator": {
+    "version": "3.8.8"
+  },
   "packageManager": "pnpm@11.23.0",
   "scripts": {
     "build": "node ../../packages/build-tools/src/cocos.mjs web",
@@ -12,7 +16,8 @@
     "build:douyin": "node ../../packages/build-tools/src/cocos.mjs douyin",
     "build:mini": "pnpm build:weixin && pnpm build:douyin",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "pnpm typecheck && tsx --test tests/*.test.ts",
+    "verify:mini": "node ../../packages/build-tools/src/cocos-verify.mjs"
   },
   "devDependencies": {
     "@game-collection/build-tools": "workspace:*",

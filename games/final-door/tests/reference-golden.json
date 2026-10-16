@@ -1,0 +1,161 @@
+[
+  {
+    "route": 0,
+    "steps": [
+      {
+        "tick": 0,
+        "hash": "26ecd7cd",
+        "troops": 10,
+        "boss": 5600,
+        "level": 1,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 360,
+        "hash": "c373a1f9",
+        "troops": 31,
+        "boss": 5600,
+        "level": 1,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 900,
+        "hash": "5da64088",
+        "troops": 31,
+        "boss": 5600,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 1500,
+        "hash": "42fdbbde",
+        "troops": 50,
+        "boss": 5600,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 2100,
+        "hash": "f71a1371",
+        "troops": 43,
+        "boss": 1967,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 2700,
+        "hash": "483bb62a",
+        "troops": 37,
+        "boss": 0,
+        "level": 2,
+        "outcome": "胜利"
+      }
+    ]
+  },
+  {
+    "route": 1,
+    "steps": [
+      {
+        "tick": 0,
+        "hash": "b4951dcc",
+        "troops": 12,
+        "boss": 6800,
+        "level": 1,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 360,
+        "hash": "8f2fc13f",
+        "troops": 38,
+        "boss": 6800,
+        "level": 1,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 900,
+        "hash": "04663889",
+        "troops": 34,
+        "boss": 6800,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 1500,
+        "hash": "732b1fc4",
+        "troops": 62,
+        "boss": 6800,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 2100,
+        "hash": "fa524e03",
+        "troops": 50,
+        "boss": 2384,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 2700,
+        "hash": "26c42724",
+        "troops": 39,
+        "boss": 0,
+        "level": 2,
+        "outcome": "胜利"
+      }
+    ]
+  },
+  {
+    "route": 2,
+    "steps": [
+      {
+        "tick": 0,
+        "hash": "eadfdd6d",
+        "troops": 14,
+        "boss": 8100,
+        "level": 1,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 360,
+        "hash": "4617af3f",
+        "troops": 44,
+        "boss": 8100,
+        "level": 1,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 900,
+        "hash": "451d9d00",
+        "troops": 33,
+        "boss": 8100,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 1500,
+        "hash": "db117317",
+        "troops": 58,
+        "boss": 8100,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 2100,
+        "hash": "358e134c",
+        "troops": 47,
+        "boss": 4506,
+        "level": 2,
+        "outcome": "进行中"
+      },
+      {
+        "tick": 2700,
+        "hash": "a85af640",
+        "troops": 36,
+        "boss": 1833,
+        "level": 2,
+        "outcome": "进行中"
+      }
+    ]
+  }
+]
