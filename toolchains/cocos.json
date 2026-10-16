@@ -1,0 +1,25 @@
+{
+  "version": "3.8.8",
+  "series": "3.8 LTS",
+  "windows": {
+    "url": "https://download.cocos.com/CocosCreator/v3.8.8/CocosCreator-v3.8.8-win-121518.zip",
+    "sha256": "e365030aa4f24b515f499cf093cd86fdf38a0f763b5fbcacb20e96253e0fcc0b"
+  },
+  "modules": [
+    "base",
+    "gfx-webgl",
+    "gfx-webgl2",
+    "3d",
+    "2d",
+    "ui",
+    "graphics",
+    "primitive",
+    "audio",
+    "custom-pipeline"
+  ],
+  "targets": {
+    "web": "web-mobile",
+    "weixin": "wechatgame",
+    "douyin": "bytedance-mini-game"
+  }
+}

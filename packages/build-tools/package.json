@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./mini": "./src/mini.ts"
+    "./mini": "./src/mini.ts",
+    "./cocos": "./src/cocos.mjs"
   },
   "dependencies": {
     "esbuild": "0.25.11",

@@ -9,3 +9,9 @@ test-results/
 .env.*
 !.env.example
 SOURCE.md
+library/
+temp/
+local/
+profiles/
+.creator-cache/
+assets/collection/
