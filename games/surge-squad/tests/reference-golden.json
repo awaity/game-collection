@@ -1,0 +1,1539 @@
+{
+  "version": "1.2.0",
+  "source": "https://surge-squad.vercel.app/",
+  "checkpoints": [
+    {
+      "chapter": 0,
+      "time": 0,
+      "sha256": "f101d2d874fa1323d534faa46806cc032681d5f77f5d0b7f780a2ec3489e7843",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 0,
+        "time": 0,
+        "distance": 0,
+        "player": {
+          "x": 0,
+          "targetX": 0,
+          "troops": 1,
+          "energy": 0,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 0,
+          "cells": 0,
+          "recruits": 0,
+          "bosses": 0,
+          "score": 0,
+          "lost": 0,
+          "shots": 0,
+          "laserSeconds": 0
+        },
+        "enemies": 4654,
+        "alive": 4654,
+        "gates": [
+          {
+            "state": "sealed",
+            "hp": 26,
+            "value": 1
+          },
+          {
+            "state": "sealed",
+            "hp": 130,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 440,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 599,
+            "maxHp": 599,
+            "phase": "march"
+          },
+          {
+            "hp": 1699,
+            "maxHp": 1699,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 0,
+        "events": 1,
+        "beam": {
+          "distance": 34,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 0,
+      "time": 6,
+      "sha256": "d7b4937d105316555a2161ee99e5506437348a8bcb93039d2a8e6743ef0d04b9",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 0,
+        "time": 6,
+        "distance": 20.1,
+        "player": {
+          "x": 0,
+          "targetX": 0,
+          "troops": 2,
+          "energy": 12,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": true,
+          "shotClock": 0.10500000000000162,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 0,
+          "cells": 12,
+          "recruits": 1,
+          "bosses": 0,
+          "score": 56,
+          "lost": 0,
+          "shots": 55,
+          "laserSeconds": 0
+        },
+        "enemies": 4654,
+        "alive": 4654,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "sealed",
+            "hp": 130,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 440,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 599,
+            "maxHp": 599,
+            "phase": "march"
+          },
+          {
+            "hp": 1699,
+            "maxHp": 1699,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 8,
+        "events": 0,
+        "beam": {
+          "distance": 34,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 0,
+      "time": 15,
+      "sha256": "18077744f0292e5cd6b60921752a01a440519b5a671189712b4aeeafdf9859c6",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 0,
+        "time": 15,
+        "distance": 50.25,
+        "player": {
+          "x": 3.18,
+          "targetX": 3.18,
+          "troops": 2,
+          "energy": 0,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.08166666666666891,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 926,
+          "cells": 26,
+          "recruits": 1,
+          "bosses": 0,
+          "score": 23698,
+          "lost": 0,
+          "shots": 83,
+          "laserSeconds": 6.666666666666648
+        },
+        "enemies": 4654,
+        "alive": 3728,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "open",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 440,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 322.93,
+            "maxHp": 599,
+            "phase": "march"
+          },
+          {
+            "hp": 1699,
+            "maxHp": 1699,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 2,
+        "events": 0,
+        "beam": {
+          "distance": 18,
+          "hit": false,
+          "kind": "gate"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 0,
+      "time": 30,
+      "sha256": "2f5fe958aeaf67b52dfa222a07f6d0991956a8cefe1f9c9e8eff0560557a67ad",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 0,
+        "time": 30,
+        "distance": 100.5,
+        "player": {
+          "x": 3.18,
+          "targetX": 3.18,
+          "troops": 7,
+          "energy": 6.450000000000003,
+          "boost": 0,
+          "invincible": 0,
+          "laser": true,
+          "charging": false,
+          "shotClock": 0.010000000000004165,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 1665,
+          "cells": 63,
+          "recruits": 6,
+          "bosses": 1,
+          "score": 41980,
+          "lost": 0,
+          "shots": 364,
+          "laserSeconds": 14.5000000000003
+        },
+        "enemies": 4654,
+        "alive": 2989,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "open",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 599,
+            "phase": "dead"
+          },
+          {
+            "hp": 1699,
+            "maxHp": 1699,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 0,
+      "time": 60,
+      "sha256": "307d555104e35485f1fc4e00a48824f6fc5b6dc8104a36ef0a8ffad1d1879295",
+      "snapshot": {
+        "phase": "victory",
+        "chapter": 0,
+        "time": 52.6,
+        "distance": 165.043,
+        "player": {
+          "x": -3.12,
+          "targetX": -3.12,
+          "troops": 7,
+          "energy": 8.14000000000004,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.02333333333333892,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 2388,
+          "cells": 95,
+          "recruits": 6,
+          "bosses": 2,
+          "score": 66996,
+          "lost": 0,
+          "shots": 588,
+          "laserSeconds": 31.833333333332806
+        },
+        "enemies": 4654,
+        "alive": 2266,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 599,
+            "phase": "dead"
+          },
+          {
+            "hp": 0,
+            "maxHp": 1699,
+            "phase": "dead"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 0,
+      "time": 100,
+      "sha256": "307d555104e35485f1fc4e00a48824f6fc5b6dc8104a36ef0a8ffad1d1879295",
+      "snapshot": {
+        "phase": "victory",
+        "chapter": 0,
+        "time": 52.6,
+        "distance": 165.043,
+        "player": {
+          "x": -3.12,
+          "targetX": -3.12,
+          "troops": 7,
+          "energy": 8.14000000000004,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.02333333333333892,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 2388,
+          "cells": 95,
+          "recruits": 6,
+          "bosses": 2,
+          "score": 66996,
+          "lost": 0,
+          "shots": 588,
+          "laserSeconds": 31.833333333332806
+        },
+        "enemies": 4654,
+        "alive": 2266,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 599,
+            "phase": "dead"
+          },
+          {
+            "hp": 0,
+            "maxHp": 1699,
+            "phase": "dead"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 0,
+      "time": 160,
+      "sha256": "307d555104e35485f1fc4e00a48824f6fc5b6dc8104a36ef0a8ffad1d1879295",
+      "snapshot": {
+        "phase": "victory",
+        "chapter": 0,
+        "time": 52.6,
+        "distance": 165.043,
+        "player": {
+          "x": -3.12,
+          "targetX": -3.12,
+          "troops": 7,
+          "energy": 8.14000000000004,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.02333333333333892,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 2388,
+          "cells": 95,
+          "recruits": 6,
+          "bosses": 2,
+          "score": 66996,
+          "lost": 0,
+          "shots": 588,
+          "laserSeconds": 31.833333333332806
+        },
+        "enemies": 4654,
+        "alive": 2266,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 599,
+            "phase": "dead"
+          },
+          {
+            "hp": 0,
+            "maxHp": 1699,
+            "phase": "dead"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 1,
+      "time": 0,
+      "sha256": "a6edc67f8ab3a056d4ecdf3a97870a01109a7d5c5425e75ecdc43401436d8632",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 1,
+        "time": 0,
+        "distance": 0,
+        "player": {
+          "x": 0,
+          "targetX": 0,
+          "troops": 1,
+          "energy": 0,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 0,
+          "cells": 0,
+          "recruits": 0,
+          "bosses": 0,
+          "score": 0,
+          "lost": 0,
+          "shots": 0,
+          "laserSeconds": 0
+        },
+        "enemies": 5597,
+        "alive": 5597,
+        "gates": [
+          {
+            "state": "sealed",
+            "hp": 30,
+            "value": 1
+          },
+          {
+            "state": "sealed",
+            "hp": 160,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 500,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 899,
+            "maxHp": 899,
+            "phase": "march"
+          },
+          {
+            "hp": 2499,
+            "maxHp": 2499,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 0,
+        "events": 1,
+        "beam": {
+          "distance": 34,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 1,
+      "time": 6,
+      "sha256": "68722cb7af5312a8e5ff38c8510fd30fa8a15fc8d2983b0482e2013b7bbef2cf",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 1,
+        "time": 6,
+        "distance": 21.3,
+        "player": {
+          "x": 0,
+          "targetX": 0,
+          "troops": 2,
+          "energy": 12,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": true,
+          "shotClock": 0.10500000000000162,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 0,
+          "cells": 13,
+          "recruits": 1,
+          "bosses": 0,
+          "score": 59,
+          "lost": 0,
+          "shots": 56,
+          "laserSeconds": 0
+        },
+        "enemies": 5597,
+        "alive": 5597,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "sealed",
+            "hp": 160,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 500,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 899,
+            "maxHp": 899,
+            "phase": "march"
+          },
+          {
+            "hp": 2499,
+            "maxHp": 2499,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 8,
+        "events": 0,
+        "beam": {
+          "distance": 34,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 1,
+      "time": 15,
+      "sha256": "8d9dc8edefb2cdeca71a11979b8b70c4bf4b29a2e48b05e6636ddb0dc0d74391",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 1,
+        "time": 15,
+        "distance": 53.25,
+        "player": {
+          "x": 3.18,
+          "targetX": 3.18,
+          "troops": 2,
+          "energy": 0,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.14500000000000232,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 1024,
+          "cells": 27,
+          "recruits": 1,
+          "bosses": 0,
+          "score": 26641,
+          "lost": 0,
+          "shots": 88,
+          "laserSeconds": 6.399999999999983
+        },
+        "enemies": 5597,
+        "alive": 4573,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "open",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 500,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 810.17,
+            "maxHp": 899,
+            "phase": "march"
+          },
+          {
+            "hp": 2499,
+            "maxHp": 2499,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 4,
+        "events": 0,
+        "beam": {
+          "distance": 18.000000000000007,
+          "hit": false,
+          "kind": "gate"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 1,
+      "time": 30,
+      "sha256": "3087fabe3c2e68037e88ee911e8e6c17ae59d5e442319e309b32f1e626937eeb",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 1,
+        "time": 30,
+        "distance": 106.5,
+        "player": {
+          "x": 3.18,
+          "targetX": 3.18,
+          "troops": 7,
+          "energy": 0.9849999999999901,
+          "boost": 0,
+          "invincible": 0,
+          "laser": true,
+          "charging": false,
+          "shotClock": 0.14666666666667072,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 1882,
+          "cells": 65,
+          "recruits": 6,
+          "bosses": 1,
+          "score": 50915,
+          "lost": 0,
+          "shots": 336,
+          "laserSeconds": 14.96666666666699
+        },
+        "enemies": 5597,
+        "alive": 3715,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 11.3,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 899,
+            "phase": "dead"
+          },
+          {
+            "hp": 2499,
+            "maxHp": 2499,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 11,
+          "hit": true,
+          "kind": "gate"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 1,
+      "time": 60,
+      "sha256": "49b83c89ef001fa17fadce6e26c0ee94e976a7b099220b2e565a2f22dd5df31c",
+      "snapshot": {
+        "phase": "victory",
+        "chapter": 1,
+        "time": 56.817,
+        "distance": 185.014,
+        "player": {
+          "x": -3.12,
+          "targetX": -3.12,
+          "troops": 7,
+          "energy": 6.5116666666666925,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.09833333333333957,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 2784,
+          "cells": 105,
+          "recruits": 6,
+          "bosses": 2,
+          "score": 81325,
+          "lost": 0,
+          "shots": 679,
+          "laserSeconds": 33.64999999999937
+        },
+        "enemies": 5597,
+        "alive": 2813,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 899,
+            "phase": "dead"
+          },
+          {
+            "hp": 0,
+            "maxHp": 2499,
+            "phase": "dead"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 1,
+      "time": 100,
+      "sha256": "49b83c89ef001fa17fadce6e26c0ee94e976a7b099220b2e565a2f22dd5df31c",
+      "snapshot": {
+        "phase": "victory",
+        "chapter": 1,
+        "time": 56.817,
+        "distance": 185.014,
+        "player": {
+          "x": -3.12,
+          "targetX": -3.12,
+          "troops": 7,
+          "energy": 6.5116666666666925,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.09833333333333957,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 2784,
+          "cells": 105,
+          "recruits": 6,
+          "bosses": 2,
+          "score": 81325,
+          "lost": 0,
+          "shots": 679,
+          "laserSeconds": 33.64999999999937
+        },
+        "enemies": 5597,
+        "alive": 2813,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 899,
+            "phase": "dead"
+          },
+          {
+            "hp": 0,
+            "maxHp": 2499,
+            "phase": "dead"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 1,
+      "time": 160,
+      "sha256": "49b83c89ef001fa17fadce6e26c0ee94e976a7b099220b2e565a2f22dd5df31c",
+      "snapshot": {
+        "phase": "victory",
+        "chapter": 1,
+        "time": 56.817,
+        "distance": 185.014,
+        "player": {
+          "x": -3.12,
+          "targetX": -3.12,
+          "troops": 7,
+          "energy": 6.5116666666666925,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.09833333333333957,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 2784,
+          "cells": 105,
+          "recruits": 6,
+          "bosses": 2,
+          "score": 81325,
+          "lost": 0,
+          "shots": 679,
+          "laserSeconds": 33.64999999999937
+        },
+        "enemies": 5597,
+        "alive": 2813,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 899,
+            "phase": "dead"
+          },
+          {
+            "hp": 0,
+            "maxHp": 2499,
+            "phase": "dead"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 2,
+      "time": 0,
+      "sha256": "d5f68023ba3eab20518d103d082ae1371f10f898bdceac37931a4a5671f4f9fe",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 2,
+        "time": 0,
+        "distance": 0,
+        "player": {
+          "x": 0,
+          "targetX": 0,
+          "troops": 1,
+          "energy": 0,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 0,
+          "cells": 0,
+          "recruits": 0,
+          "bosses": 0,
+          "score": 0,
+          "lost": 0,
+          "shots": 0,
+          "laserSeconds": 0
+        },
+        "enemies": 6611,
+        "alive": 6611,
+        "gates": [
+          {
+            "state": "sealed",
+            "hp": 34,
+            "value": 1
+          },
+          {
+            "state": "sealed",
+            "hp": 190,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 580,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 1299,
+            "maxHp": 1299,
+            "phase": "march"
+          },
+          {
+            "hp": 3499,
+            "maxHp": 3499,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 0,
+        "events": 1,
+        "beam": {
+          "distance": 34,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 2,
+      "time": 6,
+      "sha256": "6bc0bd41004da285fb28e7f804f3a8f9fe99ad9076c515b93d525c34b0c0dd47",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 2,
+        "time": 6,
+        "distance": 22.5,
+        "player": {
+          "x": 0,
+          "targetX": 0,
+          "troops": 2,
+          "energy": 12,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": true,
+          "shotClock": 0.10500000000000162,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 0,
+          "cells": 15,
+          "recruits": 1,
+          "bosses": 0,
+          "score": 65,
+          "lost": 0,
+          "shots": 57,
+          "laserSeconds": 0
+        },
+        "enemies": 6611,
+        "alive": 6611,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "sealed",
+            "hp": 190,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 580,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 1299,
+            "maxHp": 1299,
+            "phase": "march"
+          },
+          {
+            "hp": 3499,
+            "maxHp": 3499,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 8,
+        "events": 0,
+        "beam": {
+          "distance": 34,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 2,
+      "time": 15,
+      "sha256": "02c227845c1bae45bc5630dfbdabb78d4550859da48ba707e705fae6804f2d47",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 2,
+        "time": 15,
+        "distance": 56.25,
+        "player": {
+          "x": 3.18,
+          "targetX": 3.18,
+          "troops": 2,
+          "energy": 0,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.14500000000000232,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 944,
+          "cells": 28,
+          "recruits": 1,
+          "bosses": 0,
+          "score": 24244,
+          "lost": 0,
+          "shots": 89,
+          "laserSeconds": 6.399999999999983
+        },
+        "enemies": 6611,
+        "alive": 5667,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "sealed",
+            "hp": 1.11,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 580,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 1299,
+            "maxHp": 1299,
+            "phase": "march"
+          },
+          {
+            "hp": 3499,
+            "maxHp": 3499,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 2,
+        "events": 0,
+        "beam": {
+          "distance": 11,
+          "hit": false,
+          "kind": "gate"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 2,
+      "time": 30,
+      "sha256": "b8f74b1864ca134026ce7ba2562867d4a94a188028eef4c3110a3e3329ba7797",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 2,
+        "time": 30,
+        "distance": 112.5,
+        "player": {
+          "x": 3.18,
+          "targetX": 3.18,
+          "troops": 7,
+          "energy": 5.600000000000043,
+          "boost": 0,
+          "invincible": 0,
+          "laser": true,
+          "charging": false,
+          "shotClock": 0.05166666666667105,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 2006,
+          "cells": 69,
+          "recruits": 6,
+          "bosses": 0,
+          "score": 52147,
+          "lost": 0,
+          "shots": 366,
+          "laserSeconds": 13.716666666666928
+        },
+        "enemies": 6611,
+        "alive": 4605,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 580,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 33.67,
+            "maxHp": 1299,
+            "phase": "march"
+          },
+          {
+            "hp": 3499,
+            "maxHp": 3499,
+            "phase": "march"
+          }
+        ],
+        "finalArena": false,
+        "bullets": 0,
+        "events": 0,
+        "beam": {
+          "distance": 11,
+          "hit": true,
+          "kind": "gate"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 2,
+      "time": 60,
+      "sha256": "c685da7884695d5dc895a707bc154cd697c2481385e68cffbcff1e11b7e45822",
+      "snapshot": {
+        "phase": "playing",
+        "chapter": 2,
+        "time": 60,
+        "distance": 158.063,
+        "player": {
+          "x": 0,
+          "targetX": 0,
+          "troops": 7,
+          "energy": 7.185000000000006,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": true,
+          "shotClock": 0.0016666666666741645,
+          "damageBudget": 0
+        },
+        "stats": {
+          "kills": 2567,
+          "cells": 100,
+          "recruits": 6,
+          "bosses": 1,
+          "score": 62676,
+          "lost": 0,
+          "shots": 856,
+          "laserSeconds": 32.11666666666613
+        },
+        "enemies": 6611,
+        "alive": 4044,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "sealed",
+            "hp": 51.73,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 1299,
+            "phase": "dead"
+          },
+          {
+            "hp": 931.93,
+            "maxHp": 3499,
+            "phase": "arena"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 24,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 0
+      }
+    },
+    {
+      "chapter": 2,
+      "time": 100,
+      "sha256": "28da97e146b7d2eb29bbb5cff3882e8315a44d72730f74b2d1a291b41c3bc9a3",
+      "snapshot": {
+        "phase": "victory",
+        "chapter": 2,
+        "time": 78.35,
+        "distance": 205,
+        "player": {
+          "x": -3.12,
+          "targetX": -3.12,
+          "troops": 7,
+          "energy": 9.595000000000018,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.07666666666667526,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 3177,
+          "cells": 124,
+          "recruits": 6,
+          "bosses": 2,
+          "score": 84278,
+          "lost": 0,
+          "shots": 1031,
+          "laserSeconds": 46.416666666665314
+        },
+        "enemies": 6611,
+        "alive": 3434,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 1299,
+            "phase": "dead"
+          },
+          {
+            "hp": 0,
+            "maxHp": 3499,
+            "phase": "dead"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 4,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    },
+    {
+      "chapter": 2,
+      "time": 160,
+      "sha256": "28da97e146b7d2eb29bbb5cff3882e8315a44d72730f74b2d1a291b41c3bc9a3",
+      "snapshot": {
+        "phase": "victory",
+        "chapter": 2,
+        "time": 78.35,
+        "distance": 205,
+        "player": {
+          "x": -3.12,
+          "targetX": -3.12,
+          "troops": 7,
+          "energy": 9.595000000000018,
+          "boost": 0,
+          "invincible": 0,
+          "laser": false,
+          "charging": false,
+          "shotClock": 0.07666666666667526,
+          "damageBudget": 120
+        },
+        "stats": {
+          "kills": 3177,
+          "cells": 124,
+          "recruits": 6,
+          "bosses": 2,
+          "score": 84278,
+          "lost": 0,
+          "shots": 1031,
+          "laserSeconds": 46.416666666665314
+        },
+        "enemies": 6611,
+        "alive": 3434,
+        "gates": [
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 1
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 5
+          },
+          {
+            "state": "taken",
+            "hp": 0,
+            "value": 99
+          }
+        ],
+        "bosses": [
+          {
+            "hp": 0,
+            "maxHp": 1299,
+            "phase": "dead"
+          },
+          {
+            "hp": 0,
+            "maxHp": 3499,
+            "phase": "dead"
+          }
+        ],
+        "finalArena": true,
+        "bullets": 4,
+        "events": 0,
+        "beam": {
+          "distance": 43,
+          "hit": false,
+          "kind": "empty"
+        },
+        "beamCount": 7
+      }
+    }
+  ]
+}

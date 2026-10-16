@@ -1,0 +1,34 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "0d522a46-f6a4-5238-a16d-08685b6e3c56",
+  "files": [],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "0d522a46-f6a4-5238-a16d-08685b6e3c56@6c48a",
+      "displayName": "crowd",
+      "id": "6c48a",
+      "name": "texture",
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [],
+      "subMetas": {},
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "linear",
+        "anisotropy": 4,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "0d522a46-f6a4-5238-a16d-08685b6e3c56",
+        "visible": false
+      }
+    }
+  },
+  "userData": {
+    "type": "texture"
+  }
+}

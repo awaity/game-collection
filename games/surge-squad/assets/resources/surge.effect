@@ -1,0 +1,123 @@
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: surge-vs:vert
+      frag: surge-fs:frag
+      rasterizerState: { cullMode: none }
+      depthStencilState: { depthTest: true, depthWrite: true }
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+      properties:
+        mainTexture: { value: white }
+        mainColor: { value: [1, 1, 1, 1], editor: { type: color } }
+        animation: { value: [0, 0, 0, 0] }
+}%
+CCProgram surge-vs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #if USE_INSTANCING
+    in vec4 a_matWorld0;
+    in vec4 a_matWorld1;
+    in vec4 a_matWorld2;
+  #endif
+  #include <builtin/functionalities/world-transform>
+  in vec3 a_position;
+  in vec2 a_texCoord;
+  out vec2 uv;
+  #if USE_COLOR
+    in vec4 a_color;
+    out vec4 tint;
+    in vec3 a_normal;
+    out vec3 surfaceNormal;
+  #endif
+  #if USE_GAIT
+    in vec4 a_tangent;
+  #endif
+  #if USE_GAIT || USE_ROAD
+    uniform Animation { vec4 animation; };
+  #endif
+  vec4 vert () {
+    mat4 world; CCGetWorldMatrix(world);
+    vec3 pos=a_position;
+    uv=a_texCoord;
+    #if USE_COLOR
+      tint=a_color;
+      surfaceNormal=normalize(mat3(world)*a_normal);
+    #endif
+    #if USE_ROAD
+      uv=uv*vec2(2.,20.)+vec2(0.,-animation.x*.55/14.);
+    #endif
+    #if USE_GAIT
+      float part=a_tangent.x,gait=animation.x*11.+world[3].z*2.1+world[3].x*3.4;
+      float limb=sin(gait+((part==2.||part==3.)?3.14159:0.));
+      if(part==1.||part==2.){
+        float influence=clamp(1.-pos.y/(.40*animation.y),0.,1.);
+        pos.z+=limb*.09*animation.y*influence;pos.y+=max(0.,limb)*.025*animation.y*influence;
+      }
+      if(part==3.||part==4.){
+        pos.z+=limb*.025*animation.y;float side=part==3.?-1.:1.,angle=side*animation.z*1.78;
+        vec2 pivot=vec2(side*.53,1.20),arm=pos.xy-pivot;
+        pos.xy=pivot+mat2(cos(angle),sin(angle),-sin(angle),cos(angle))*arm;
+      }
+    #endif
+    vec4 position=world*vec4(pos,1.);
+    #if USE_PROJECTION
+      position.xz+=position.y*vec2(21./34.,-24./34.);position.y=.006;
+    #endif
+    return cc_matViewProj*position;
+  }
+}%
+CCProgram surge-fs %{
+  precision highp float;
+  in vec2 uv;
+  uniform sampler2D mainTexture;
+  uniform Params { vec4 mainColor; };
+  #if USE_GAIT || USE_BEAM
+    uniform Animation { vec4 animation; };
+  #endif
+  #if USE_COLOR
+    in vec4 tint;
+    in vec3 surfaceNormal;
+  #endif
+  vec4 frag () {
+    vec4 c=texture(mainTexture,uv)*mainColor;
+    #if USE_COLOR
+      vec3 base=pow(c.rgb,vec3(2.2))*pow(tint.rgb,vec3(2.2)),n=normalize(surfaceNormal);
+      if(tint.a>.5){
+        vec3 hemi=mix(vec3(.045,.034,.065),vec3(.552,.723,1.),n.y*.5+.5)*.56;
+        float sun=max(0.,dot(n,normalize(vec3(-21.,34.,24.))));
+        float fill=max(0.,dot(n,normalize(vec3(15.,10.,-22.))));
+        base*=hemi+vec3(1.,.89,.73)*1.12*sun+vec3(.17,.35,.74)*.18*fill;
+      }
+      #if USE_GAIT
+        base=mix(base,vec3(1.6),clamp(animation.w,0.,.75));
+      #endif
+      base*=.84;c.rgb=pow(clamp((base*(2.51*base+.03))/(base*(2.43*base+.59)+.14),0.,1.),vec3(1./2.2));
+    #endif
+    #if USE_CROWD
+      if(c.a<.22)discard;
+      vec3 t=c.rgb*.84;
+      c=vec4(pow(clamp((t*(2.51*t+.03))/(t*(2.43*t+.59)+.14),0.,1.),vec3(1./2.2)),1.);
+    #endif
+    #if USE_SHADOW
+      float radius=length((uv-.5)*2.);c=vec4(.015,.026,.055,(1.-smoothstep(.05,1.,radius))*.30);
+    #endif
+    #if USE_BEAM
+      float y=uv.y,seed=0.;float wave=sin(y*39.-animation.x*21.+seed)*.009+sin(y*91.+animation.x*14.)*.003;
+      float x=abs(uv.x-.5+wave),halo=exp(-x*x*22.),body=exp(-x*x*50.),core=exp(-x*x*800.);
+      float helix=pow(max(0.,sin(uv.x*60.+sin(y*44.-animation.x*19.+seed)*1.7)),9.)*halo;
+      float flow=.87+.13*sin(y*65.-animation.x*37.+seed),ends=smoothstep(0.,.035,y)*(1.-smoothstep(.975,1.,y));
+      vec3 color=vec3(.006,.40,2.80)*halo+vec3(.018,2.30,4.7)*body*flow+vec3(.045,3.3,4.7)*core+vec3(.015,.9,3.9)*helix;
+      float plume=exp(-y*19.)*exp(-x*x*7.)*(.72+.28*sin(y*180.-animation.x*31.+seed));color+=vec3(.004,1.05,3.10)*plume;
+      c=vec4(color,clamp((halo*.21+body*.47+core*.27+helix*.20+plume*.35)*ends,0.,.94));
+    #endif
+    #if USE_PROJECTION
+      c=mainColor;
+    #endif
+    if(c.a<.02)discard;
+    return c;
+  }
+}%

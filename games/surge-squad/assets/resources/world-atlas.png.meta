@@ -1,0 +1,34 @@
+{
+  "ver": "1.0.27",
+  "importer": "image",
+  "imported": true,
+  "uuid": "ab503334-f747-5d5d-afc1-a5b418e0c717",
+  "files": [],
+  "subMetas": {
+    "6c48a": {
+      "importer": "texture",
+      "uuid": "ab503334-f747-5d5d-afc1-a5b418e0c717@6c48a",
+      "displayName": "world-atlas",
+      "id": "6c48a",
+      "name": "texture",
+      "ver": "1.0.22",
+      "imported": true,
+      "files": [],
+      "subMetas": {},
+      "userData": {
+        "wrapModeS": "clamp-to-edge",
+        "wrapModeT": "clamp-to-edge",
+        "minfilter": "linear",
+        "magfilter": "linear",
+        "mipfilter": "linear",
+        "anisotropy": 4,
+        "isUuid": true,
+        "imageUuidOrDatabaseUri": "ab503334-f747-5d5d-afc1-a5b418e0c717",
+        "visible": false
+      }
+    }
+  },
+  "userData": {
+    "type": "texture"
+  }
+}

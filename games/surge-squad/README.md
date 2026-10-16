@@ -1,11 +1,16 @@
 # 电涌小队
 
-Cocos Creator 3.8.8 + TypeScript 三端工程。当前是已通过 Web 闭环验证的极简版本：充能、有限激光、扩编、两名首领、暂停与重开。它是迭代起点，不能作为完整复刻验收，尚未接入大厅。
+基于参考版本 1.2.0 的完整三章玩法，采用官方 Cocos Creator 3.8.8 + TypeScript。支持 Web、微信小游戏、抖音小游戏，无 WebView。使用根目录 pnpm 工作区与锁文件。
 
-完整迭代将移植已采集原作 1.2.0 的确定性仿真、三章解锁、激光与等离子命中、数字门、稠密敌群、首领技能、积分/星级/存档与原始人物素材。原作现已可在本地运行，证据位于本机 `artifacts/public-references/surge-squad/`。
+中央蓝带蓄能，横移消耗有限电能释放激光。击破数字门扩编；首位守关者倒下后才能领取金色电能 +99。队员、敌人、首领、子弹及等离子命中均来自独立仿真，画质不会改变伤害。三章通关纪录、音量与画质保存在本机；自动演示不写入手动通关纪录。
 
-## 极简里程碑验证（2026-10-16）
+手机拖动或点选底部跑道；电脑 A/D、方向键移动，空格/P 暂停，R 重开，M 声音，H 净画面。横屏和小屏保留完整菜单。
 
-- 两项规则测试通过；官方 Creator 3.8.8 Web 导出成功。
-- 在真实 Creator 页面验证了开始、充能、有限激光、暂停/恢复、重开、实际仿真失败和返回菜单。
-- 本机证据：`artifacts/surge-mvp-{menu,playing,result}.png`。微信/抖音导出和完整复刻验收在后续迭代执行，当前不标记为通过。
+```sh
+pnpm --filter surge-squad test
+pnpm --filter surge-squad build
+pnpm --filter surge-squad build:mini
+node scripts/verify-cocos-game.mjs surge-squad all
+```
+
+构建说明见根目录 `docs/COCOS.md`；来源和验证状态见 `docs/REFERENCE.md`、`docs/VERIFICATION.md`。目录内不独立发布 gh-pages。
