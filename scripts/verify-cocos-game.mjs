@@ -12,17 +12,17 @@ try{
  for(const {target,viewport}of cases){
   const context=await browser.newContext({viewport,reducedMotion:'reduce'}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(String(e)));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});let latest;
   try{
-   const native=target!=='web';
+   const native=target!=='web';let dirty=true;
    if(native){await p.goto(host.url);latest=await p.evaluate(({slug,target})=>boot(slug,target,1),{slug,target});}
    else{await p.addInitScript(()=>window.__COLLECTION_TEST__=true);await p.goto(`http://127.0.0.1:${server.address().port}/game-collection/games/${slug}/dist/web/`)}
-   async function state(){if(native){latest=await p.evaluate(()=>call({type:'frames',count:2}));assert.deepEqual(latest.errors,[]);return latest.state}return p.evaluate(()=>window.__collectionSnapshot)}
+   async function state(){if(native){latest=await p.evaluate(count=>call({type:'frames',count}),dirty?2:0);assert.deepEqual(latest.errors,[]);dirty=!latest.state||latest.state.phase==='loading';return latest.state}return p.evaluate(()=>window.__collectionSnapshot)}
    for(let i=0;i<150;i++){const s=await state();if(s&&s.phase!=='loading')break;await p.waitForTimeout(75)}
    assert.ok((await state())?.controls?.length,'Creator scene failed to load');
-   async function event(name,x=0,y=0){latest=await p.evaluate(({name,x,y})=>call({type:'event',name,event:{touches:name==='TouchEnd'?[]:[{identifier:1,clientX:x,clientY:y,pageX:x,pageY:y}],changedTouches:[{identifier:1,clientX:x,clientY:y,pageX:x,pageY:y}]}}),{name,x,y});}
-   async function click(id){const s=await state(),b=s.controls.find(b=>b.id===id);assert.ok(b,`missing ${id}: ${s.controls.map(b=>b.id)}`);if(native){await event('TouchStart',b.x,b.y);await event('TouchEnd',b.x,b.y);await state()}else{await p.getByRole('button',{name:b.label,exact:true}).click();await p.waitForTimeout(100)}}
+   async function event(name,x=0,y=0){dirty=true;latest=await p.evaluate(({name,x,y})=>call({type:'event',name,event:{touches:name==='TouchEnd'?[]:[{identifier:1,clientX:x,clientY:y,pageX:x,pageY:y}],changedTouches:[{identifier:1,clientX:x,clientY:y,pageX:x,pageY:y}]}}),{name,x,y});}
+   async function click(id){const s=await state(),b=s.controls.find(b=>b.id===id);assert.ok(b,`missing ${id}: ${s.controls.map(b=>b.id)}`);if(native){await event('TouchStart',b.x,b.y);await event('TouchEnd',b.x,b.y);await state()}else{await p.getByRole('button',{name:b.label,exact:true}).nth(s.controls.filter(c=>c.label===b.label).findIndex(c=>c.id===id)).click();await p.waitForTimeout(100)}}
    async function advance(count){if(native)latest=await p.evaluate(count=>call({type:'advance',count}),count);else await p.evaluate(count=>__collectionAdvance(count),count);await p.waitForTimeout(80);return state()}
    async function fits(){const s=await state();for(const b of s.controls){assert.ok(b.x-b.width/2>=-1&&b.x+b.width/2<=viewport.width+1,`horizontal overflow ${b.id}`);assert.ok(b.y-b.height/2>=-1&&b.y+b.height/2<=viewport.height+1,`vertical overflow ${b.id}`)}for(let i=0;i<s.controls.length;i++)for(let j=i+1;j<s.controls.length;j++){const a=s.controls[i],b=s.controls[j];assert.ok(Math.abs(a.x-b.x)>=(a.width+b.width)/2-.1||Math.abs(a.y-b.y)>=(a.height+b.height)/2-.1,`controls overlap ${a.id}/${b.id}`)}}
-   async function capture(name){await p.screenshot({path:`${output}/${target}-${viewport.width}-${name}.png`})}
+   async function capture(name){if(native){dirty=true;await state()}await p.screenshot({path:`${output}/${target}-${viewport.width}-${name}.png`})}
    const flows=await verify({p,native,viewport,state,click,advance,event,fits,capture});
    assert.deepEqual(errors,[]);if(native){assert.equal(latest.environment.documentAbsent,true);assert.equal(latest.environment.windowAbsent,true);assert.equal(latest.graphics.error,0);assert.ok(latest.graphics.colors>100);}
    report.push({target,viewport,flows,errors,...native?{environment:latest.environment,graphics:latest.graphics,sounds:latest.sounds}:{}});console.log(slug,target,viewport.width,'passed');

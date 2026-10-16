@@ -44,6 +44,9 @@ export class GameView {
   private frameHeight = 0;
 
   constructor(key: string, background = '#233c59') {
+    // Software WebGL CI advances simulation explicitly. Limit presentation work
+    // there so queued GPU frames cannot starve real pointer/keyboard events.
+    if (sys.isBrowser && (globalThis as { __COLLECTION_TEST__?: boolean }).__COLLECTION_TEST__) game.frameRate = 10;
     this.ready = new Promise((resolve, reject) => resources.load('collection/collection-color', EffectAsset, (error, effect) => {
       if (error) return reject(error);
       this.effect = effect; resolve();

@@ -45,3 +45,13 @@ pnpm --filter final-door test
 `node scripts/verify-cocos.mjs native` 在 DOM-free Worker 宿主执行真实原生包，包括触控、生命周期、剪贴板、原生音频 API 调用与 WebGL 渲染。`node scripts/verify-cocos.mjs web` 检查文件导入导出、窄屏分页等浏览器交互。检查自身创建的浏览器和临时服务器在 finally 中关闭。
 
 测试标志 `__COLLECTION_TEST__` 提供只读快照和实际规则步进入口，便于捕获相同种子/时刻；它不授予资源或修改胜负条件。生产页面默认不生成每帧状态哈希。
+
+## 分包与 WASM
+
+`package.json` 的 `collection.bundles` 声明每款游戏独立的 Creator Asset Bundle（目录为 `assets/<name>`，配套 `.meta`）。Web 使用本地 Asset Bundle；微信/抖音使用 `subpackages/<name>`。Creator 3.8.8 CLI 在指定 bundleConfigs 时可能仍导出到 `assets/`，共享构建器将这些官方生成的包规范化为原生适配器要求的布局，登记 game.json 和 settings.json，并将包入口改名为 game.js。不会另行编译、替换引擎或从 CDN 拉取游戏代码。
+
+`collection.nativeWasm` 指定压缩资源、分包名称和静态文件名。构建时校验解压后的 WASM 标识，将其放在代码分包内；平台层先 `loadSubpackage`，再调用 WXWebAssembly/TTWebAssembly.instantiate。微信官方要求使用代码包 `.wasm`/`.wasm.br` 路径，不能使用用户目录或动态生成路径：[官方说明](https://developers.weixin.qq.com/minigame/dev/guide/performance/perf-webassembly)。Web 则使用浏览器 WebAssembly。
+
+原生校验在所有适配完成后生成文件清单及 SHA-256，并按主包、每个分包分别检查低于 4 MiB，合计低于 20 MiB。模拟宿主实际加载分包和 WASM，限制为包内静态路径。该检查不代替平台开发者工具和真机。
+
+软件 GPU 浏览器测试在启用 `__COLLECTION_TEST__` 时将呈现频率限制为 10Hz，规则仍由原有 60Hz 步进入口推进；生产运行不使用这个限制。此措施避免 CI 中持续排队的绘制阻塞真实点击事件，不作为真机性能数据。

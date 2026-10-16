@@ -1,6 +1,6 @@
 // Runs the actual Creator native export in an OffscreenCanvas worker. Creator's
 // own document/window shims are allowed; no browser DOM or WebView is supplied.
-const hostFetch = fetch.bind(globalThis), reply = postMessage.bind(globalThis);
+const hostFetch = fetch.bind(globalThis), hostWebAssembly = WebAssembly, reply = postMessage.bind(globalThis);
 const decoder = new TextDecoder();
 let root, display, graphics, clock = 0, nextFrame = 0, firstCanvas = true;
 let clipboard = '', modalResponse = {confirm: false};
@@ -78,15 +78,18 @@ const fs = {
   statSync(file){return{size:dataFor(file).byteLength,isDirectory:()=>false,isFile:()=>true}},
   copyFile(o){try{files.set(o.destPath,dataFor(o.srcPath).slice(0));success(o)}catch(e){o.fail?.({errMsg:String(e)})}},
 };
-function snapshot() {
-  let drawn=null;
-  if(graphics){const gl=graphics,pixels=new Uint8Array(display.width*display.height*4);gl.readPixels(0,0,display.width,display.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);const colors=new Set();for(let i=0;i<pixels.length;i+=148)colors.add(pixels.slice(i,i+3).join(','));drawn={error:gl.getError(),colors:colors.size,version:gl.getParameter(gl.VERSION)}}
+let lastGraphics=null;
+function snapshot(rendered=false) {
+  let drawn=lastGraphics;
+  if(rendered&&graphics){const gl=graphics,pixels=new Uint8Array(display.width*display.height*4);gl.readPixels(0,0,display.width,display.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);const colors=new Set();for(let i=0;i<pixels.length;i+=148)colors.add(pixels.slice(i,i+3).join(','));drawn={error:gl.getError(),colors:colors.size,version:gl.getParameter(gl.VERSION)}}
+  lastGraphics=drawn;
   return {environment,errors:failures,reads:[...new Set(reads)],sounds:sounds.length,clipboard,storage:Object.fromEntries(storage),graphics:drawn,frames:frames.size,state:globalThis.__collectionSnapshot??null};
 }
 onmessage = async ({data}) => {
   try {
     if(data.type==='boot') {
       root=data.root;display=data.canvas;makeCanvas(display);
+      for(const [key,value]of Object.entries(data.initialStorage??{}))storage.set(key,value);
       const manifest=await(await hostFetch(root+'__manifest.json')).json();
       await Promise.all(manifest.map(async name=>{const r=await hostFetch(root+name);if(!r.ok)throw Error(`Native preload failed ${name}`);files.set(name,await r.arrayBuffer())}));
       const info={platform:'android',system:'Android 14',version:'8.0.60',SDKVersion:'3.8.0',brand:'test',model:'OffscreenCanvas host',windowWidth:390,windowHeight:844,screenWidth:390,screenHeight:844,pixelRatio:1,devicePixelRatio:1,language:'zh_CN',safeArea:{left:0,right:390,top:44,bottom:810,width:390,height:766}};
@@ -111,6 +114,8 @@ onmessage = async ({data}) => {
         api['off'+event]=fn=>callbacks.set(event,(callbacks.get(event)??[]).filter(f=>f!==fn));
       }
       globalThis[data.target==='weixin'?'wx':'tt']=api;
+      const wasmAPI={instantiate:async(path,imports)=>{if(!/^subpackages\/[^/]+\/[^/]+\.wasm$/.test(path))throw Error('WASM must be in a static code package');return hostWebAssembly.instantiate(dataFor(path),imports)}};
+      globalThis[data.target==='weixin'?'WXWebAssembly':'TTWebAssembly']=wasmAPI;
       globalThis.GameGlobal=globalThis;globalThis.global=globalThis;
       globalThis.__COLLECTION_TEST__=true;
       globalThis.requestAnimationFrame=fn=>{frames.set(++nextFrame,fn);return nextFrame};
@@ -127,6 +132,6 @@ onmessage = async ({data}) => {
     }else if(data.type==='frames') {
       for(let i=0;i<data.count;i++){clock+=1000/60;const pending=[...frames.values()];frames.clear();for(const fn of pending)fn(clock);await Promise.resolve()}
     }else if(data.type==='event') for(const fn of callbacks.get(data.name)??[])fn(data.event);
-    reply({id:data.id,value:snapshot()});
+    reply({id:data.id,value:snapshot(data.type==='frames'&&data.count>0)});
   }catch(error){console.error(error.stack??error);reply({id:data.id,value:snapshot()})}
 };

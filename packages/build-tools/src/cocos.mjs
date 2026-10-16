@@ -1,8 +1,9 @@
 import { spawn, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createWriteStream, existsSync } from 'node:fs';
-import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
+import { gunzipSync } from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inventory, verifyCreatorExport } from './cocos-verify.mjs';
@@ -113,19 +114,24 @@ export async function buildCocos(project, target = 'web') {
     await rm(path.join(stage, name), { recursive: true, force: true });
     if (existsSync(path.join(project, name))) await copy(path.join(project, name), path.join(stage, name));
   }
+  if (target !== 'web') for (const wasm of manifest.collection?.nativeWasm ?? []) {
+    await rm(path.join(stage, wasm.source), { force: true });
+    await rm(path.join(stage, wasm.source + '.meta'), { force: true });
+  }
   // Stage workspace modules as Creator assets. No npm installation inside Creator projects.
   await mkdir(path.join(stage, 'assets/collection/platform'), { recursive: true });
   await copy(path.join(root, 'packages/cocos-runtime/src'), path.join(stage, 'assets/collection'));
-  for (const name of ['cocos-host.ts', 'cocos-services.ts', 'web-state.ts']) await copy(path.join(root, 'packages/platform/src', name), path.join(stage, 'assets/collection/platform', name));
+  for (const name of ['cocos-host.ts', 'cocos-services.ts', 'web-state.ts', 'wasm.ts']) await copy(path.join(root, 'packages/platform/src', name), path.join(stage, 'assets/collection/platform', name));
   await stableScriptMetadata(path.join(stage, 'assets/collection'), `${slug}/collection`);
   await copy(path.join(root, 'packages/cocos-runtime/assets'), path.join(stage, 'assets/resources/collection'));
-  await writeFile(path.join(stage, 'package.json'), JSON.stringify({ name: slug, uuid: manifest.uuid, version: '3.0.0', creator: manifest.creator }, null, 2));
+  await writeFile(path.join(stage, 'package.json'), JSON.stringify({ name: slug, type: 'module', uuid: manifest.uuid, version: '3.0.0', creator: manifest.creator }, null, 2));
   const scene = JSON.parse(await readFile(path.join(stage, 'assets/main.scene.meta'), 'utf8')).uuid;
   const config = {
     name: slug, platform: toolchain.targets[target], buildPath: 'project://dist', outputName: target,
     debug: false, sourceMaps: false, md5Cache: false, inlineEnum: true, customPipeline: true,
     renderPipeline: '',
     startScene: scene, scenes: [{ url: 'db://assets/main.scene', uuid: scene }],
+    bundleConfigs: manifest.collection?.bundles ? [{ name: 'resources', root: 'db://assets/resources', priority: 8, compressionType: 'merge_dep', isRemote: false }, ...manifest.collection.bundles.map(name => ({ name, root: `db://assets/${name}`, compressionType: target === 'web' ? 'merge_dep' : 'subpackage', isRemote: false, priority: 1 }))] : undefined,
     orientation: 'portrait', polyfills: { asyncFunctions: false },
     packages: {
       [toolchain.targets[target]]: { appid: appId, orientation: 'portrait' },
@@ -163,6 +169,43 @@ export async function buildCocos(project, target = 'web') {
     await copy(path.join(root, 'apps/portal/public/favicon.svg'), path.join(destination, 'favicon.svg'));
   }
   if (target !== 'web') {
+    const gamePath = path.join(destination, 'game.json');
+    const gameConfig = JSON.parse(await readFile(gamePath, 'utf8'));
+    // Creator 3.8.8's CLI can leave explicitly selected Asset Bundles in assets/
+    // despite compressionType=subpackage. Normalize the official exports to the
+    // layout consumed by its native AssetManager, without recompiling any assets.
+    if (manifest.collection?.bundles?.length) {
+      const settingsPath = path.join(destination, 'src/settings.json');
+      const settings = JSON.parse(await readFile(settingsPath, 'utf8'));
+      for (const name of manifest.collection.bundles) {
+        if (!/^[a-z0-9-]+$/.test(name)) throw Error('Invalid native bundle name');
+        const packageRoot = 'subpackages/' + name;
+        const exported = path.join(destination, 'assets', name);
+        const packaged = path.join(destination, packageRoot);
+        if (existsSync(exported)) {
+          await mkdir(path.dirname(packaged), { recursive: true });
+          await rename(exported, packaged);
+          await rename(path.join(packaged, 'index.js'), path.join(packaged, 'game.js'));
+        }
+        if (!existsSync(path.join(packaged, 'config.json')) || !existsSync(path.join(packaged, 'game.js'))) throw Error(`Incomplete native bundle: ${name}`);
+        const subpackages = gameConfig.subpackages ?? gameConfig.subPackages ?? (gameConfig.subpackages = []);
+        if (!subpackages.some(p => p.name === name)) subpackages.push({ name, root: packageRoot });
+        const bundles = settings.assets.subpackages ?? (settings.assets.subpackages = []);
+        if (!bundles.includes(name)) bundles.push(name);
+      }
+      await writeFile(settingsPath, JSON.stringify(settings));
+    }
+    for (const wasm of manifest.collection?.nativeWasm ?? []) {
+      if (!/^[a-z0-9-]+$/.test(wasm.subpackage) || !/^[a-z0-9-]+\.wasm$/.test(wasm.file)) throw Error('Invalid native WASM package');
+      const packageRoot = 'subpackages/' + wasm.subpackage;
+      await mkdir(path.join(destination, packageRoot), { recursive: true });
+      const bytes = gunzipSync(await readFile(path.join(project, wasm.source)));
+      if (!bytes.subarray(0, 4).equals(Buffer.from([0,97,115,109]))) throw Error('Invalid WASM binary');
+      await writeFile(path.join(destination, packageRoot, wasm.file), bytes);
+      await writeFile(path.join(destination, packageRoot, 'game.js'), '"use strict";\n');
+      (gameConfig.subpackages ?? gameConfig.subPackages ?? (gameConfig.subpackages = [])).push({ name: wasm.subpackage, root: packageRoot });
+    }
+    await writeFile(gamePath, JSON.stringify(gameConfig, null, 2) + '\n');
     const configPath = path.join(destination, 'project.config.json');
     const native = existsSync(configPath) ? JSON.parse(await readFile(configPath, 'utf8')) : {};
     Object.assign(native, { projectname: slug, compileType: 'game', miniprogramRoot: './', appid: appId || (target === 'weixin' ? 'touristappid' : '') });
