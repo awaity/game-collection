@@ -1,8 +1,12 @@
 {
-  "revision": "23ec3d7b8ceb04946dd3560a8916ebef24444373",
-  "builtAt": "2026-10-16T10:14:36.111Z",
+  "revision": "ca07e8492788c20335051de70f98912270a973c8",
+  "builtAt": "2026-10-16T11:45:25.341Z",
   "base": "/game-collection/",
   "games": [
+    {
+      "slug": "plane-battle",
+      "path": "/game-collection/games/plane-battle/"
+    },
     {
       "slug": "zombie-lane",
       "path": "/game-collection/games/zombie-lane/"
