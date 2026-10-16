@@ -1,0 +1,1 @@
+export const World:any, RigidBodyDesc:any,ColliderDesc:any,EventQueue:any,ActiveEvents:any;export function initRapier(source:Uint8Array,instantiate:(source:Uint8Array,imports:WebAssembly.Imports)=>Promise<WebAssembly.Exports>):Promise<void>;

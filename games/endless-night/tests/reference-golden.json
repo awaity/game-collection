@@ -1,0 +1,143 @@
+[
+  {
+    "options": {
+      "stageIndex": 0,
+      "heroId": "wren",
+      "seed": 7,
+      "items": {
+        "tonic_s": 2,
+        "ward": 2,
+        "draught": 2,
+        "firebomb": 2,
+        "lodestone": 2
+      }
+    },
+    "hashes": [
+      "d8d13dd46b3b52ce607685634f032900c416c6a10d33d6005c0c93dc29f7161d",
+      "581d868041bbb2a244b1ea94c4d2515676b3515e2935b14e8588cfb7fd38bea1",
+      "8a2431c2b848c84a503224a6e78b07f439edfbbdbda16f6e93437e5adf8c52e9",
+      "b8ee87ebd7cbe0ea538c09238c4d50a21f307142ef3f24d3f6d4daacd88d8ed1",
+      "c0560c4b2a1c0b26f40a7aa32ba3e1cca9b65767438f32d48a1773f556628b09",
+      "55dcb8938101bd661a08dc8dea82c24c900c17485a49b7e630fa7c14d21e8abd"
+    ]
+  },
+  {
+    "options": {
+      "stageIndex": 1,
+      "heroId": "mira",
+      "seed": 231,
+      "items": {
+        "tonic_s": 2,
+        "ward": 2,
+        "draught": 2,
+        "firebomb": 2,
+        "lodestone": 2
+      }
+    },
+    "hashes": [
+      "674c9628fdfeabf657159ce751f714941c02771c4c277ea45577158e25b84927",
+      "ae9a51bd2d7687a6466d0e1d6f5f8c2ba59ab4037f19501a26fbea0ef2036ad2",
+      "37be2c1dec6f372265a14277ea44a077df497c96d5f2ffe568a7e5cb6593440d",
+      "c8841fb2df12e2063b384d036197a9c0de8b14f84da8412c6e2dc530e133332f",
+      "50a7f467f5cf0898530c78a3cb5c86845e6bf8d2fde7c8599693cb23f83839bc",
+      "dbead7e330a10d926a020bc1085ac5db9af8c0a7345a14fd9f10ebb0f4d5ecec"
+    ]
+  },
+  {
+    "options": {
+      "stageIndex": 2,
+      "heroId": "oskar",
+      "seed": 832,
+      "items": {
+        "tonic_s": 2,
+        "ward": 2,
+        "draught": 2,
+        "firebomb": 2,
+        "lodestone": 2
+      }
+    },
+    "hashes": [
+      "91e0cc4e3c69b91201ba1d014ce0358f3df2cd0fc58cf17bb8b0d989863985bf",
+      "bc24cbb87430d3e25e21e240ee443bdf9d05742c78fbee4e7899770e65dce163",
+      "4deb051ec9f7b64c86104512d71aef40b4ffae8df946bdd95e3f0ced3fb2f74f",
+      "31b608127d10d8fa527ac71f3948aa09496296e4f1aae581475ee718fd427be6",
+      "784bd8c85018e8a34fed634959bd92fadea380d24c4a3c476d6027fc2dc90566",
+      "68ed6adc4ecc7172989dc29e6acd01b55420d9cdec435dbb62bd9279de514d40"
+    ]
+  },
+  {
+    "options": {
+      "stageIndex": 3,
+      "heroId": "sable",
+      "seed": 723,
+      "items": {
+        "tonic_s": 2,
+        "ward": 2,
+        "draught": 2,
+        "firebomb": 2,
+        "lodestone": 2
+      }
+    },
+    "hashes": [
+      "4646befac5588ebb87bf8d58ee474d6c21d360cb52b3a96cdebcace1901d2f65",
+      "1578de534e1bcdbf0087af303131c9bd1cbfbf2a9b5e7215bded172976e6c41f",
+      "c69fbe253c256266bc11ae1323514dbe7de234241724f47eb2866b1f79abfd9a",
+      "7653367a718c5583875c795f4e58bf3a9919dac6a4a282d65b193d69829cbfef",
+      "14d0f8c01788ab3362c6fcb7c2b1cbc98e99e123f8bbf468f0dbb8bb8d0cd754",
+      "3c84cb9f49a12b3e849f2faa9625fc4852f8acbc4c833f0dd07e2f6691f14153"
+    ]
+  },
+  {
+    "options": {
+      "stageIndex": 4,
+      "heroId": "wren",
+      "seed": 732,
+      "blood": true,
+      "items": {
+        "tonic_s": 2,
+        "ward": 2,
+        "draught": 2,
+        "firebomb": 2,
+        "lodestone": 2
+      }
+    },
+    "hashes": [
+      "e18a475b7a8dd5af5c845f1a00aa20a3909a0caa77e6fd5ab52dd00f91724eae",
+      "08655903a2692d362dcb98b27efc25c06b1bfc37e9cc4f5942ad15abe528f339",
+      "86c66a2d18effb754f3699394964dd007e2c7e638871879e779250a445ff8c37",
+      "f153fb7bfd18b451f2dbd31450307206bbd9619ffa82ce0334c0125dfcee8002",
+      "81fd721044d8fb4080f0b32d93d97e6696bb836e1daef9fe19fea5a171485344",
+      "95ba2c90466c2636b305e1d771246d32a88eb97c4abaff4e6e90b56be876515f"
+    ]
+  },
+  {
+    "options": {
+      "stageIndex": 5,
+      "heroId": "mira",
+      "seed": 66,
+      "hearth": {
+        "might": 10,
+        "vitality": 10,
+        "armor": 5,
+        "headstart": 3,
+        "reroll": 5,
+        "banish": 5
+      },
+      "items": {
+        "tonic_s": 2,
+        "ward": 2,
+        "draught": 2,
+        "firebomb": 2,
+        "lodestone": 2
+      }
+    },
+    "hashes": [
+      "0e1bb05dd57cadace1f4f6cf6f59b6034fc8999d8929e8a48f9b23b405f808fc",
+      "3bc271189b99f23a63e040bd335fda095f8fb7fd565070713f0a4f9060d29f4c",
+      "7906ef4e3136fe0cdd24d1990c0adb0f3ec140bc0243419efc9101b1c1fb94d0",
+      "0bf645845ed2784bc8c324166e064777028626a1849dc25817c5a26d9117528a",
+      "6fdb69b00b2debbf79e715e2d08bf30b00453d214c8b4c1c0ca2efd2381a1905",
+      "a0035a853a387ae26383aa336e052b17a561c3fad80ba6dd2ba583b73edae6b8"
+    ]
+  }
+]
