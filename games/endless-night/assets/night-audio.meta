@@ -1,0 +1,18 @@
+{
+  "ver": "1.2.0",
+  "importer": "directory",
+  "imported": true,
+  "uuid": "821aaff1-cd91-5550-aac9-0ace1c85f651",
+  "files": [],
+  "subMetas": {},
+  "userData": {
+    "isBundle": true,
+    "bundleName": "night-audio",
+    "priority": 1,
+    "compressionType": {
+      "wechatgame": "subpackage",
+      "bytedance-mini-game": "subpackage"
+    },
+    "isRemoteBundle": {}
+  }
+}

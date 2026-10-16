@@ -1,8 +1,8 @@
 {
   "name": "endless-night",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "displayName": "无尽长夜",
-  "description": "无尽长夜 · Cocos Creator 三端小游戏",
+  "description": "提一盏小灯，闯一场长夜。四位提灯人、五座烽火与守夜人试炼。",
   "private": true,
   "type": "module",
   "uuid": "9d345544-4ee2-535f-acea-cdf3d93ac26e",
@@ -23,7 +23,27 @@
     "@game-collection/build-tools": "workspace:*",
     "@game-collection/cocos-runtime": "workspace:*",
     "@game-collection/platform": "workspace:*",
-    "typescript": "5.9.3",
-    "tsx": "4.20.6"
+    "fflate": "0.8.2",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  },
+  "collection": {
+    "bundles": [
+      "night-common",
+      "night-0",
+      "night-1",
+      "night-2",
+      "night-3",
+      "night-4",
+      "night-5",
+      "night-audio"
+    ],
+    "nativeWasm": [
+      {
+        "source": "assets/resources/physics.bin",
+        "subpackage": "night-physics",
+        "file": "rapier.wasm"
+      }
+    ]
   }
 }

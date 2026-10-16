@@ -1,0 +1,3 @@
+import{BufferAsset,resources,sys}from'cc';import{instantiateWasm}from'db://assets/collection/platform/wasm';import*as physics from'./vendor/physics.js';import{gunzipSync}from'./vendor/inflate.js';import{configurePhysics}from'./domain';
+let ready:Promise<void>|undefined;
+export function loadPhysics(){return ready??=(async()=>{const bytes=sys.isBrowser?gunzipSync(new Uint8Array((await new Promise<BufferAsset>((resolve,reject)=>resources.load('physics',BufferAsset,(e,b)=>e?reject(e):resolve(b)))).buffer())):new Uint8Array();await physics.initRapier(bytes,(source,imports)=>instantiateWasm(source,imports,{nativePath:'subpackages/night-physics/rapier.wasm',subpackage:'night-physics'}));configurePhysics(physics)})()}

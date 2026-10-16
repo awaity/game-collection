@@ -1,0 +1,109 @@
+CCEffect %{
+ techniques:
+ - passes:
+   - vert: night-vs:vert
+     frag: night-fs:frag
+     rasterizerState: { cullMode: none }
+     depthStencilState: { depthTest: true, depthWrite: true }
+     blendState:
+       targets:
+       - blend: true
+         blendSrc: src_alpha
+         blendDst: one_minus_src_alpha
+     properties:
+       mainTexture: { value: white }
+       emissionTexture: { value: white }
+       surface: { value: [0, 0, 0, 1] }
+       moon: { value: [0.8, 0.8, 1, 2] }
+       sky: { value: [0.6, 0.6, 1, 1.35] }
+       ground: { value: [0.2, 0.15, 0.3, 1] }
+       ambient: { value: [0.2, 0.15, 0.35, 2] }
+       fogColor: { value: [0.04, 0.02, 0.1, 0.00036] }
+       lantern: { value: [0, 0, 100, 1] }
+       motion: { value: [0, 0, 0, 0] }
+       clock: { value: [0, 0, 1, 0] }
+}%
+CCProgram night-vs %{
+ precision highp float;
+ #include <builtin/uniforms/cc-global>
+ #if USE_INSTANCING
+ in vec4 a_matWorld0;
+ in vec4 a_matWorld1;
+ in vec4 a_matWorld2;
+ in vec4 a_tint;
+ in vec4 a_emission;
+ #endif
+ #include <builtin/functionalities/world-transform>
+ in vec3 a_position;
+ in vec3 a_normal;
+ in vec2 a_texCoord;
+ in vec4 a_color;
+ out vec2 uv;
+ out vec3 normal;
+ out vec3 worldPosition;
+ out vec3 vertexColor;
+ out vec4 tint;
+ out vec3 emission;
+ out float phase;
+ out vec3 viewDirection;
+ uniform Params{vec4 surface;vec4 moon;vec4 sky;vec4 ground;vec4 ambient;vec4 fogColor;vec4 lantern;vec4 clock;vec4 motion;};
+ vec4 vert(){
+  vec3 position=a_position;
+  if(motion.x>.5){float h=clamp((position.z-2.)/70.,0.,2.6);float wind=sin(clock.x*1.6+position.x*.012+position.y*.009)+.45*sin(clock.x*3.1+position.x*.041-position.y*.033);position.xy+=wind*h*vec2(1.7,1.1);}
+  mat4 world;CCGetWorldMatrix(world);vec4 p=world*vec4(position,1.);
+  normal=normalize(mat3(world[0].xyz/max(.00001,dot(world[0].xyz,world[0].xyz)),world[1].xyz/max(.00001,dot(world[1].xyz,world[1].xyz)),world[2].xyz/max(.00001,dot(world[2].xyz,world[2].xyz)))*a_normal);
+  uv=a_texCoord;worldPosition=p.xyz;vertexColor=a_color.rgb;viewDirection=cc_cameraPos.xyz-p.xyz;
+  #if USE_INSTANCING
+   tint=a_tint;emission=a_emission.rgb;phase=a_emission.w;
+  #else
+   tint=vec4(1.);emission=vec3(0.);phase=0.;
+  #endif
+  return cc_matViewProj*p;
+ }
+}%
+CCProgram night-fs %{
+ precision highp float;
+ in vec2 uv;
+ in vec3 normal;
+ in vec3 worldPosition;
+ in vec3 vertexColor;
+ in vec4 tint;
+ in vec3 emission;
+ in float phase;
+ in vec3 viewDirection;
+ uniform sampler2D mainTexture;
+ uniform sampler2D emissionTexture;
+ uniform Params{vec4 surface;vec4 moon;vec4 sky;vec4 ground;vec4 ambient;vec4 fogColor;vec4 lantern;vec4 clock;vec4 motion;};
+ float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+ float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1.,0.)),u.x),mix(hash(i+vec2(0.,1.)),hash(i+vec2(1.)),u.x),u.y);}
+ vec4 frag(){
+  if(surface.x>2.5){float t=clock.x*2.6+phase*3.,n=noise(vec2(uv.x*3.+phase,uv.y*4.-t*1.7)),n2=noise(vec2(uv.x*7.-phase,uv.y*9.-t*2.9));float x=uv.x-.5+(n-.5)*.32*uv.y+(n2-.5)*.08,y=uv.y,width=mix(.36,.015,pow(clamp(y,0.,1.),1.15));float body=(1.-smoothstep(width*.15,width,abs(x)))*smoothstep(.02,.16,y)*(1.-smoothstep(.55+n*.3,1.,y));float core=(1.-smoothstep(0.,width*.55,abs(x)))*smoothstep(.05,.2,y)*(1.-smoothstep(.25,.6,y));vec3 col=mix(vec3(.75,.12,.02),vec3(1.,.55,.12),smoothstep(0.,.7,body));col=mix(col,vec3(1.,.95,.78),core);return vec4(col*body*2.4,body);}
+
+  vec4 tex=texture(mainTexture,vec2(uv.x,1.-uv.y));float alpha=tex.a*tint.a;if(alpha<max(.003,surface.y))discard;
+  vec3 c=tint.rgb*pow(tex.rgb,vec3(2.2))*mix(vec3(1.),vertexColor,surface.z),n=normalize(normal);
+  if(motion.y>.5){
+   vec3 pastel=pow(max(c,vec3(0.)),vec3(1./2.2));
+   float mx=max(pastel.r,max(pastel.g,pastel.b)),mn=min(pastel.r,min(pastel.g,pastel.b)),l=(mx+mn)*.5;
+   pastel=.24+.68*pow(l,.8)+(pastel-l)*1.3;
+   pastel+=vec3(-.012,-.02,.04)*(1.-smoothstep(.04,.16,mx-mn));
+   c=pow(clamp(pastel,0.,1.),vec3(2.2));
+  }
+  if(surface.x<.5){
+   float d=dot(n,normalize(vec3(-500.,700.,1300.)))*.5+.5;
+   float toon=.36+.36*smoothstep(.4,.47,d)+.28*smoothstep(.64,.72,d);
+   vec3 light=ambient.rgb*ambient.a+mix(ground.rgb,sky.rgb,n.z*.5+.5)*sky.a+moon.rgb*moon.a*toon;
+   vec3 delta=lantern.xyz-worldPosition;float distance=length(delta);
+   light+=vec3(1.,.69,.35)*max(0.,dot(n,normalize(delta)))*pow(max(0.,1.-distance/560.),2.)*2.4*lantern.a;
+   c*=light/3.14159265;
+   vec3 emitted=emission;
+   if(motion.z>.5)emitted*=pow(texture(emissionTexture,vec2(uv.x,1.-uv.y)).rgb,vec3(2.2));
+   if(motion.w>.5)emitted*=(.7+sin(clock.x*1.3)*.15)/.7;
+   c+=emitted;
+   float rim=pow(1.-clamp(abs(dot(n,normalize(viewDirection))),0.,1.),3.);c+=moon.rgb*rim*.24*clock.z;
+  }
+  if(surface.x>1.5){float r=length(uv-.5)*2.;alpha*=pow(max(0.,1.-r),2.);c=vec3(.04,.025,.075);}
+  float fog=1.-exp(-pow(length(viewDirection)*fogColor.a,2.));c=mix(c,fogColor.rgb,fog*surface.w);
+  c=pow(clamp((c*(2.51*c+.03))/(c*(2.43*c+.59)+.14),0.,1.),vec3(1./2.2));
+  return vec4(c,alpha);
+ }
+}%

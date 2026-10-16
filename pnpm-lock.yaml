@@ -48,6 +48,9 @@ importers:
       '@game-collection/platform':
         specifier: workspace:*
         version: link:../../packages/platform
+      fflate:
+        specifier: 0.8.2
+        version: 0.8.2
       tsx:
         specifier: 4.20.6
         version: 4.20.6
@@ -672,6 +675,9 @@ packages:
       picomatch:
         optional: true
 
+  fflate@0.8.2:
+    resolution: {integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==}
+
   filename-reserved-regex@2.0.0:
     resolution: {integrity: sha512-lc1bnsSr4L4Bdif8Xb/qrtokGbq5zlsms/CYH8PP+WtCkGNF65DPiQY8vG3SakEdRn8Dlnm+gW/qWKKjS5sZzQ==}
     engines: {node: '>=4'}
@@ -1293,6 +1299,8 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.7):
     optionalDependencies:
       picomatch: 4.0.7
+
+  fflate@0.8.2: {}
 
   filename-reserved-regex@2.0.0: {}
 
