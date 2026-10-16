@@ -9,6 +9,7 @@ export async function buildMini(options: {
   entry?: string;
   assets?: { from: string; to: string }[];
   banner?: string;
+  audio?: Record<string, Uint8Array>;
 }) {
   const target = process.argv[2];
   if (target !== "weixin" && target !== "douyin")
@@ -28,7 +29,7 @@ export async function buildMini(options: {
     banner: options.banner ? { js: options.banner } : undefined,
     legalComments: "inline",
   });
-  for (const name of SOUNDS) {
+  for (const name of options.audio ? [] : SOUNDS) {
     const samples = synth(name),
       buffer = Buffer.alloc(44 + samples.length * 2);
     buffer.write("RIFF", 0);
@@ -51,6 +52,10 @@ export async function buildMini(options: {
     );
     await writeFile(join(out, "audio", `${name}.wav`), buffer);
   }
+  for (const [name, bytes] of Object.entries(options.audio ?? {})) {
+    if (!/^[a-z][a-z0-9-]*$/.test(name)) throw new Error(`Invalid sound name: ${name}`);
+    await writeFile(join(out, "audio", `${name}.wav`), bytes);
+  }
   for (const asset of options.assets ?? [])
     await cp(asset.from, join(out, asset.to), { recursive: true });
   // Per-game IDs avoid accidentally releasing different games under one identity.
@@ -69,6 +74,7 @@ export async function buildMini(options: {
     appid: appid ?? (target === "weixin" ? "touristappid" : ""),
     projectname: options.slug,
     compileType: "game",
+    miniprogramRoot: "./",
     ...(target === "weixin"
       ? { libVersion: "latest" }
       : { miniprogramRoot: "./" }),

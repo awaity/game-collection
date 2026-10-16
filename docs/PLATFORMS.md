@@ -5,11 +5,12 @@
 ## 共享代码
 
 - `packages/platform`：Web / Mini 输入、触点 ID 与取消、可见性、安全区/DPR、存储容错、合成音效、原生本地文件读取；固定时钟和 Web 语义控件也是独立子路径导出，原生入口不导入浏览器代码。
-- `packages/build-tools`：esbuild 打包 `game.js`、生成工程配置与八段本地 WAV、复制必需资源，超过 4 MiB 的保守主包预算时终止构建。新增大型素材需要重新规划分包。
+- `packages/build-tools`：esbuild 打包 `game.js`、生成工程配置与本地 WAV（默认八段；也支持游戏自带音色）、复制必需资源，超过 4 MiB 的保守主包预算时终止构建。新增大型素材需要重新规划分包。
 - 飞机大战与尸潮防线复用各自的 Canvas 渲染、菜单与规则。尸潮旧 `src/platform/*` 只作为兼容导出，实际实现来自共享包。
+- 花园守卫的 `canvas-host` / `canvas-web` / `canvas-mini` 通用适配器位于共享平台包。保留原有九种音色、存储失败提示与语义控件；核心规则和 12 关内容原样迁移。
 - 弹幕小队复用原战斗模拟、三条路线、五个 GLB 和 Three 场景。`render/web-runtime.js` / `mini-runtime.js` 注入画布、尺寸、纹理画布工厂和二进制读取；使用 `GLTFLoader.parseAsync`，原生不经过 fetch。原生菜单绘制到离屏 Canvas，再合成为同一 WebGL 画布的覆盖层。
 
-Web 和原生的存档空间相互独立，三个游戏也使用独立命名空间。没有跨设备云存档。
+Web 和原生的存档空间相互独立，各游戏也使用独立命名空间。没有跨设备云存档。
 
 ## 原生端差异
 
@@ -32,6 +33,7 @@ Three r140 保留原版引擎和许可证。打包时仅对该库局部提供 `n
 
 | 游戏 | 微信 | 抖音 |
 | --- | --- | --- |
+| 花园守卫 | `GARDEN_GUARD_WEIXIN_APP_ID` | `GARDEN_GUARD_DOUYIN_APP_ID` |
 | 飞机大战 | `PLANE_BATTLE_WEIXIN_APP_ID` | `PLANE_BATTLE_DOUYIN_APP_ID` |
 | 尸潮防线 | `ZOMBIE_LANE_WEIXIN_APP_ID` | `ZOMBIE_LANE_DOUYIN_APP_ID` |
 | 弹幕小队 | `VOLLEY_RUN_WEIXIN_APP_ID` | `VOLLEY_RUN_DOUYIN_APP_ID` |

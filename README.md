@@ -6,16 +6,18 @@
 
 | 游戏 | 在线入口 | 共用技术 | 构建目标 |
 | --- | --- | --- | --- |
+| 花园守卫 | [种植](https://awaity.github.io/game-collection/games/garden-guard/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
 | 飞机大战 | [起飞](https://awaity.github.io/game-collection/games/plane-battle/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
 | 尸潮防线 | [守线](https://awaity.github.io/game-collection/games/zombie-lane/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
 | 弹幕小队 | [出击](https://awaity.github.io/game-collection/games/volley-run/) | JavaScript + Three.js r140 | Web / 微信 / 抖音 |
 
-三款游戏均提供独立原生小游戏 `game.js` 工程。平台包已纳入构建和无 DOM 模拟宿主验证，弹幕小队使用实际 WebGL 和本地 GLB 模型；**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
+四款游戏均提供独立原生小游戏 `game.js` 工程。平台包已纳入构建和无 DOM 模拟宿主验证，弹幕小队使用实际 WebGL 和本地 GLB 模型；**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
 
 ## 目录与边界
 
 ```text
 apps/portal/                  Vue 3 + Vite + TS 大厅
+games/garden-guard/            花园守卫，十二关、冒险、挑战与三端入口
 games/plane-battle/            飞机大战，共享规则、Canvas、UI 与三端入口
 games/zombie-lane/             尸潮防线，共享规则、Canvas、UI 与三端入口
 games/volley-run/              弹幕小队，共享模拟、Three 场景、本地模型
@@ -39,6 +41,7 @@ corepack enable
 pnpm install --frozen-lockfile
 pnpm exec playwright install --with-deps chromium  # 首次浏览器验证
 pnpm dev                      # 大厅 :4190
+pnpm dev:garden-guard          # 花园守卫 :4290
 pnpm dev:plane-battle          # 飞机大战 :4192
 pnpm dev:zombie-lane           # 尸潮防线 :4180
 pnpm dev:volley-run            # 弹幕小队 :4273
@@ -47,7 +50,7 @@ pnpm dev:volley-run            # 弹幕小队 :4273
 每条开发命令独立启动对应项目。大厅开发预览仅提供大厅；完整跳转、刷新与返回流程使用 `pnpm build && pnpm preview`，地址为 `http://localhost:4191/game-collection/`。
 
 ```bash
-pnpm build          # 大厅 + 三款 Web 游戏，聚合到 dist/site
+pnpm build          # 大厅 + 全部 Web 游戏，聚合到 dist/site
 pnpm build:mini     # 读取 catalog，构建所有微信 / 抖音工程
 pnpm check          # 发布前统一检查（含真实浏览器和原生宿主）
 ```
@@ -80,6 +83,7 @@ pnpm run deploy
 
 ## 文档
 
+- [花园守卫说明](games/garden-guard/README.md) · [迁移记录](games/garden-guard/docs/MIGRATION.md)
 - [飞机大战说明](games/plane-battle/README.md) · [上游来源与修正范围](games/plane-battle/PROVENANCE.md)
 - [尸潮防线说明](games/zombie-lane/README.md)
 - [弹幕小队说明与模型来源](games/volley-run/README.md)

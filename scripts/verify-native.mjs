@@ -5,6 +5,17 @@ import { readCatalog, root } from "./site-config.mjs";
 import { createMiniHost } from "./mini-host.mjs";
 import { launchBrowser } from "./browser.mjs";
 const controls = {
+  "garden-guard": {
+    start: "开始守卫",
+    confirm: "开始种植",
+    pause: [352, 108],
+    resume: "继续守卫",
+    home: "返回花园",
+    confirmHome: "返回花园",
+    playing: "准备种植",
+    soundSettings: [344, 110],
+    soundCount: 9,
+  },
   "plane-battle": {
     start: "即刻起飞  →",
     pause: "暂停",
@@ -60,7 +71,7 @@ try {
       const bytes = await total(dir);
       assert.ok(bytes < 4 * 1024 * 1024, `${game.slug}: package budget`);
       const sounds = await readdir(path.join(dir, "audio"));
-      assert.equal(sounds.length, 8);
+      assert.equal(sounds.length, controls[game.slug]?.soundCount ?? 8);
       for (const name of sounds) {
         const wav = await readFile(path.join(dir, "audio", name));
         assert.equal(wav.toString("ascii", 0, 4), "RIFF");
@@ -113,7 +124,7 @@ try {
           );
         };
         const tap = async (label) => {
-          const button = state.texts.find((t) => t.label === label);
+          const button = Array.isArray(label) ? { x: label[0], y: label[1] } : state.texts.find((t) => t.label === label);
           assert.ok(button, `${game.slug}/${target}: missing ${label}`);
           await event("TouchStart", button.x, button.y);
           await event("TouchEnd", button.x, button.y);
@@ -124,12 +135,21 @@ try {
         await page.screenshot({
           path: path.join(artifacts, `${game.slug}-${target}-menu.png`),
         });
+        if (c.soundSettings) {
+          await tap(c.soundSettings);
+          assert.ok(has('游戏音效'));
+          await tap('游戏音效');
+          await tap('游戏音效');
+          await tap('保存并返回');
+        } else {
         const isSoundOn = has("声音：开");
         assert.ok(isSoundOn);
         await tap("声音：开");
         assert.ok(has("声音：关"));
         await tap("声音：关");
+        }
         await tap(c.start);
+        if (c.confirm) await tap(c.confirm);
         await frames(12);
         assert.ok(has(c.playing));
         if (game.slug === "volley-run") {
@@ -165,8 +185,10 @@ try {
         await tap(c.pause);
         assert.ok(has(c.resume));
         await tap(c.home);
+        if (c.confirmHome) await tap(c.confirmHome);
         assert.ok(has(c.start));
         await tap(c.start);
+        if (c.confirm) await tap(c.confirm);
         await frames(4);
         assert.ok(has(c.playing), "restart must remain playable");
         assert.deepEqual(state.errors, []);

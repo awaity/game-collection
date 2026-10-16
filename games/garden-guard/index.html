@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#143e32" />
+    <meta name="description" content="种下你的第一株豌豆射手。关卡、冒险、挑战，随时守护你的小花园。" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>花园守卫 · 植物大战僵尸玩法</title>
+  </head>
+  <body>
+    <main id="game-root" aria-label="花园守卫游戏">
+      <canvas id="game" tabindex="0" aria-label="花园战场。使用种子卡选择植物，点击草坪种植。键盘使用方向键移动，回车种植。"></canvas>
+      <div id="controls" aria-label="游戏操作"></div>
+      <p id="announcement" role="status" aria-live="polite"></p>
+    </main>
+    <noscript>请开启 JavaScript 后游玩花园守卫。</noscript>
+    <script type="module" src="/src/web.ts"></script>
+  </body>
+</html>

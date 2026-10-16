@@ -28,7 +28,8 @@
     "deploy": "pnpm check && node scripts/publish.mjs",
     "dev:plane-battle": "pnpm --filter plane-battle dev",
     "build:mini": "node scripts/run-games.mjs build:mini",
-    "verify:web": "node scripts/verify-web.mjs"
+    "verify:web": "node scripts/verify-web.mjs",
+    "dev:garden-guard": "pnpm --filter garden-guard dev"
   },
   "devDependencies": {
     "gh-pages": "6.3.0",

@@ -1,0 +1,36 @@
+{
+  "name": "garden-guard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "花园守卫：五行九列植物塔防，浏览器 / 微信小游戏 / 抖音小游戏共用原生 Canvas。",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 4290",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "build": "pnpm typecheck && vite build",
+    "build:weixin": "tsx scripts/build-mini.ts weixin",
+    "build:douyin": "tsx scripts/build-mini.ts douyin",
+    "build:all": "pnpm build && pnpm build:mini",
+    "verify:mini": "tsx --test tests/mini.integration.ts",
+    "verify:web": "tsx scripts/verify-web.ts",
+    "preview": "vite preview --host 0.0.0.0 --port 4291",
+    "build:mini": "pnpm build:weixin && pnpm build:douyin"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "esbuild": "^0.25.11",
+    "playwright": "1.64.1",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.2",
+    "@game-collection/build-tools": "workspace:*"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@11.23.0",
+  "dependencies": {
+    "@game-collection/platform": "workspace:*"
+  }
+}

@@ -15,6 +15,15 @@ await once(server, "listening");
 const origin = `http://127.0.0.1:${server.address().port}`;
 let browser;
 const selectors = {
+  "garden-guard": {
+    start: '[data-action="continue-level"]',
+    confirm: '[data-action="start"]',
+    pause: '[data-action="pause"]',
+    resume: '[data-action="close"]',
+    home: '[data-action="leave"]',
+    confirmHome: '[data-action="leave:confirm"]',
+    surface: '#game',
+  },
   "plane-battle": {
     start: '[data-action="start"]',
     pause: '[data-action="pause"]',
@@ -158,6 +167,7 @@ try {
           await press(page.locator('[data-action="difficulty-normal"]'));
         }
         await press(page.locator(ui.start));
+        if (ui.confirm) await press(page.locator(ui.confirm));
         await page.waitForFunction(
           () => document.documentElement.dataset.collectionState === "playing",
         );
@@ -248,6 +258,7 @@ try {
             ? page.locator(ui.home).filter({ hasText: "返回集合点" })
             : page.locator(ui.home);
         await press(home);
+        if (ui.confirmHome) await press(page.locator(ui.confirmHome));
         await page.waitForFunction(
           () => document.documentElement.dataset.collectionState === "menu",
         );
