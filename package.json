@@ -1,27 +1,33 @@
 {
-  "name": "volley-run",
-  "version": "1.2.0",
+  "name": "@game-collection/root",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "homepage": "https://awaity.github.io/game-collection/",
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=22.14.0",
+    "pnpm": ">=11.0.0 <12"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/awaity/game-collection.git"
   },
+  "homepage": "https://awaity.github.io/game-collection/",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build && node scripts/prepare-sites-build.mjs",
-    "preview": "vite preview",
-    "test:sites": "node --test tests/sites-worker.test.mjs",
-    "start": "vite --host 0.0.0.0 --port 4173",
-    "test": "node --test tests/*.test.mjs",
-    "predeploy": "npm run build && npm test",
-    "deploy": "gh-pages -d dist/client --nojekyll -m \"chore(pages): 发布游戏合集静态站点\""
+    "preinstall": "node scripts/check-package-manager.mjs",
+    "dev": "pnpm dev:portal",
+    "dev:portal": "pnpm --filter @game-collection/portal dev",
+    "dev:volley-run": "pnpm --filter volley-run dev --host 0.0.0.0 --port 4273",
+    "dev:zombie-lane": "pnpm --filter zombie-lane dev",
+    "build": "node scripts/build-site.mjs",
+    "test": "pnpm --filter volley-run test && pnpm --filter zombie-lane test && node --test tests/*.test.mjs",
+    "verify:site": "node scripts/verify-site.mjs",
+    "verify:mini": "pnpm --filter zombie-lane build:weixin && pnpm --filter zombie-lane build:douyin && pnpm --filter zombie-lane verify:mini",
+    "check": "pnpm build && pnpm test && pnpm verify:site && pnpm verify:mini",
+    "preview": "node scripts/preview-site.mjs",
+    "deploy": "pnpm check && node scripts/publish.mjs"
   },
   "devDependencies": {
-    "gh-pages": "6.3.0",
-    "pngjs": "7.0.0",
-    "vite": "6.4.2"
-  },
-  "description": "弹幕小队：全员开火，冲破最后一道防线。"
+    "gh-pages": "6.3.0"
+  }
 }

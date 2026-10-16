@@ -1,0 +1,43 @@
+name: 检查游戏合集
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - name: 保存完整站点
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-${{ github.sha }}
+          path: dist/site/
+          include-hidden-files: true
+          retention-days: 14
+      - name: 保存微信和抖音工程包
+        uses: actions/upload-artifact@v4
+        with:
+          name: zombie-lane-mini-${{ github.sha }}
+          path: |
+            games/zombie-lane/dist/weixin/
+            games/zombie-lane/dist/douyin/
+          retention-days: 14

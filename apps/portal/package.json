@@ -1,0 +1,23 @@
+{
+  "name": "@game-collection/portal",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.23.0",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 4190 --strictPort",
+    "typecheck": "vue-tsc --noEmit",
+    "build": "pnpm typecheck && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4192"
+  },
+  "dependencies": {
+    "vue": "3.5.44",
+    "lucide-vue-next": "0.468.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "5.2.4",
+    "typescript": "5.9.3",
+    "vite": "6.4.2",
+    "vue-tsc": "3.3.13"
+  }
+}

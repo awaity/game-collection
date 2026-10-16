@@ -1,11 +1,11 @@
-# Prototype Instructions
+# Game Collection
 
-Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
-
-Before making substantial visual changes, use the Product Design plugin's `get-context` skill when the visual source is unclear or no longer matches the current goal. When the user gives durable prototype-specific design feedback, preferences, or decisions, record them in `AGENTS.md`.
-
-When implementing from a selected generated mock, treat that image as the source of truth for layout, component anatomy, density, spacing, color, typography, visible content, and hierarchy.
-
-Build app UI in `src/`. Keep `.openai/hosting.json`, `worker/index.js`, `scripts/prepare-sites-build.mjs`, and `tests/sites-worker.test.mjs` intact so the same local prototype can be handed to Sites. Before a Sites handoff, run `npm run build` and `npm run test:sites`; the build must leave `dist/client/index.html`, `dist/server/index.js`, and `dist/.openai/hosting.json`.
-
-Git 提交信息使用 `type(scope): 中文描述`。GitHub 仓库为 `awaity/game-collection`，通过 `npm run deploy` 调用 npm 包 `gh-pages`，将 `dist/client` 发布到 `gh-pages` 分支。该命令会先构建并运行测试。
+- 用户确定：同一个 GitHub 仓库存放多个独立小游戏；源码按 `games/<slug>` 区分，所有浏览器产物与游戏大厅一起发布到 `gh-pages`。
+- 包管理统一使用 pnpm Workspaces。大厅和两个现有游戏都使用 pnpm，仅根目录保留 `pnpm-lock.yaml`，禁止新增 npm/yarn 锁文件。
+- 大厅位于 `apps/portal`，技术栈 Vue 3 + Vite + TypeScript，移动端优先并适配 PC。
+- 用户已授权本轮源码上传与 GitHub Pages 发布。发布前完成本地检查；仅仓库根目录负责全站发布，子游戏不得独立覆盖 gh-pages。
+- 游戏介绍读取 `catalog/games.json`；构建路径配置放 `catalog/build-targets.json`。资源和入口必须支持 `/game-collection/` 子路径。
+- 不改动现有战斗规则。各游戏保留自己的构建与测试，微信/抖音代码不依赖网页大厅。
+- 根目录 `pnpm check` 为发布检查。浏览器检查包含大厅、两款游戏入口、刷新、返回，以及移动端和桌面。
+- Git 提交信息使用 `type(scope): 中文描述`。保持原项目历史，发布提交注明源代码 SHA。
+- 不读取或输出凭据内容。用户授权发布不代表需要更改其他仓库或平台设置。

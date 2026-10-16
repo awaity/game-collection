@@ -1,0 +1,20 @@
+{
+  "volley-run": {
+    "workspace": "volley-run",
+    "webDir": "games/volley-run/dist/client",
+    "requiredAssets": [
+      "vendor/three-r140.bundle.js",
+      "vendor/THREE-LICENSE.txt",
+      "assets/blue-scout.glb",
+      "assets/red-raider.glb",
+      "assets/red-colossus.glb",
+      "assets/pulse-rifle.glb",
+      "assets/heavy-cannon.glb"
+    ]
+  },
+  "zombie-lane": {
+    "workspace": "zombie-lane",
+    "webDir": "games/zombie-lane/dist/web",
+    "requiredAssets": []
+  }
+}

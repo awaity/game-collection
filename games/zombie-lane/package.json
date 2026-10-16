@@ -1,0 +1,28 @@
+{
+  "name": "zombie-lane",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "尸潮防线：左侧打门升级，右侧抵挡尸潮。Web / 微信 / 抖音共用 Canvas 游戏。",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 4180",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/game.test.ts tests/platform.test.ts tests/render.test.ts",
+    "verify:mini": "tsx --test tests/mini-build.test.ts",
+    "build": "pnpm typecheck && vite build",
+    "build:weixin": "tsx scripts/build-mini.ts weixin",
+    "build:douyin": "tsx scripts/build-mini.ts douyin",
+    "build:all": "pnpm build && pnpm build:weixin && pnpm build:douyin",
+    "preview": "vite preview --host 0.0.0.0 --port 4181"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.11",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3",
+    "vite": "6.4.2"
+  },
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=22.14.0"
+  }
+}

@@ -111,6 +111,6 @@ async function boot(){
    }:{})
   };
   if(params.get('demo')==='1')start('demo');last=performance.now();requestAnimationFrame(frame);
- }catch(error){console.error(error);$('load-note').textContent=error.message;$('error-panel').hidden=false;$('error-panel').innerHTML='<h2>战场暂时无法载入</h2><p>请使用支持 WebGL 的浏览器打开 <strong>VOLLEY-RUN.html</strong>。<br>模块版 index.html 需要先在工程目录执行 <strong>npm start</strong>，然后打开 localhost:4173。</p><p>也请确认浏览器支持 WebGL，且 public/assets 文件夹完整。</p>';}
+ }catch(error){console.error(error);$('load-note').textContent=error.message;$('error-panel').hidden=false;$('error-panel').innerHTML='<h2>战场暂时无法载入</h2><p>请使用支持 WebGL 的浏览器打开 <strong>VOLLEY-RUN.html</strong>。<br>模块版 index.html 需要先在工程目录执行 <strong>pnpm start</strong>，然后打开 localhost:4173。</p><p>也请确认浏览器支持 WebGL，且 public/assets 文件夹完整。</p>';}
 }
 boot();
