@@ -4,7 +4,7 @@ import { once } from "node:events";
 import path from "node:path";
 import { root } from "./site-config.mjs";
 export async function createMiniHost({ cocos = false } = {}) {
-  const html = `<!doctype html><html><meta charset="utf-8"><body style="margin:0;background:#15212d"><canvas width="390" height="844"></canvas><script>
+  const html = `<!doctype html><html><meta charset="utf-8"><link rel="icon" href="data:,"><body style="margin:0;background:#15212d"><canvas width="390" height="844"></canvas><script>
  const worker=new Worker('/worker.js'),pending=new Map();let id=0;
  worker.onmessage=({data})=>{pending.get(data.id)?.(data.value);pending.delete(data.id);};
  window.call=(data,transfer=[])=>new Promise((resolve,reject)=>{const request=++id;const timer=setTimeout(()=>{pending.delete(request);reject(Error('Native host request timed out: '+data.type));},45000);pending.set(request,value=>{clearTimeout(timer);resolve(value);});worker.postMessage({...data,id:request},transfer);});

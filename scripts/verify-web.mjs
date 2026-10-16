@@ -15,6 +15,13 @@ await once(server, "listening");
 const origin = `http://127.0.0.1:${server.address().port}`;
 let browser;
 const selectors = {
+  "surge-squad": {
+    start: 'button[aria-label="开始行动      →"]',
+    pause: 'button[aria-label="Ⅱ"]',
+    resume: 'button[aria-label="继续行动 →"]',
+    home: 'button[aria-label="返回主菜单"]',
+    surface: '#GameCanvas',
+  },
   "final-door": {
     start: 'button[aria-label="接管战斗"]',
     pause: 'button[aria-label="暂停"]',

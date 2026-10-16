@@ -58,5 +58,19 @@
       "weixin",
       "douyin"
     ]
+  },
+  "surge-squad": {
+    "workspace": "surge-squad",
+    "engine": "cocos",
+    "webDir": "games/surge-squad/dist/web",
+    "requiredAssets": [
+      "favicon.svg",
+      "cocos-js/cc.js",
+      "creator-build.json"
+    ],
+    "miniTargets": [
+      "weixin",
+      "douyin"
+    ]
   }
 }
