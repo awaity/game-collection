@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#15232e"><meta name="description" content="弹幕小队：横向走位、全员开火、射击增员、武器升级，突破赤岩长桥。原创 3D 浏览器游戏。">
+ <title>弹幕小队 · VOLLEY RUN</title>
+ <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='17' fill='%231c93da'/%3E%3Cpath d='M14 34a18 18 0 0 1 36 0H14m-3 5h42' stroke='white' stroke-width='6' fill='none'/%3E%3C/svg%3E">
+ <script src="./vendor/three-r140.bundle.js"></script>
+  <script type="module" crossorigin src="./assets/index-DMzLRrWR.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-TbCmCWua.css">
+</head>
+<body>
+ <main id="app">
+  <aside class="desktop-brand" aria-hidden="true"><span class="brand-mark">V<span>R</span></span><p>VOLLEY<br>RUN<span>BLUE COMPANY / 001</span></p><div class="brand-line"></div><small>少一点犹豫。<br>多一点火力。</small></aside>
+  <section id="game-shell" aria-label="弹幕小队游戏">
+   <div id="world"></div>
+   <div id="vignette"></div>
+   <div id="loading"><span class="loading-mark">VR</span><h1>弹幕小队</h1><p>装填装备，集合小队</p><div class="loading-track"><i id="loading-fill"></i></div><small id="load-note">全部资源在本地加载</small></div>
+   <header id="hud" hidden>
+    <div class="mission-chip"><span id="mission-index">01</span><div><small>行动代号</small><strong id="mission-name">赤岩长桥</strong></div></div>
+    <div class="head-actions"><button id="audio-btn" class="icon-btn" aria-label="关闭声音" title="声音">♪</button><button id="pause-btn" class="icon-btn pause-icon" aria-label="暂停游戏" title="暂停 / 空格"><i></i><i></i></button></div>
+    <div class="progress-track"><i id="progress-fill"></i><span id="finish-marker">◆</span></div>
+   </header>
+   <div id="replay-badge" hidden>演示控制 · 真实战斗</div>
+   <div id="boss-hud" hidden><div><span>巨型守卫</span><b id="boss-hp"></b></div><i><em id="boss-fill"></em></i></div>
+   <div id="toast" role="status" aria-live="polite"></div>
+   <div id="bottom-hud" hidden><div class="count-chip"><span class="person-icon"></span><strong id="troop-count">8</strong><small>小队</small></div><div class="loadout-chip"><span class="ammo-icon">Ⅲ</span><div><small id="weapon-tier">MK. I</small><strong id="weapon-name">脉冲步枪</strong></div></div></div>
+   <div id="controls-hint" hidden><span>‹</span> 左右拖动 <b>·</b> 自动开火 <span>›</span></div>
+   <section id="intro" hidden aria-label="开始游戏">
+    <div class="intro-copy"><p class="eyebrow">BLUE COMPANY <span>—</span> VOL. 01</p><h1>弹幕<span>小队</span><em>VOLLEY RUN</em></h1><p class="tagline">全员开火，冲破最后一道防线。</p></div>
+    <div class="intro-actions"><button id="start-btn" class="primary-btn">开始突击 <span>➜</span></button><button id="route-btn" class="route-btn">01 / 赤岩长桥 <span>切换路线 ↻</span></button><div class="quiet-actions"><button id="help-btn">怎么玩</button><button id="settings-btn">画质</button><button id="demo-btn">演示</button><button id="import-btn">回放</button></div></div>
+   </section>
+   <section id="modal" hidden aria-labelledby="modal-title" role="dialog" aria-modal="true"><div class="modal-card"><span id="modal-kicker" class="eyebrow">BLUE COMPANY</span><h2 id="modal-title">已暂停</h2><div id="modal-body"></div><div id="modal-actions"></div><button id="modal-close" class="close-btn" aria-label="关闭">×</button></div></section>
+   <div id="diagnostics" hidden></div><div id="error-panel" hidden></div>
+   <input id="replay-file" type="file" accept="application/json,.json" hidden>
+  </section>
+  <aside class="desktop-help"><span class="tiny-dot"></span><p>真正的弹幕。<br>真正的增援。</p><div><kbd>A</kbd><kbd>D</kbd><small>移动小队</small></div><div><kbd>SPACE</kbd><small>暂停 / 继续</small></div><div><kbd>R</kbd><small>即刻重试</small></div><footer>ORIGINAL 3D ARCADE<br>v1.2.0 · OFFLINE READY</footer></aside>
+ </main>
+</body>
+</html>
