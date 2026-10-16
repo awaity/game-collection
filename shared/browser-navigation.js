@@ -11,12 +11,14 @@ style.textContent =
   ".collection-return{position:fixed;top:max(12px,env(safe-area-inset-top));right:14px;z-index:1000;padding:10px 14px;background:#fffdf3;color:#263a42;border:1px solid #d9dfd8;border-radius:24px;font:600 12px/1.4 system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 10px #122f2c17}.collection-return[hidden]{display:none}.collection-return:hover{background:#eef0fe}.collection-return:focus-visible{outline:3px solid #645ac8;outline-offset:3px}@media(min-width:721px){.collection-return{left:20px;right:auto;top:18px}}";
 document.head.append(style);
 style.textContent += '[data-collection-engine="cocos"] .collection-return{top:auto;left:auto;right:14px;bottom:max(88px,env(safe-area-inset-bottom));box-sizing:border-box;width:72px;height:36px;padding:8px 0;text-align:center}';
+style.textContent += '[data-collection-game="garden-guard"] .collection-return{top:auto;left:auto;right:14px;bottom:max(12px,env(safe-area-inset-bottom));box-sizing:border-box;width:72px;height:36px;padding:8px 0;text-align:center}';
 document.body.append(link);
 const activePointers = new Set();
-function placeCocosLink() {
-  if (document.documentElement.dataset.collectionEngine !== "cocos") return;
+function placeMenuLink() {
+  const garden = document.documentElement.dataset.collectionGame === 'garden-guard';
+  if (!garden && document.documentElement.dataset.collectionEngine !== "cocos") return;
   link.textContent = "← 大厅";
-  const controls = [...document.querySelectorAll(".cocos-control:not([hidden])")]
+  const controls = [...document.querySelectorAll(garden ? '#controls button' : '.cocos-control:not([hidden])')]
     .map(button => button.getBoundingClientRect());
   const top = "max(12px,env(safe-area-inset-top))";
   const bottom = "max(12px,env(safe-area-inset-bottom))";
@@ -27,6 +29,19 @@ function placeCocosLink() {
     {top:"auto", bottom, left:"12px", right:"auto"},
     {top:"auto", bottom, left:"auto", right:"12px"},
   ];
+  if (garden) {
+    // The garden home has stars/settings at the top. Prefer its empty footer;
+    // short screens can use the illustration edge without covering controls.
+    const home = document.querySelector('[data-action="continue-level"]');
+    positions.splice(0, positions.length,
+      ...(home ? [
+        {top:'auto',bottom,left:'auto',right:'14px'},
+        {top:'160px',bottom:'auto',left:'14px',right:'auto'},
+      ] : [
+        {top,bottom:'auto',left:'auto',right:'14px'},
+        {top:'auto',bottom,left:'auto',right:'14px'},
+      ]));
+  }
   // Small/landscape menus may occupy both corners. Look along the edges too.
   for (let y=60; y<innerHeight-84; y+=44) {
     positions.push({top:`${y}px`,bottom:"auto",left:"12px",right:"auto"});
@@ -51,7 +66,7 @@ function update() {
       document.documentElement.dataset.collectionState,
     );
   if(link.hidden!==hidden)link.hidden=hidden;
-  if(!hidden)placeCocosLink();
+  if(!hidden)placeMenuLink();
 }
 let scheduled=false;
 const schedule=()=>{if(!scheduled){scheduled=true;requestAnimationFrame(()=>{scheduled=false;update()})}};

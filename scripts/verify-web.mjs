@@ -143,11 +143,11 @@ try {
         path: path.join(artifacts, `portal-${size.width}.png`),
         fullPage: true,
       });
-      // At 320px cover the portal and all Plane controls; full gameplay is checked
+      // At 320px cover the portal, Garden pagination and all Plane controls; full gameplay is checked
       // on touch 393px and desktop 1440px to keep software WebGL CI bounded.
       const scenarios =
         size.width === 320
-          ? games.filter((g) => g.slug === "plane-battle")
+          ? games.filter((g) => ['plane-battle', 'garden-guard'].includes(g.slug))
           : games;
       for (const game of scenarios.filter(game=>!process.env.VERIFY_GAME||game.slug===process.env.VERIFY_GAME)) {
         if (['frost-trail','endless-night'].includes(game.slug)) {
@@ -201,6 +201,31 @@ try {
         await page.screenshot({
           path: path.join(artifacts, `${game.slug}-${size.width}-menu.png`),
         });
+        if (game.slug === 'garden-guard') {
+          const returnFits = async () => {
+            await page.locator('.collection-return').waitFor({state:'visible'});
+            await page.waitForFunction(() => {
+              const link=document.querySelector('.collection-return').getBoundingClientRect();
+              return [...document.querySelectorAll('#controls button')].every(button=>{
+                const b=button.getBoundingClientRect();
+                return link.right<=b.left || link.left>=b.right || link.bottom<=b.top || link.top>=b.bottom;
+              });
+            });
+          };
+          await returnFits();
+          await press(page.locator('[data-action="settings"]'));
+          await page.locator('[data-action="setting:reducedMotion"]').waitFor();
+          await returnFits();
+          await press(page.locator('[data-action="close"]'));
+          for(const menu of ['challenges','almanac']) {
+            await press(page.locator(`[data-action="${menu}"]`));
+            await press(page.locator(`[data-action="${menu==='challenges'?'challenge':'almanac'}-page:next"]`));
+            await returnFits();
+            await press(page.locator('[data-action="home"]'));
+          }
+          await returnFits();
+          await page.screenshot({path:path.join(artifacts,`${game.slug}-${size.width}-menu.png`)});
+        }
         if (game.slug === "plane-battle") {
           await press(page.locator('[data-action="help"]'));
           await page.locator('[data-action="close-help"]').waitFor();
@@ -331,6 +356,7 @@ try {
             "resume",
             "home",
             "return-to-portal",
+            ...(game.slug === 'garden-guard' ? ['settings-uncovered', 'challenge-pagination', 'almanac-pagination'] : []),
           ],
         });
         console.log(`✓ Web ${game.slug} @ ${size.width}px`);
