@@ -28,7 +28,7 @@
     "deploy": "pnpm check && node scripts/publish.mjs",
     "dev:plane-battle": "pnpm --filter plane-battle dev",
     "build:mini": "node scripts/run-games.mjs build:mini",
-    "verify:web": "node scripts/verify-web.mjs && node scripts/verify-cocos.mjs web",
+    "verify:web": "node scripts/verify-web.mjs && pnpm --filter garden-guard verify:web && node scripts/verify-cocos.mjs web",
     "dev:garden-guard": "pnpm --filter garden-guard dev",
     "cocos:install": "node scripts/install-cocos.mjs"
   },

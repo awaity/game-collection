@@ -25,7 +25,7 @@ games/endless-night/           无尽长夜，四角色、五烽火与守夜人�
 games/frost-trail/             雪原小营，采集生产、扩张与四种终局
 games/surge-squad/             电涌小队，充能、激光与三章闯关
 games/final-door/              最后一道门，三路线、真实仿真与输入回放
-games/garden-guard/            花园守卫，十二关、冒险、挑战与三端入口
+games/garden-guard/            花园守卫，十六关、八种挑战、全植物无尽与三端入口
 games/plane-battle/            飞机大战，共享规则、Canvas、UI 与三端入口
 games/zombie-lane/             尸潮防线，共享规则、Canvas、UI 与三端入口
 games/volley-run/              弹幕小队，共享模拟、Three 场景、本地模型

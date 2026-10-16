@@ -187,6 +187,38 @@ try {
         await tap(c.home);
         if (c.confirmHome) await tap(c.confirmHome);
         assert.ok(has(c.start));
+        if (game.slug === 'garden-guard') {
+          await tap('挑战模式');
+          await tap('下一页');
+          for (const name of ['冰火连奏', '爆破工坊', '十株小花圃', '阳光丰收节']) assert.ok(has(name));
+          await page.screenshot({ path: path.join(artifacts, `${game.slug}-${target}-new-challenges.png`) });
+          await tap('上一页');
+          await tap('无尽守卫');
+          await tap('开始种植');
+          assert.ok(has('1 / 2 袋 · 可用 14 种'));
+          await tap('下一袋 E');
+          await page.screenshot({ path: path.join(artifacts, `${game.slug}-${target}-all-plants.png`) });
+          await tap('三线射手');
+          await tap([131, 536]); // Safe-area layout, row 3 / column 3.
+          assert.ok(has('325'), 'new plant must consume its actual sun cost');
+          await tap('上一袋 Q');
+          await tap('寒冰射手');
+          await tap([131, 654]); // Row 5 / column 3.
+          assert.ok(has('150'));
+          await frames(120);
+          await page.screenshot({ path: path.join(artifacts, `${game.slug}-${target}-endless.png`) });
+          await tap(c.pause);
+          await tap(c.home);
+          await tap(c.confirmHome);
+          await tap('植物与僵尸图鉴');
+          await tap('下一页');
+          assert.ok(has('冰晶菇'));
+          await tap('僵尸来客');
+          await tap('下一页');
+          for (const name of ['舞王僵尸', '冰甲僵尸', '药箱僵尸']) assert.ok(has(name));
+          await page.screenshot({ path: path.join(artifacts, `${game.slug}-${target}-new-zombies.png`) });
+          await tap('返回');
+        }
         await tap(c.start);
         if (c.confirm) await tap(c.confirm);
         await frames(4);
@@ -213,6 +245,7 @@ try {
             "pause",
             "home",
             "restart",
+            ...(game.slug === 'garden-guard' ? ['new-challenges', 'endless-all-plants', 'seed-pagination', 'threepeater-and-ice-placement', 'expanded-almanac'] : []),
           ],
         });
         console.log(
