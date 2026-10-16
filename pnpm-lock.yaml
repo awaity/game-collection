@@ -102,6 +102,24 @@ importers:
         specifier: 6.4.2
         version: 6.4.2(@types/node@22.20.5)(tsx@4.20.6)
 
+  games/surge-squad:
+    devDependencies:
+      '@game-collection/build-tools':
+        specifier: workspace:*
+        version: link:../../packages/build-tools
+      '@game-collection/cocos-runtime':
+        specifier: workspace:*
+        version: link:../../packages/cocos-runtime
+      '@game-collection/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+
   games/volley-run:
     dependencies:
       '@game-collection/platform':
