@@ -1,0 +1,2 @@
+# Keep the attributed upstream snapshot byte-for-byte, including its whitespace.
+games/plane-battle/upstream/** linguist-vendored -whitespace

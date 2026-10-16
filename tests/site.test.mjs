@@ -26,26 +26,29 @@ test("catalog rejects duplicate games, traversal and missing build targets", asy
   );
 });
 
-test("the complete release contains both games, real assets and a return path", async () => {
+test("the complete release contains every registered game, real assets and a return path", async () => {
   const verified = await verifySite();
-  assert.equal(verified.games, 2);
+  const { games } = await readCatalog();
+  assert.equal(verified.games, games.length);
   assert.ok(verified.references >= 10);
 });
 
 test("root and child projects use pnpm with one shared lockfile", async () => {
   await access(path.join(root, "pnpm-lock.yaml"));
+  const { games } = await readCatalog();
   for (const folder of [
     "",
     "apps/portal",
-    "games/volley-run",
-    "games/zombie-lane",
+    "packages/platform",
+    "packages/build-tools",
+    ...games.map((game) => `games/${game.slug}`),
   ]) {
     const pkg = JSON.parse(
       await readFile(path.join(root, folder, "package.json"), "utf8"),
     );
     assert.equal(pkg.packageManager, "pnpm@11.23.0");
     assert.ok(
-      !Object.values(pkg.scripts).some((value) => /\bnpm\s/.test(value)),
+      !Object.values(pkg.scripts ?? {}).some((value) => /\bnpm\s/.test(value)),
     );
     await assert.rejects(access(path.join(root, folder, "package-lock.json")));
     if (folder)

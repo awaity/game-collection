@@ -10,19 +10,19 @@ function rounded(w,h,d,r=.08){
  }return g;
 }
 function mesh(g,m,parent,x=0,y=0,z=0){const o=new T.Mesh(g,m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;}
-function canvasTexture(w,h,draw){const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;return t;}
-function labelTexture(text,theme='blue',sub=''){
- return canvasTexture(512,176,(ctx,w,h)=>{
+function canvasTexture(factory,w,h,draw){const c=factory(w,h);draw(c.getContext('2d'),w,h);const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;return t;}
+function labelTexture(factory,text,theme='blue',sub=''){
+ return canvasTexture(factory,512,176,(ctx,w,h)=>{
   ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='900 112px Arial, sans-serif';ctx.lineJoin='round';
   ctx.strokeStyle=theme==='red'?'#742b31':'#17374b';ctx.lineWidth=13;ctx.strokeText(text,w/2,76);ctx.fillStyle='#ffffff';ctx.fillText(text,w/2,76);
   if(sub){ctx.font='bold 23px Arial, sans-serif';ctx.strokeStyle='#163d59';ctx.lineWidth=4;ctx.strokeText(sub,w/2,147);ctx.fillStyle=theme==='gold'?'#fff0a5':'#ecfbff';ctx.fillText(sub,w/2,147);}
  });
 }
-function spriteLabel(text,width=2,height=.8,theme='blue',sub=''){
- const map=labelTexture(text,theme,sub),s=new T.Sprite(new T.SpriteMaterial({map,transparent:true,depthWrite:false,toneMapped:false}));s.scale.set(width,height,1);s.userData.text=text+'|'+sub;s.renderOrder=5;return s;
+function spriteLabel(factory,text,width=2,height=.8,theme='blue',sub=''){
+ const map=labelTexture(factory,text,theme,sub),s=new T.Sprite(new T.SpriteMaterial({map,transparent:true,depthWrite:false,toneMapped:false}));s.scale.set(width,height,1);s.userData.factory=factory;s.userData.text=text+'|'+sub;s.renderOrder=5;return s;
 }
 function updateLabel(s,text,theme='blue',sub=''){
- const key=text+'|'+sub;if(s.userData.text===key)return;const old=s.material.map;s.material.map=labelTexture(text,theme,sub);s.userData.text=key;old.dispose();
+ const key=text+'|'+sub;if(s.userData.text===key)return;const old=s.material.map;s.material.map=labelTexture(s.userData.factory,text,theme,sub);s.userData.text=key;old.dispose();
 }
 function mergeGeometry(items){
  const arrays={position:[],normal:[],color:[]};let count=0;
@@ -107,16 +107,17 @@ function withInstanceOpacity(batch){
  batch.material.customProgramCacheKey=()=> 'volley-instance-opacity-v1.1';batch.userData.alpha=alpha;return batch;
 }
 class Effects {
- constructor(scene,camera){
+ constructor(scene,camera,factory){
+  this.texture=(w,h,draw)=>canvasTexture(factory,w,h,draw);
   this.scene=scene;this.camera=camera;this.list=[];this.rings=[];this.debris=[];this.ghosts=[];this.max=2400;this.next=231;
-  this.glow=canvasTexture(128,128,ctx=>{
+  this.glow=this.texture(128,128,ctx=>{
    const a=ctx.createRadialGradient(64,64,0,64,64,64);a.addColorStop(0,'rgba(255,255,255,1)');a.addColorStop(.15,'rgba(255,255,255,.94)');a.addColorStop(.42,'rgba(255,255,255,.26)');a.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=a;ctx.fillRect(0,0,128,128);
   });
-  this.star=canvasTexture(128,128,ctx=>{
+  this.star=this.texture(128,128,ctx=>{
    const g=ctx.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.27,'rgba(255,255,255,.8)');g.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,128,128);
    ctx.fillStyle='white';ctx.beginPath();for(let i=0;i<16;i++){const a=i*Math.PI/8,r=i%2?11:52;const x=64+Math.cos(a)*r,y=64+Math.sin(a)*r;i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();ctx.fill();
   });
-  this.soft=canvasTexture(128,128,ctx=>{
+  this.soft=this.texture(128,128,ctx=>{
    for(let i=0;i<9;i++){const angle=i*2.399,r=10+(i%3)*9,x=64+Math.cos(angle)*r,y=64+Math.sin(angle)*r;const a=ctx.createRadialGradient(x,y,0,x,y,38);a.addColorStop(0,'rgba(255,255,255,.39)');a.addColorStop(.53,'rgba(255,255,255,.25)');a.addColorStop(1,'rgba(255,255,255,0)');ctx.fillStyle=a;ctx.fillRect(0,0,128,128);}
   });
   this.sparks=new T.InstancedMesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({map:this.glow,transparent:true,blending:T.AdditiveBlending,depthWrite:false,toneMapped:false}),this.max);
@@ -259,29 +260,29 @@ class PostFX {
  }
 }
 export class World{
- static async create(container,onProgress=()=>{}){
-  const w=new World(container);const loader=new T.GLTFLoader();const names=['blue-scout','red-raider','red-colossus','pulse-rifle','heavy-cannon'];
-  w.models={};for(let i=0;i<names.length;i++){const name=names[i];w.models[name]=(await loader.loadAsync(`./assets/${name}.glb`)).scene;onProgress((i+1)/names.length);}
+ static async create(runtime,onProgress=()=>{}){
+  const w=new World(runtime);const loader=new T.GLTFLoader();const names=['blue-scout','red-raider','red-colossus','pulse-rifle','heavy-cannon'];
+  w.models={};for(let i=0;i<names.length;i++){const name=names[i];w.models[name]=(await loader.parseAsync(await runtime.readAsset(`assets/${name}.glb`),'')).scene;onProgress((i+1)/names.length);}
   w.blue=new Actors(w.scene,w.models['blue-scout'],96,1.00);w.red=new Actors(w.scene,w.models['red-raider'],512,.93);w.boss=new Actors(w.scene,w.models['red-colossus'],6,2.0);w.effects.bindModels(w.models);w.ready=true;return w;
  }
- constructor(container){
-  this.container=container;this.quality='high';this.reducedMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;this.lost=false;this.ready=false;this.gateViews=new Map();this.podViews=new Map();this.bossLabels=new Map();this.lastTick=0;this.shake=0;
-  this.renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:'high-performance'});
+ constructor(runtime){
+  this.runtime=runtime;this.texture=(w,h,draw)=>canvasTexture(runtime.createCanvas,w,h,draw);this.quality=runtime.quality??'high';this.reducedMotion=runtime.reducedMotion;this.lost=false;this.ready=false;this.gateViews=new Map();this.podViews=new Map();this.bossLabels=new Map();this.lastTick=0;this.shake=0;
+  this.renderer=new T.WebGLRenderer({canvas:runtime.canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
   this.renderer.outputEncoding=T.sRGBEncoding;this.renderer.toneMapping=T.ACESFilmicToneMapping;this.renderer.toneMappingExposure=1.01;this.renderer.physicallyCorrectLights=true;
-  this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=T.PCFSoftShadowMap;
-  this.renderer.domElement.setAttribute('aria-label','弹幕小队三维战场');container.prepend(this.renderer.domElement);
+  this.renderer.shadowMap.enabled=this.quality!=='low';this.renderer.shadowMap.type=T.PCFSoftShadowMap;
+  runtime.attach?.(this.renderer.domElement);
   this.scene=new T.Scene();this.scene.background=C(0xb68761);this.scene.fog=new T.Fog(C(0xc49a79),70,155);
   this.camera=new T.PerspectiveCamera(38.5,1,.5,180);this.camera.position.set(0,15.4,21.0);this.cameraTarget=new T.Vector3(0,.1,-7.8);this.camera.lookAt(this.cameraTarget);this.baseCamera=this.camera.position.clone();
   this.scene.add(new T.HemisphereLight(0xe5efff,0x785d53,.54));this.scene.add(new T.AmbientLight(0xffffff,.05));
   this.sun=new T.DirectionalLight(0xfff4e8,3.45);this.sun.position.set(20,32,18);this.sun.target.position.set(0,0,-4);this.scene.add(this.sun,this.sun.target);this.sun.castShadow=true;
   const sh=this.sun.shadow;sh.mapSize.set(4096,4096);sh.camera.left=-17;sh.camera.right=17;sh.camera.top=47;sh.camera.bottom=-20;sh.camera.near=1;sh.camera.far=85;sh.bias=-.00025;sh.normalBias=.016;sh.radius=2.2;
   const fill=new T.DirectionalLight(0xccdcff,.28);fill.position.set(8,12,-15);this.scene.add(fill);
-  this.postFX=new PostFX(this.renderer);this.createEnvironment();this.createRoad();this.createBullets();this.createShadows();this.effects=new Effects(this.scene,this.camera);
+  this.postFX=new PostFX(this.renderer);this.createEnvironment();this.createRoad();this.createBullets();this.createShadows();this.effects=new Effects(this.scene,this.camera,runtime.createCanvas);
   this.warning=mesh(new T.RingGeometry(1.77,1.9,64),basic(0xff7b24,{transparent:true,opacity:.8,side:T.DoubleSide,toneMapped:false,depthWrite:false}),this.scene);this.warning.rotation.x=-Math.PI/2;this.warning.castShadow=false;this.warning.visible=false;
   this.warningFill=mesh(new T.PlaneGeometry(3.9,11),basic(0xff7827,{transparent:true,opacity:.15,side:T.DoubleSide,toneMapped:false,depthWrite:false}),this.scene);this.warningFill.rotation.x=-Math.PI/2;this.warningFill.castShadow=false;this.warningFill.visible=false;
-  this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(container);this.resize();
-  this.renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();this.lost=true;this.postFX.invalidate();this.envTarget=null;this.scene.environment=null;container.dispatchEvent(new CustomEvent('render-lost'));});
-  this.renderer.domElement.addEventListener('webglcontextrestored',()=>{this.lost=false;this.createEnvironment();this.resize();container.dispatchEvent(new CustomEvent('render-restored'));});
+  this.offResize=runtime.onResize(()=>this.resize());this.resize();
+  this.renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();this.lost=true;this.postFX.invalidate();this.envTarget=null;this.scene.environment=null;runtime.emit('render-lost');});
+  this.renderer.domElement.addEventListener('webglcontextrestored',()=>{this.lost=false;this.createEnvironment();this.resize();runtime.emit('render-restored');});
  }
  createEnvironment(){
   const room=new T.Scene();room.background=C(0x647384);
@@ -290,7 +291,7 @@ export class World{
   const pmrem=new T.PMREMGenerator(this.renderer);this.envTarget=pmrem.fromScene(room,.03);this.scene.environment=this.envTarget.texture;pmrem.dispose();light.geometry.dispose();light.material.dispose();soft.geometry.dispose();soft.material.dispose();
  }
  createRoad(){
-  this.roadTexture=canvasTexture(512,512,(ctx,w,h)=>{
+  this.roadTexture=this.texture(512,512,(ctx,w,h)=>{
    ctx.fillStyle='#67676a';ctx.fillRect(0,0,w,h);let seed=371;
    for(let i=0;i<18000;i++){
     seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=(seed>>>12)%w;
@@ -325,7 +326,7 @@ export class World{
   for(let i=0;i<8;i++)lampParts.push([new T.BoxGeometry(.30,.010,.025),0x6d7076,[.34,-.012,.165+i*.081]]);
   const lampG=mergeGeometry(lampParts);
   this.lamps=new T.InstancedMesh(lampG,new T.MeshStandardMaterial({vertexColors:true,roughness:.57,metalness:.21}),22);this.lamps.castShadow=true;this.lamps.receiveShadow=true;this.scene.add(this.lamps);
-  const sandMap=canvasTexture(256,256,(ctx,w,h)=>{
+  const sandMap=this.texture(256,256,(ctx,w,h)=>{
    ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);let seed=714;
    for(let i=0;i<160;i++){seed=(Math.imul(seed,1664525)+1013904223)>>>0;const x=(seed>>>12)%w;seed=(Math.imul(seed,1664525)+1013904223)>>>0;const y=(seed>>>12)%h;const a=ctx.createRadialGradient(x,y,1,x,y,36);a.addColorStop(0,'rgba(60,36,22,.055)');a.addColorStop(1,'rgba(60,36,22,0)');ctx.fillStyle=a;ctx.fillRect(x-36,y-36,72,72);}
   });sandMap.wrapS=sandMap.wrapT=T.RepeatWrapping;sandMap.repeat.set(7,7);
@@ -334,7 +335,7 @@ export class World{
   this.rocks=[];
  }
  createBullets(){
-  const streak=canvasTexture(64,256,(ctx,w,h)=>{
+  const streak=this.texture(64,256,(ctx,w,h)=>{
    const image=ctx.createImageData(w,h);
    for(let y=0;y<h;y++)for(let x=0;x<w;x++){
     const u=(x+.5)/w*2-1,v=(y+.5)/h;
@@ -349,12 +350,12 @@ export class World{
   for(const o of [this.bullets,this.bulletGlow]){o.setColorAt(0,new T.Color(1,1,1));o.count=0;o.frustumCulled=false;this.scene.add(o);}
  }
  createShadows(){
-  const map=canvasTexture(64,64,ctx=>{const g=ctx.createRadialGradient(32,32,3,32,32,31);g.addColorStop(0,'rgba(25,24,28,.55)');g.addColorStop(.5,'rgba(25,24,28,.23)');g.addColorStop(1,'rgba(25,24,28,0)');ctx.fillStyle=g;ctx.fillRect(0,0,64,64);});
+  const map=this.texture(64,64,ctx=>{const g=ctx.createRadialGradient(32,32,3,32,32,31);g.addColorStop(0,'rgba(25,24,28,.55)');g.addColorStop(.5,'rgba(25,24,28,.23)');g.addColorStop(1,'rgba(25,24,28,0)');ctx.fillStyle=g;ctx.fillRect(0,0,64,64);});
   this.shadows=new T.InstancedMesh(new T.PlaneGeometry(1,1),new T.MeshBasicMaterial({map,transparent:true,depthWrite:false,opacity:.8,polygonOffset:true,polygonOffsetFactor:-1}),640);this.shadows.frustumCulled=false;this.scene.add(this.shadows);
  }
  makeGate(g){
   const root=new T.Group();this.scene.add(root);const negative=g.value<0,color=negative?0xf14749:0x248ade,edge=negative?0xff9990:0x86d9ff;
-  const map=canvasTexture(32,128,(ctx,w,h)=>{
+  const map=this.texture(32,128,(ctx,w,h)=>{
    const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,'rgba(255,255,255,.42)');grad.addColorStop(.18,'rgba(255,255,255,.19)');grad.addColorStop(.65,'rgba(255,255,255,.47)');grad.addColorStop(1,'rgba(255,255,255,.95)');ctx.fillStyle=grad;ctx.fillRect(0,0,w,h);
   });
   const mat=new T.MeshBasicMaterial({color:C(color),map,transparent:true,opacity:.90,depthWrite:false,side:T.DoubleSide,toneMapped:false});
@@ -367,7 +368,7 @@ export class World{
   }
   const top=mesh(new T.PlaneGeometry(g.width,.041),basic(edge,{transparent:true,opacity:.65,toneMapped:false,depthWrite:false}),root,0,1.691,.013);top.castShadow=false;
   const bottom=mesh(new T.PlaneGeometry(g.width,.067),basic(edge,{transparent:true,opacity:.85,toneMapped:false,depthWrite:false}),root,0,.253,.013);bottom.castShadow=false;
-  const label=spriteLabel('',g.width*1.10,1.67);label.position.set(0,1.05,.13);root.add(label);
+  const label=spriteLabel(this.runtime.createCanvas,'',g.width*1.10,1.67);label.position.set(0,1.05,.13);root.add(label);
   return {root,pane,label,rails,top,bottom,negative,baseWidth:g.width};
  }
  makePod(p){
@@ -413,7 +414,7 @@ export class World{
     const ring=mesh(new T.TorusGeometry(.289,.031,8,24),std(p.tier===2?0xbe8b5b:0xbd4b57,.38,.48),root,side*(w/2-.02+j*.064),.94,0);ring.rotation.y=Math.PI/2;
    }
   }
-  const label=spriteLabel(String(p.hp),w*.99,1.40);label.position.set(0,.87,1.00);root.add(label);
+  const label=spriteLabel(this.runtime.createCanvas,String(p.hp),w*.99,1.40);label.position.set(0,.87,1.00);root.add(label);
   const boltGeo=new T.BufferGeometry();boltGeo.setAttribute('position',new T.BufferAttribute(new Float32Array(24*6),3));
   const lightning=new T.LineSegments(boltGeo,basic(0xb1f6ff,{transparent:true,opacity:.9,toneMapped:false,depthWrite:false,blending:T.AdditiveBlending}));lightning.frustumCulled=false;root.add(lightning);lightning.visible=false;
   const halo=mesh(new T.PlaneGeometry(w+.9,2.6),new T.MeshBasicMaterial({map:this.effects.glow,color:C(0x0bacfa),blending:T.AdditiveBlending,transparent:true,opacity:.30,depthWrite:false,toneMapped:false}),root,0,-.025,0);halo.rotation.x=-Math.PI/2;halo.castShadow=false;
@@ -432,7 +433,7 @@ export class World{
  }
  healthLabel(root,e){
   const key=Math.ceil(e.hp)+'/'+e.maxHP;if(root.userData.healthKey===key)return;root.userData.healthKey=key;
-  const map=canvasTexture(512,110,ctx=>{
+  const map=this.texture(512,110,ctx=>{
    const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();};
    rr(7,12,498,86,13);ctx.fillStyle='#322029';ctx.fill();ctx.lineWidth=7;ctx.strokeStyle='#e5c2a8';ctx.stroke();
    ctx.save();rr(12,17,488,76,9);ctx.clip();ctx.fillStyle='#f6412e';ctx.fillRect(12,17,488*Math.max(0,e.hp/e.maxHP),76);
@@ -441,7 +442,7 @@ export class World{
   });const mat=root.userData.label.material;mat.map?.dispose();mat.map=map;mat.needsUpdate=true;
  }
  setQuality(quality){if(!['high','balanced','low'].includes(quality))return;this.quality=quality;const high=quality==='high';this.renderer.shadowMap.enabled=quality!=='low';this.sun.shadow.mapSize.set(high?4096:1536,high?4096:1536);this.sun.shadow.map?.dispose();this.sun.shadow.map=null;this.resize();}
- resize(){const {width,height}=this.container.getBoundingClientRect();if(!width||!height)return;this.width=width;this.height=height;this.camera.aspect=width/height;this.camera.fov=2*Math.atan(Math.tan(38.5*Math.PI/360)*Math.max(1,.575/this.camera.aspect))*180/Math.PI;this.camera.updateProjectionMatrix();this.renderer.setPixelRatio(Math.min(devicePixelRatio,this.quality==='high'?2:this.quality==='balanced'?1.4:1));this.renderer.setSize(width,height,false);const size=this.renderer.getDrawingBufferSize(new T.Vector2());this.postFX.resize(size.x,size.y,this.quality);}
+ resize(){const {width,height}=this.runtime.viewport();if(!width||!height)return;this.width=width;this.height=height;this.camera.aspect=width/height;this.camera.fov=2*Math.atan(Math.tan(38.5*Math.PI/360)*Math.max(1,.575/this.camera.aspect))*180/Math.PI;this.camera.updateProjectionMatrix();this.renderer.setPixelRatio(Math.min(this.runtime.viewport().dpr,this.quality==='high'?2:this.quality==='balanced'?1.4:1));this.renderer.setSize(width,height,false);const size=this.renderer.getDrawingBufferSize(new T.Vector2());this.postFX.resize(size.x,size.y,this.quality);}
  // Frame actual actor extents, not the input target. Stateless framing remains identical
  // across replay, paused redraw, resize, and a large diagnostic advance.
  frameSquad(g){

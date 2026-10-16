@@ -11,6 +11,9 @@ importers:
       gh-pages:
         specifier: 6.3.0
         version: 6.3.0
+      playwright:
+        specifier: 1.64.1
+        version: 1.64.1
 
   apps/portal:
     dependencies:
@@ -34,17 +37,53 @@ importers:
         specifier: 3.3.13
         version: 3.3.13(typescript@5.9.3)
 
-  games/volley-run:
+  games/plane-battle:
+    dependencies:
+      '@game-collection/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
     devDependencies:
+      '@game-collection/build-tools':
+        specifier: workspace:*
+        version: link:../../packages/build-tools
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vite:
+        specifier: 6.4.2
+        version: 6.4.2(tsx@4.20.6)
+
+  games/volley-run:
+    dependencies:
+      '@game-collection/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
+    devDependencies:
+      '@game-collection/build-tools':
+        specifier: workspace:*
+        version: link:../../packages/build-tools
       pngjs:
         specifier: 7.0.0
         version: 7.0.0
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
       vite:
         specifier: 6.4.2
         version: 6.4.2(tsx@4.20.6)
 
   games/zombie-lane:
+    dependencies:
+      '@game-collection/platform':
+        specifier: workspace:*
+        version: link:../../packages/platform
     devDependencies:
+      '@game-collection/build-tools':
+        specifier: workspace:*
+        version: link:../../packages/build-tools
       esbuild:
         specifier: 0.25.11
         version: 0.25.11
@@ -57,6 +96,24 @@ importers:
       vite:
         specifier: 6.4.2
         version: 6.4.2(tsx@4.20.6)
+
+  packages/build-tools:
+    dependencies:
+      '@game-collection/platform':
+        specifier: workspace:*
+        version: link:../platform
+      esbuild:
+        specifier: 0.25.11
+        version: 0.25.11
+
+  packages/platform:
+    devDependencies:
+      tsx:
+        specifier: 4.20.6
+        version: 4.20.6
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
 
 packages:
 
@@ -646,6 +703,16 @@ packages:
   pkg-dir@4.2.0:
     resolution: {integrity: sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==}
     engines: {node: '>=8'}
+
+  playwright-core@1.64.1:
+    resolution: {integrity: sha512-BC4s8y6SEVA6Q1rSxZTto8hI1KUI3xXlHGZgvGqP4IqPdI/a6FX9H29IDNz7vKo9l21b6LfYosScPL6M3xxyDQ==}
+    engines: {node: '>=20'}
+    hasBin: true
+
+  playwright@1.64.1:
+    resolution: {integrity: sha512-HCrVhHr5QQuwYoswEUGTb7gGp522yflbv/ST8nF4sFWGuLjQCt17Q/EubpGGSNKYn1tsTCPZxqHhHCfVURu7UA==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   pngjs@7.0.0:
     resolution: {integrity: sha512-LKWqWJRhstyYo9pGvgor/ivk2w94eSjE3RGVuzLGlr3NmD8bf7RcYGze1mNdEHRP6TRP6rMuDHk5t44hnTRyow==}
@@ -1244,6 +1311,12 @@ snapshots:
   pkg-dir@4.2.0:
     dependencies:
       find-up: 4.1.0
+
+  playwright-core@1.64.1: {}
+
+  playwright@1.64.1:
+    dependencies:
+      playwright-core: 1.64.1
 
   pngjs@7.0.0: {}
 

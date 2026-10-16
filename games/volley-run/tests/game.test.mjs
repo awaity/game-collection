@@ -88,5 +88,7 @@ test('all five original 3D model files are complete GLB assets', () => {
     const gltf = JSON.parse(bytes.toString('utf8',20,20+jsonLength));
     assert.ok(gltf.meshes.length > 0);
     assert.ok(gltf.buffers.every(buffer => !buffer.uri));
+    assert.equal(gltf.images?.length ?? 0, 0, 'native loading needs an image adapter before textured GLBs are added');
+    assert.equal(gltf.extensionsRequired?.length ?? 0, 0, 'new required GLTF extensions need native validation');
   }
 });

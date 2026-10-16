@@ -16,7 +16,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -25,6 +25,7 @@ jobs:
           node-version: "22"
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm check
       - name: 保存完整站点
         uses: actions/upload-artifact@v4
@@ -36,8 +37,15 @@ jobs:
       - name: 保存微信和抖音工程包
         uses: actions/upload-artifact@v4
         with:
-          name: zombie-lane-mini-${{ github.sha }}
+          name: all-games-mini-${{ github.sha }}
           path: |
-            games/zombie-lane/dist/weixin/
-            games/zombie-lane/dist/douyin/
+            games/*/dist/weixin/
+            games/*/dist/douyin/
+          retention-days: 14
+      - name: 保存浏览器与原生宿主验证证据
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-${{ github.sha }}
+          path: artifacts/
           retention-days: 14

@@ -1,0 +1,28 @@
+{
+  "name": "plane-battle",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "飞机大战：Web、微信小游戏、抖音小游戏共享的霓虹空战。",
+  "packageManager": "pnpm@11.23.0",
+  "engines": {
+    "node": ">=22.14.0"
+  },
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 4192",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "build": "pnpm typecheck && vite build",
+    "build:weixin": "tsx scripts/build-mini.ts weixin",
+    "build:douyin": "tsx scripts/build-mini.ts douyin"
+  },
+  "dependencies": {
+    "@game-collection/platform": "workspace:*"
+  },
+  "devDependencies": {
+    "@game-collection/build-tools": "workspace:*",
+    "vite": "6.4.2",
+    "typescript": "5.9.3",
+    "tsx": "4.20.6"
+  }
+}

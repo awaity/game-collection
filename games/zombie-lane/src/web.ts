@@ -1,4 +1,5 @@
 import './style.css';
+import {reportGameState} from '@game-collection/platform/web-state';
 import { App } from './app';
 import { WebPlatform } from './platform/web';
 
@@ -8,6 +9,7 @@ try{
   const controls=document.querySelector<HTMLDivElement>('#accessible-controls')!;
   // Web-only semantic mirrors make the same Canvas menu keyboard accessible.
   const update=()=>{
+    const phase=app.game.phase;reportGameState(phase==='playing'&&!app.help?'playing':phase==='ready'?'menu':phase==='paused'||app.help?'paused':'result');
     const focused=(document.activeElement as HTMLElement)?.dataset?.action;
     controls.replaceChildren();
     for(const button of app.ui.buttons){

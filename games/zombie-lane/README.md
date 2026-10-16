@@ -60,8 +60,8 @@ GitHub Pages 由仓库根目录的 `pnpm run deploy` 统一发布大厅和所有
 微信 / 抖音构建可通过环境变量注入 AppID：
 
 ```bash
-WEIXIN_APP_ID=你的微信小游戏AppID pnpm --filter zombie-lane build:weixin
-DOUYIN_APP_ID=你的抖音小游戏AppID pnpm --filter zombie-lane build:douyin
+ZOMBIE_LANE_WEIXIN_APP_ID=你的微信小游戏AppID pnpm --filter zombie-lane build:weixin
+ZOMBIE_LANE_DOUYIN_APP_ID=你的抖音小游戏AppID pnpm --filter zombie-lane build:douyin
 ```
 
 构建完成后，将对应目录导入平台开发者工具。未提供 AppID 时，微信使用开发占位值，抖音留空，不能据此直接发布。
@@ -72,15 +72,17 @@ DOUYIN_APP_ID=你的抖音小游戏AppID pnpm --filter zombie-lane build:douyin
 src/core/game.ts        纯 TypeScript 固定步长战斗模拟
 src/render/            Canvas 场景、图集、特效和全部游戏 UI
 src/app.ts             输入、生命周期、固定步长循环与界面协调
-src/platform/types.ts  平台接口
-src/platform/web.ts    Web Canvas、PointerEvent、Web Audio、localStorage
-src/platform/mini.ts   wx / tt Canvas、触控、音频、存储与后台事件
+src/platform/types.ts  共享平台接口的兼容导出
+src/platform/web.ts    @game-collection/platform/web 兼容导出
+src/platform/mini.ts   @game-collection/platform/mini 兼容导出
 src/web.ts             浏览器启动和可访问性控件
 src/mini.ts            微信 / 抖音原生启动入口
-scripts/build-mini.ts  打包工程配置和本地音效
+scripts/build-mini.ts  调用共享构建工具生成工程和本地音效
 tests/                 规则、全关卡、适配器与渲染回归检查
 ```
 
 开发与构建后的 Web 地址加 `?qa=1` 才会暴露验证接口 `window.__ZOMBIE__`。它可以推进真实模拟以验证结算和渲染，常规地址不暴露此入口。使用 QA 仍会写入当前浏览器的本地纪录；测试后可清除 `zombie.records.v1`。
 
 当前未接登录、广告、支付、排行榜或服务器。浏览器版已完成可玩与构建验证；微信和抖音已提供适配层及可导入工程包，尚未在官方开发者工具和真机上验收。
+
+平台实现和打包现由 `packages/platform`、`packages/build-tools` 共享，见[统一平台说明](../../docs/PLATFORMS.md)与[本轮验证](../../docs/MULTIPLATFORM-VERIFICATION.md)。

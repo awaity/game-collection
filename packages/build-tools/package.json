@@ -1,0 +1,14 @@
+{
+  "name": "@game-collection/build-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./mini": "./src/mini.ts"
+  },
+  "dependencies": {
+    "esbuild": "0.25.11",
+    "@game-collection/platform": "workspace:*"
+  },
+  "packageManager": "pnpm@11.23.0"
+}

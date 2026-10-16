@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="经典飞机大战游戏 - 支持闯关模式和无限模式,收集补给升级武器,挑战强大Boss!">
+    <title>飞机大战 - 经典射击游戏</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 开始菜单 -->
+    <div id="startMenu" class="menu-container">
+        <div class="menu-content">
+            <h1 class="game-title">
+                <span class="title-icon">✈️</span>
+                飞机大战
+                <span class="title-icon">🚀</span>
+            </h1>
+            <div class="difficulty-select">
+                <label for="difficultySelect">难度选择:</label>
+                <select id="difficultySelect" class="menu-select">
+                    <option value="easy">简单 (Easy)</option>
+                    <option value="normal" selected>普通 (Normal)</option>
+                    <option value="hard">困难 (Hard)</option>
+                </select>
+            </div>
+            <div class="menu-buttons">
+                <button class="menu-btn primary" onclick="game.startGame('stage')">
+                    <span class="btn-icon">🎯</span>
+                    闯关模式
+                </button>
+                <button class="menu-btn primary" onclick="game.startGame('endless')">
+                    <span class="btn-icon">♾️</span>
+                    无限模式
+                </button>
+                <button class="menu-btn secondary" onclick="game.showHelp()">
+                    <span class="btn-icon">❓</span>
+                    游戏说明
+                </button>
+            </div>
+            <div class="high-score">
+                <p>最高分: <span id="highScore">0</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 帮助界面 -->
+    <div id="helpMenu" class="menu-container" style="display: none;">
+        <div class="menu-content">
+            <h2>游戏说明</h2>
+            <div class="help-content">
+                <div class="help-section">
+                    <h3>🎮 操作方式</h3>
+                    <p><strong>PC端:</strong> 鼠标移动控制飞机 或 键盘方向键/WASD控制飞机,自动射击</p>
+                    <p><strong>移动端:</strong> 触摸屏幕移动飞机</p>
+                </div>
+                <div class="help-section">
+                    <h3>🎁 补给道具</h3>
+                    <p>🔫 <strong>武器升级:</strong> 提升火力等级</p>
+                    <p>🛡️ <strong>护盾:</strong> 抵挡一次伤害</p>
+                    <p>❤️ <strong>生命:</strong> 恢复生命值</p>
+                </div>
+                <div class="help-section">
+                    <h3>🎯 游戏模式</h3>
+                    <p><strong>闯关模式:</strong> 击败每关Boss通关</p>
+                    <p><strong>无限模式:</strong> 坚持到最后!</p>
+                </div>
+            </div>
+            <button class="menu-btn primary" onclick="game.hideHelp()">返回</button>
+        </div>
+    </div>
+
+    <!-- 游戏主界面 -->
+    <div id="gameContainer" style="display: none;">
+        <!-- 游戏信息栏 -->
+        <div id="gameInfo">
+            <div class="info-left">
+                <div class="info-item">
+                    <span class="info-label">分数:</span>
+                    <span id="score" class="info-value">0</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">关卡:</span>
+                    <span id="stage" class="info-value">1</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">难度:</span>
+                    <span id="difficultyDisplay" class="info-value">普通</span>
+                </div>
+            </div>
+            <div class="info-right">
+                <div class="info-item">
+                    <span class="info-label">生命:</span>
+                    <div id="lives" class="lives-container"></div>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">武器:</span>
+                    <span id="weaponLevel" class="weapon-level">Lv.1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boss血条 -->
+        <div id="bossHealthBar" class="boss-health-bar" style="display: none;">
+            <div class="boss-label">BOSS</div>
+            <div class="health-bar-container">
+                <div id="bossHealthFill" class="health-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- 游戏画布 -->
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- 暂停按钮 -->
+        <button id="pauseBtn" class="pause-btn" onclick="game.togglePause()">⏸️</button>
+    </div>
+
+    <!-- 暂停菜单 -->
+    <div id="pauseMenu" class="menu-container overlay" style="display: none;">
+        <div class="menu-content small">
+            <h2>游戏暂停</h2>
+            <div class="menu-buttons">
+                <button class="menu-btn primary" onclick="game.togglePause()">
+                    继续游戏
+                </button>
+                <button class="menu-btn secondary" onclick="game.backToMenu()">
+                    返回主菜单
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏结束菜单 -->
+    <div id="gameOverMenu" class="menu-container overlay" style="display: none;">
+        <div class="menu-content">
+            <h2 id="gameOverTitle">游戏结束</h2>
+            <div class="game-over-stats">
+                <p>最终分数: <span id="finalScore" class="highlight">0</span></p>
+                <p>击杀数: <span id="killCount" class="highlight">0</span></p>
+                <p id="stageReached"></p>
+            </div>
+            <div class="menu-buttons">
+                <button class="menu-btn primary" onclick="game.restart()">
+                    再来一局
+                </button>
+                <button class="menu-btn secondary" onclick="game.backToMenu()">
+                    返回主菜单
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 关卡完成菜单 -->
+    <div id="stageClearMenu" class="menu-container overlay" style="display: none;">
+        <div class="menu-content">
+            <h2 class="success-title">🎉 关卡完成! 🎉</h2>
+            <div class="stage-clear-stats">
+                <p>当前分数: <span id="stageClearScore" class="highlight">0</span></p>
+                <p>下一关: <span id="nextStage" class="highlight">2</span></p>
+            </div>
+            <div class="menu-buttons">
+                <button class="menu-btn primary" onclick="game.nextStage()">
+                    继续挑战
+                </button>
+                <button class="menu-btn secondary" onclick="game.backToMenu()">
+                    返回主菜单
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>

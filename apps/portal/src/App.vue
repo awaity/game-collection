@@ -163,13 +163,13 @@ const toggleGuide = (slug: string) => {
       <section id="how-to" class="how-to" aria-labelledby="how-to-title">
         <div class="how-heading">
           <h2 id="how-to-title">不用研究，直接上手。</h2>
-          <p>两款游戏都会自动开火，你只需要负责走位。</p>
+          <p>每款游戏都会自动开火，你只需要负责走位。</p>
         </div>
         <div class="how-grid">
           <div class="how-item">
             <span class="how-icon"><Hand :size="22" aria-hidden="true" /></span>
             <div>
-              <h3>手机左右拖动</h3>
+              <h3>手机拖动操控</h3>
               <p>一根手指，升级、躲避、清场。</p>
             </div>
           </div>
@@ -179,7 +179,7 @@ const toggleGuide = (slug: string) => {
             /></span>
             <div>
               <h3>电脑鼠标或键盘</h3>
-              <p>拖动鼠标，或使用 A / D、方向键。</p>
+              <p>拖动鼠标，或使用 WASD、方向键。</p>
             </div>
           </div>
           <div class="how-item">

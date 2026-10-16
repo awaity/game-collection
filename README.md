@@ -1,96 +1,87 @@
 # 开局游戏厅 · Game Collection
 
-多个独立小游戏的源码、游戏大厅与统一发布工程。大厅采用 Vue 3 + Vite + TypeScript，手机单列、电脑双列；游戏按目录独立开发和构建，通过同一个 GitHub Pages 站点游玩。
+多个独立小游戏的源码、Vue 3 + Vite + TypeScript 大厅和统一发布工程。手机优先、电脑自适应；pnpm Workspaces 管理全部项目，仅根目录维护锁文件。
 
 **在线大厅：https://awaity.github.io/game-collection/**
 
-| 游戏 | 在线入口 | 实现与平台 |
-| --- | --- | --- |
-| 尸潮防线 | [开始游戏](https://awaity.github.io/game-collection/games/zombie-lane/) | TypeScript + Canvas 2D；Web、微信、抖音入口 |
-| 弹幕小队 | [开始游戏](https://awaity.github.io/game-collection/games/volley-run/) | JavaScript + Three.js；Web |
+| 游戏 | 在线入口 | 共用技术 | 构建目标 |
+| --- | --- | --- | --- |
+| 飞机大战 | [起飞](https://awaity.github.io/game-collection/games/plane-battle/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
+| 尸潮防线 | [守线](https://awaity.github.io/game-collection/games/zombie-lane/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
+| 弹幕小队 | [出击](https://awaity.github.io/game-collection/games/volley-run/) | JavaScript + Three.js r140 | Web / 微信 / 抖音 |
 
-微信、抖音目前提供尸潮防线的原生小游戏构建和模拟宿主测试，尚未完成官方开发者工具、真机与平台审核。弹幕小队保持原有 Web 实现，后续移植需单独评估。
+三款游戏均提供独立原生小游戏 `game.js` 工程。平台包已纳入构建和无 DOM 模拟宿主验证，弹幕小队使用实际 WebGL 和本地 GLB 模型；**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
 
-## 目录
+## 目录与边界
 
 ```text
-apps/portal/                 Vue 游戏大厅
-games/volley-run/             弹幕小队及本地模型、Three.js
-games/zombie-lane/            尸潮防线、共享游戏层与 Web / wx / tt 适配器
-catalog/games.json           大厅展示内容和游戏入口标识
-catalog/build-targets.json   各游戏的工作区名称、Web 产物路径、必需资源
-shared/browser-navigation.js 聚合 Web 发布时添加的返回大厅入口
-scripts/                    全站构建、检查、预览和发布
-tests/                      目录与实际静态站点集成检查
-pnpm-lock.yaml              全工作区唯一依赖锁文件
-dist/site/                  完整静态发布产物（不提交源码分支）
+apps/portal/                  Vue 3 + Vite + TS 大厅
+games/plane-battle/            飞机大战，共享规则、Canvas、UI 与三端入口
+games/zombie-lane/             尸潮防线，共享规则、Canvas、UI 与三端入口
+games/volley-run/              弹幕小队，共享模拟、Three 场景、本地模型
+packages/platform/            输入、时钟、安全区、存储、音频、二进制资源
+packages/build-tools/         原生打包、配置、本地 WAV、主包大小检查
+catalog/games.json            入口、介绍、操作、实机封面
+catalog/build-targets.json    各游戏工作区、Web 输出、必需资源、原生目标
+shared/browser-navigation.js Web 游戏显式状态驱动的返回大厅入口
+scripts/                      统一构建、验证、预览、发布
+dist/site/                    完整静态站点（不提交源码分支）
 ```
 
-大厅不导入游戏代码或引擎。每个游戏保留自己的依赖、测试和产物；微信、抖音工程不引用 Vue、大厅或网页返回导航。
+大厅不加载游戏引擎；游戏核心不引用 DOM、`wx` 或 `tt`。平台能力经适配器注入。微信、抖音工程不依赖网页大厅、WebView 或 WXML 小程序页面。架构、平台差异与 AppID 说明见 [三端工程说明](docs/PLATFORMS.md)。
 
-## 开发
+## 开发与验证
 
-需要 Node.js **22.14+**，推荐 Node.js 22 LTS；仓库固定 pnpm **11.23.0**。所有命令默认在仓库根目录执行。
+需要 Node.js **22.14+**、pnpm **11.23.0**。以下命令在根目录执行。
 
 ```bash
 corepack enable
 pnpm install --frozen-lockfile
-pnpm dev                 # 大厅：http://localhost:4190/
-pnpm dev:volley-run      # 弹幕小队：http://localhost:4273/
-pnpm dev:zombie-lane     # 尸潮防线：http://localhost:4180/
+pnpm exec playwright install --with-deps chromium  # 首次浏览器验证
+pnpm dev                      # 大厅 :4190
+pnpm dev:plane-battle          # 飞机大战 :4192
+pnpm dev:zombie-lane           # 尸潮防线 :4180
+pnpm dev:volley-run            # 弹幕小队 :4273
 ```
 
-三个开发服务器分别启动。大厅开发服务器只预览大厅；检查完整的游戏跳转流程请使用下面的聚合预览。
+每条开发命令独立启动对应项目。大厅开发预览仅提供大厅；完整跳转、刷新与返回流程使用 `pnpm build && pnpm preview`，地址为 `http://localhost:4191/game-collection/`。
 
 ```bash
-pnpm build
-pnpm preview
+pnpm build          # 大厅 + 三款 Web 游戏，聚合到 dist/site
+pnpm build:mini     # 读取 catalog，构建所有微信 / 抖音工程
+pnpm check          # 发布前统一检查（含真实浏览器和原生宿主）
 ```
 
-聚合预览：http://localhost:4191/game-collection/ 。预览服务器使用与线上相同的子路径，支持直达游戏、刷新、目录跳转和真实 404。
+`pnpm check` 包含类型检查、规则/回归测试、静态资源与子路径检查、全部原生构建、触控/生命周期宿主验证、手机与桌面的网页流程检查。自动浏览器测试自行启动并在 `finally` 中关闭预览服务；手工启动的开发或预览服务在验证完成后也应关闭。截图与报告写入 `artifacts/`。
 
-依赖统一从根目录安装；为单个项目添加依赖使用 `pnpm --filter <项目名> add <包名>`。不在子目录维护额外锁文件。
+可单独执行 `pnpm test`（先构建 Web）、`pnpm verify:mini`（先构建原生）和 `pnpm verify:web`（先构建 Web）。CI 安装 Chromium 后运行同一套检查，归档完整站点、全部原生包及验证证据。
 
-## 构建与检查
-
-```bash
-pnpm check
-```
-
-依次执行大厅类型检查、三个 Web 项目构建、两个游戏测试、聚合站点集成检查，以及尸潮防线微信 / 抖音构建和实际打包文件的模拟宿主检查。游戏测试和站点测试使用构建产物，单独运行 `pnpm test` 前先执行 `pnpm build`。
-
-`pnpm build` 将大厅放入 `dist/site/`，游戏放入 `dist/site/games/<slug>/`，复制完整静态资源并生成 `.nojekyll`、`404.html`、`release.json`。仅在聚合 Web 产物中注入返回游戏厅入口，在战斗中隐藏、菜单中显示。游戏规则、原有模型和运行资源保持独立。
-
-GitHub Actions 在 `main` 推送和 PR 时运行同一组检查，并保存完整站点及两个小游戏工程包作为构建产物。
+原生输出：`games/<slug>/dist/weixin/`、`games/<slug>/dist/douyin/`。Web 输出为 `dist/web/`，弹幕小队保留 Sites 所需的 `dist/client/`，统一聚合过程读取 catalog 处理差异。
 
 ## 发布
 
-源码放在 `main`，完整静态站点放在 `gh-pages`。**仅根目录负责发布**，子游戏没有独立部署命令，避免覆盖大厅或其他游戏。
-
-提交并上传源码后，在已登录 GitHub、且 `origin` 指向本仓库的环境执行：
+源码放在 `main`，完整静态站点放在 `gh-pages`。仅根目录可以发布，防止子游戏覆盖其他入口。
 
 ```bash
 git push origin main
 pnpm run deploy
 ```
 
-命令重新运行全部检查，然后使用 `gh-pages` 包发布 `dist/site/`。发布要求工作区干净、产物版本与当前 HEAD 一致，并在发布提交与 `release.json` 中记录源码版本；保留 `gh-pages` 历史。
-
-GitHub Pages 设置为 **Deploy from a branch → gh-pages → / (root)**。当前 CI 负责验证和产物归档；发布由上述命令显式触发。检查线上 `release.json` 可确认新版本已生效。
+发布命令重新运行全部检查，要求工作区干净、站点版本等于 HEAD；在发布提交和 `release.json` 中记录源码 SHA，并保留 `gh-pages` 历史。GitHub Pages 配置为 **Deploy from a branch → gh-pages → / (root)**。微信与抖音的工程导入、真机测试和发布是各平台独立流程。
 
 ## 新增游戏
 
-1. 在 `games/<slug>/` 创建独立工作区，提供 `build` 和项目自身的测试命令；Web 资源使用相对路径。
-2. 向 `catalog/games.json` 添加名称、真实截图、介绍和操作说明；截图放在 `apps/portal/public/covers/`。
-3. 在 `catalog/build-targets.json` 登记工作区名称、Web 输出目录和必需资源。需要返回导航的新 UI，在 `shared/browser-navigation.js` 添加对应的菜单状态判断。
-4. 将新游戏的检查加入根目录命令，运行 `pnpm install` 更新唯一锁文件，再执行 `pnpm check` 和聚合预览。
+1. 在 `games/<slug>/` 新建工作区，提供 `build`、`test`、`build:weixin`、`build:douyin`；复用共享平台和构建包。
+2. 在 `catalog/games.json` 登记介绍、操作和实机封面，在 `catalog/build-targets.json` 登记 Web 路径、资源和两种 `miniTargets`。构建与测试自动遍历目录。
+3. Web 入口调用 `reportGameState('menu' | 'playing' | 'paused' | 'result')`，控制聚合站点的返回按钮。
+4. 为真实浏览器／原生宿主加入该游戏的交互场景，更新根锁文件并执行 `pnpm check`。
 
-游戏大厅入口和聚合构建自动读取同一份游戏目录。新增平台能力应通过各游戏的平台适配层实现，避免游戏核心依赖网页 DOM、`wx` 或 `tt`。
+所有游戏都必须具备三端目标；后续登录、广告、排行榜等功能放在平台服务层。
 
-## 项目文档
+## 文档
 
-- [弹幕小队说明与资源来源](games/volley-run/README.md)
+- [飞机大战说明](games/plane-battle/README.md) · [上游来源与修正范围](games/plane-battle/PROVENANCE.md)
 - [尸潮防线说明](games/zombie-lane/README.md)
-- [微信 / 抖音架构与后续上线](games/zombie-lane/docs/PLATFORMS.md)
-- [大厅设计依据](docs/PORTAL-DESIGN.md)
-- [工作区迁移验证](docs/VERIFICATION.md)
+- [弹幕小队说明与模型来源](games/volley-run/README.md)
+- [三端工程与 AppID](docs/PLATFORMS.md) · [本轮验证记录](docs/MULTIPLATFORM-VERIFICATION.md)
+- [大厅设计依据](docs/PORTAL-DESIGN.md) · [早期工作区迁移记录](docs/VERIFICATION.md)

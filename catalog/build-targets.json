@@ -10,11 +10,28 @@
       "assets/red-colossus.glb",
       "assets/pulse-rifle.glb",
       "assets/heavy-cannon.glb"
+    ],
+    "miniTargets": [
+      "weixin",
+      "douyin"
     ]
   },
   "zombie-lane": {
     "workspace": "zombie-lane",
     "webDir": "games/zombie-lane/dist/web",
-    "requiredAssets": []
+    "requiredAssets": [],
+    "miniTargets": [
+      "weixin",
+      "douyin"
+    ]
+  },
+  "plane-battle": {
+    "workspace": "plane-battle",
+    "webDir": "games/plane-battle/dist/web",
+    "requiredAssets": [],
+    "miniTargets": [
+      "weixin",
+      "douyin"
+    ]
   }
 }

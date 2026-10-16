@@ -47,7 +47,10 @@ export function validateCatalog(games, targets) {
       !target?.workspace ||
       typeof target.webDir !== "string" ||
       !target.webDir.startsWith(`games/${game.slug}/dist/`) ||
-      target.webDir.includes("..")
+      target.webDir.includes("..") ||
+      !Array.isArray(target.miniTargets) ||
+      target.miniTargets.length !== 2 ||
+      !["weixin", "douyin"].every((name) => target.miniTargets.includes(name))
     )
       throw new Error(`${game.slug} 构建配置无效`);
   }

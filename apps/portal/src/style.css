@@ -219,6 +219,11 @@ a svg {
   --game-color: #366fa0;
   --game-soft: #eef4fa;
 }
+.game-card.theme-violet {
+  --game-color: #6253ac;
+  --game-soft: #f2effa;
+}
+.theme-violet .game-cover { background: #10172c; }
 .game-cover {
   display: block;
   position: relative;

@@ -1,4 +1,6 @@
 import {Game,createGame,LEVELS,WEAPONS,DT,clamp,demoInput,validateReplay} from './simulation/game.js';
+import {webRuntime} from './render/web-runtime.js';
+import {reportGameState} from '@game-collection/platform/web-state';
 import {World} from './render/world.js';
 import {AudioEngine} from './ui/audio.js';
 const $=id=>document.getElementById(id),shell=$('game-shell'),audio=new AudioEngine();
@@ -70,6 +72,7 @@ function tick(){
  }
 }
 function frame(now){
+ reportGameState(!$('intro').hidden?'menu':!$('modal').hidden?(finished?'result':'paused'):game?.phase==='running'?'playing':game?.phase==='ready'?'menu':'result');
  requestAnimationFrame(frame);const rawDelta=Math.max(0,(now-last)/1000),delta=Math.min(.15,rawDelta);last=now;if(rawDelta>0){samples.push(1/rawDelta);if(samples.length>45)samples.shift();fps=samples.length/samples.reduce((s,v)=>s+1/v,0);}
  const events=[];
  if(game?.phase==='running'&&!manual){accumulator+=delta;let n=0;while(accumulator>=DT&&n++<9){tick();events.push(...game.drainEvents());accumulator-=DT;if(game.phase!=='running')break;}}else accumulator=0;
@@ -78,7 +81,7 @@ function frame(now){
 }
 async function boot(){
  try{
-  world=await World.create($('world'),p=>$('loading-fill').style.width=`${p*100}%`);
+  world=await World.create(webRuntime($('world')),p=>$('loading-fill').style.width=`${p*100}%`);
   world.setQuality(['high','balanced','low'].includes(settings.quality)?settings.quality:'high');if(!settings.sound)audio.enabled=false;syncSound();resetState();$('loading').hidden=true;$('intro').hidden=false;
   $('start-btn').onclick=()=>start();$('demo-btn').onclick=()=>start('demo');$('route-btn').onclick=()=>{level=(level+1)%3;home();};$('pause-btn').onclick=pause;$('audio-btn').onclick=()=>{try{audio.unlock();audio.toggle();syncSound();}catch{notify('此浏览器无法启用音频',true);}};
   $('help-btn').onclick=help;$('settings-btn').onclick=showSettings;$('modal-close').onclick=()=>{if(finished||game.phase==='won'||game.phase==='lost')home();else closeModal();};$('import-btn').onclick=()=>$('replay-file').click();
@@ -111,6 +114,6 @@ async function boot(){
    }:{})
   };
   if(params.get('demo')==='1')start('demo');last=performance.now();requestAnimationFrame(frame);
- }catch(error){console.error(error);$('load-note').textContent=error.message;$('error-panel').hidden=false;$('error-panel').innerHTML='<h2>战场暂时无法载入</h2><p>请使用支持 WebGL 的浏览器打开 <strong>VOLLEY-RUN.html</strong>。<br>模块版 index.html 需要先在工程目录执行 <strong>pnpm start</strong>，然后打开 localhost:4173。</p><p>也请确认浏览器支持 WebGL，且 public/assets 文件夹完整。</p>';}
+ }catch(error){console.error(error);$('load-note').textContent=error.message;$('error-panel').hidden=false;$('error-panel').innerHTML='<h2>战场暂时无法载入</h2><p>请刷新重试，或使用支持 WebGL 的较新浏览器。</p><button class="primary-btn" onclick="location.reload()">重新载入</button>';}
 }
 boot();

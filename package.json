@@ -20,14 +20,18 @@
     "dev:volley-run": "pnpm --filter volley-run dev --host 0.0.0.0 --port 4273",
     "dev:zombie-lane": "pnpm --filter zombie-lane dev",
     "build": "node scripts/build-site.mjs",
-    "test": "pnpm --filter volley-run test && pnpm --filter zombie-lane test && node --test tests/*.test.mjs",
+    "test": "pnpm --filter @game-collection/platform typecheck && pnpm --filter @game-collection/platform test && node scripts/run-games.mjs test && node --test tests/*.test.mjs",
     "verify:site": "node scripts/verify-site.mjs",
-    "verify:mini": "pnpm --filter zombie-lane build:weixin && pnpm --filter zombie-lane build:douyin && pnpm --filter zombie-lane verify:mini",
-    "check": "pnpm build && pnpm test && pnpm verify:site && pnpm verify:mini",
+    "verify:mini": "node scripts/run-games.mjs verify:mini && node scripts/verify-native.mjs",
+    "check": "pnpm build && pnpm test && pnpm verify:site && pnpm build:mini && pnpm verify:mini && pnpm verify:web",
     "preview": "node scripts/preview-site.mjs",
-    "deploy": "pnpm check && node scripts/publish.mjs"
+    "deploy": "pnpm check && node scripts/publish.mjs",
+    "dev:plane-battle": "pnpm --filter plane-battle dev",
+    "build:mini": "node scripts/run-games.mjs build:mini",
+    "verify:web": "node scripts/verify-web.mjs"
   },
   "devDependencies": {
-    "gh-pages": "6.3.0"
+    "gh-pages": "6.3.0",
+    "playwright": "1.64.1"
   }
 }

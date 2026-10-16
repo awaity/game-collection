@@ -1,6 +1,6 @@
 # 弹幕小队 · VOLLEY RUN
 
-游戏合集中的独立 Web 游戏，位于 `games/volley-run/`。
+游戏合集中的独立 Web / 微信小游戏 / 抖音小游戏，位于 `games/volley-run/`。
 
 - 代码仓库：https://github.com/awaity/game-collection
 - 在线游玩：https://awaity.github.io/game-collection/games/volley-run/
@@ -52,7 +52,9 @@ pnpm run deploy
 
 根目录命令先运行全站检查，再将 `dist/site` 发布到 `gh-pages`。本游戏的地址为 `/game-collection/games/volley-run/`，浏览器返回大厅入口由聚合构建添加。详见[仓库说明](../../README.md)。
 
-页面、Three.js 和模型使用相对路径，支持游戏所在子目录部署。本游戏当前仅支持 Web，微信 / 抖音移植属于后续独立工作。
+页面、Three.js 和模型使用相对路径，支持游戏所在子目录部署。原生端复用原战斗逻辑与 Three 场景，通过平台文件系统加载相同五个 GLB。原生菜单合成为同一 WebGL 画布的覆盖层，默认轻量画质，提供三条路线、演示、暂停、重开与本地记录。文件回放的导入／导出 UI 和背景音乐仍为 Web 专属；原生提供本地音效。
+
+执行 `pnpm --filter volley-run build:weixin` / `build:douyin` 输出 `dist/weixin` / `dist/douyin`。使用 `VOLLEY_RUN_WEIXIN_APP_ID` / `VOLLEY_RUN_DOUYIN_APP_ID` 注入独立 AppID，详见[平台说明](../../docs/PLATFORMS.md)。实际 WebGL 模拟宿主检查已接入根目录；官方开发者工具和真机验收待完成。
 
 ## 来源
 
