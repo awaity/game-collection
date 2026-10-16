@@ -1,0 +1,3 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {Camp} from '../assets/scripts/core';
+test('wood fuels three meals and reserved cooking slots prevent overflow',()=>{const s=new Camp();s.gather('wood');for(let i=0;i<3;i++)s.gather('raw');assert.ok(s.cook());assert.equal(s.fuel,2);while(s.gather('wood')){}assert.equal(s.bag.length,35);for(let i=0;i<61;i++)s.step();assert.ok(s.bag.includes('cooked'));assert.equal(s.bag.length,36)});
+test('pause freezes movement, resources and production',()=>{const s=new Camp();s.aim(5,5);s.paused=true;const before=JSON.stringify(s);for(let i=0;i<60;i++)s.step();assert.equal(JSON.stringify(s),before)});
