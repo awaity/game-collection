@@ -1,0 +1,198 @@
+/** Deterministic game rules. No DOM, rendering, wall-clock, or Math.random here. */
+export const DT=1/60, MAX_TROOPS=96, ROAD_HALF=5.25;
+export const WEAPONS=[{name:'脉冲步枪',damage:1,interval:11,speed:44},{name:'电弧连射',damage:2,interval:10,speed:49},{name:'双联重炮',damage:3,interval:9,speed:52}];
+export const LEVELS=[{name:'赤岩长桥',subtitle:'CANYON CROSSING',length:356,speed:7.8,bossHP:3200,seed:91261},{name:'烈日防线',subtitle:'SUNBREAK LINE',length:404,speed:8.2,bossHP:4200,seed:28017},{name:'最后一击',subtitle:'LAST VOLLEY',length:448,speed:8.6,bossHP:5400,seed:74139}];
+export function rng(seed){let a=seed>>>0||1;return()=>{a^=a<<13;a^=a>>>17;a^=a<<5;return(a>>>0)/4294967296;};}
+export const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+export function formation(n){
+ const cells=[];for(let row=-8;row<=8;row++)for(let col=-8;col<=8;col++){
+  const x=(col+(row&1)*.5)*.62,d=row*.56;
+  cells.push({x,d,score:x*x+d*d*1.15});
+ }
+ cells.sort((a,b)=>a.score-b.score||b.d-a.d||a.x-b.x);
+ const chosen=cells.slice(0,n),cx=chosen.reduce((s,p)=>s+p.x,0)/Math.max(n,1),cd=chosen.reduce((s,p)=>s+p.d,0)/Math.max(n,1);
+ return chosen.map(p=>({x:p.x-cx,d:p.d-cd}));
+}
+export class Game{
+ constructor({level=0,seed=LEVELS[level]?.seed??91261}={}){
+  this.level=clamp(Math.trunc(level),0,2);this.config=LEVELS[this.level];this.seed=seed>>>0;this.random=rng(this.seed);
+  this.tick=0;this.distance=0;this.phase='ready';this.targetX=1.95;this.centerX=1.95;this.weapon=0;
+  this.troops=[];this.enemies=[];this.gates=[];this.pods=[];this.bullets=[];this.events=[];this.inputLog=[];this.nextId=1;this.slots=[];this.lastInput=null;
+  this.stats={shots:0,hits:0,kills:0,recruited:0,lost:0,upgrades:0,gates:0,peak:8,bossDamage:0};this.finalBossKilled=false;this.reason='';
+  this.addTroops(8,false);this.layout();this.events=[];
+ }
+ id(){return this.nextId++;}
+ emit(type,data={}){this.events.push({type,tick:this.tick,...data});if(this.events.length>320)this.events.shift();}
+ layout(){
+  const level=this.level;
+  const gate=(d,x,value,operation='add')=>this.gates.push({id:this.id(),d,x,width:4.36,base:value,value,operation,charge:0,alive:true,flash:0});
+  const pod=(d,x,hp,tier)=>this.pods.push({id:this.id(),d,x,width:3.65,hp,maxHP:hp,tier,alive:true,unlocked:false,flash:0});
+  const wave=(d,x,n,hp=2,spread=1)=>{
+   const slots=formation(n);for(const p of slots)this.enemies.push({id:this.id(),kind:'raider',x:x+p.x*spread,d:d+p.d,hp:hp+level,maxHP:hp+level,alive:true,phase:this.random()*6.28,hitTick:-100,move:.35+this.random()*.35});
+  };
+  const boss=(d,x,hp,final=false)=>this.enemies.push({id:this.id(),kind:'boss',x,d,hp,maxHP:hp,alive:true,final,phase:0,hitTick:-100,move:0,nextAttack:0,warning:null});
+  // Hand-authored progression mirrors the observed shoot → charge → recruit → upgrade rhythm.
+  gate(29,2.65,4);pod(29,-2.65,32,1);wave(44,-2.45,6);
+  pod(66,2.65,58,1);boss(68,-2.4,300+level*95);wave(84,2.6,8);
+  pod(103,-2.65,80,2);gate(103,2.65,-8);wave(121,2.25,10,2);
+  gate(143,-2.65,-12);gate(143,2.65,9);wave(161,-2.1,12,2);
+  pod(184,2.65,108+level*20,2);gate(184,-2.65,12);
+  wave(207,-2.1,14,3);wave(225,2.5,11,3);
+  gate(249,-2.65,12);gate(249,2.65,-18);pod(282,-2.65,100,2);gate(282,2.65,8);
+  wave(301,-2.1,15,3);wave(314,2.15,13,3);pod(324,-2.65,130,2);gate(324,2.65,9);
+  if(level>=1){wave(337,2.2,12,3);gate(354,-2.65,2,'multiply');gate(354,2.65,-12);}
+  if(level===2){pod(379,2.65,165,2);gate(379,-2.65,11);wave(404,-2.0,17,3);}
+  const end=this.config.length;
+  wave(end+12,0,12+level*4,3,.9);boss(end+27,0,this.config.bossHP,true);
+  // A dense rear rank remains visible behind the giant, as in the reference.
+  wave(end+37,0,112+level*32,5,.80);
+  wave(end+44,-2.7,14+level*3,3);wave(end+44,2.7,14+level*3,3);
+ }
+ start(){if(this.phase==='ready')this.phase='running';}
+ pause(){if(this.phase==='running')this.phase='paused';else if(this.phase==='paused')this.phase='running';}
+ addTroops(n,announce=true){
+  n=clamp(Math.floor(n),0,MAX_TROOPS-this.troops.length);if(!n)return 0;
+  const old=this.troops.length;
+  for(let i=0;i<n;i++)this.troops.push({id:this.id(),x:this.centerX+(this.random()-.5)*.2,d:this.distance-1-this.random(),born:this.tick,phase:this.random()*6.28});
+  this.slots=formation(this.troops.length);
+  if(!announce){for(let i=0;i<this.troops.length;i++){this.troops[i].x=this.centerX+this.slots[i].x;this.troops[i].d=this.distance+this.slots[i].d;}}
+  if(announce){this.stats.recruited+=n;this.emit('recruit',{n,x:this.centerX,d:this.distance});}
+  this.stats.peak=Math.max(this.stats.peak,old+n);return n;
+ }
+ removeTroops(ids,reason='enemy'){
+  const set=new Set(ids);const removed=this.troops.filter(t=>set.has(t.id));
+  for(const t of removed)this.emit('casualty',{x:t.x,d:t.d,id:t.id,reason});
+  this.troops=this.troops.filter(t=>!set.has(t.id));this.stats.lost+=removed.length;this.slots=formation(this.troops.length);
+  if(removed.length)this.emit('loss',{n:removed.length,x:this.centerX,d:this.distance});
+  return removed.length;
+ }
+ hitEnemy(e,damage){
+  if(!e.alive)return;
+  const actual=Math.min(e.hp,damage);e.hp-=damage;e.hitTick=this.tick;
+  if(e.kind==='boss')this.stats.bossDamage+=actual;
+  if(e.hp<=0){e.hp=0;e.alive=false;this.stats.kills++;this.emit(e.kind==='boss'?'boss-kill':'kill',{x:e.x,d:e.d,id:e.id,final:!!e.final});if(e.final)this.finalBossKilled=true;}
+ }
+ setTarget(x){if(Number.isFinite(x))this.targetX=clamp(x,-4.8,4.8);}
+ step(input=this.targetX,record=true){
+  if(this.phase!=='running')return;
+  if(Number.isFinite(input))this.setTarget(input);
+  const quantized=Math.round(this.targetX*1000)/1000;this.targetX=quantized;
+  if(record&&quantized!==this.lastInput){this.inputLog.push([this.tick,quantized]);this.lastInput=quantized;}
+  this.tick++;
+  const scroll=this.finalBossKilled?0:Math.min(this.config.speed*DT,Math.max(0,this.config.length-this.distance));this.distance+=scroll;
+  const radius=this.slots.reduce((r,p)=>Math.max(r,Math.abs(p.x)),0)+.38;
+  const edge=Math.max(0,ROAD_HALF-radius);this.centerX+=(clamp(this.targetX,-edge,edge)-this.centerX)*.14;
+  const weapon=WEAPONS[this.weapon];
+  for(let i=0;i<this.troops.length;i++){
+   const t=this.troops[i],p=this.slots[i];t.x+=(this.centerX+p.x-t.x)*.19;t.d+=(this.distance+p.d-t.d)*.25;
+   if((this.tick+t.id*7)%weapon.interval===0){
+    this.bullets.push({id:this.id(),x:t.x+.20,d:t.d+.72,prevD:t.d+.72,damage:weapon.damage,speed:weapon.speed,tier:this.weapon,born:this.tick,alive:true});this.stats.shots++;
+    this.emit('shot',{x:t.x+.20,d:t.d+.73,tier:this.weapon,id:t.id});
+   }
+  }
+  // Only nearby objects participate in swept forward projectile tests; distant authored waves cost no collision work.
+  const objects=[...this.gates.filter(e=>e.alive),...this.pods.filter(e=>e.alive&&!e.unlocked),...this.enemies.filter(e=>e.alive)].filter(e=>e.d>this.distance-5&&e.d<this.distance+61);
+  for(const b of this.bullets){
+   if(!b.alive)continue;b.prevD=b.d;b.d+=b.speed*DT;
+   let nearest=null,nearestD=Infinity;
+   for(const e of objects){
+    if(!e.alive||e.unlocked)continue;
+    const half=e.width?e.width*.5:e.kind==='boss'?1.47:.30;
+    const depth=e.width?.40:e.kind==='boss'?.65:.28;
+    const front=e.d-depth;
+    if(Math.abs(b.x-e.x)>half||b.prevD>e.d+depth||b.d<front)continue;
+    const hitD=Math.max(b.prevD,front);
+    if(hitD<nearestD){nearest=e;nearestD=hitD;}
+   }
+   if(nearest){
+    const e=nearest;b.alive=false;b.d=nearestD;this.stats.hits++;
+    if(e.operation){e.charge+=1;e.value=e.operation==='multiply'?e.base:Math.min(e.base+18,e.base+Math.floor(e.charge/18));e.flash=this.tick;}
+    else if(e.tier!==undefined){e.hp=Math.max(0,e.hp-b.damage);e.flash=this.tick;if(e.hp===0&&!e.unlocked){e.unlocked=true;this.emit('pod-open',{x:e.x,d:e.d,tier:e.tier});}}
+    else this.hitEnemy(e,b.damage);
+    this.emit('impact',{x:b.x,d:nearestD,tier:b.tier,enemy:!!e.kind,boss:e.kind==='boss'});
+   }
+   if(b.d>this.distance+60||this.tick-b.born>150)b.alive=false;
+  }
+  this.bullets=this.bullets.filter(b=>b.alive);
+  for(const g of this.gates){
+   if(!g.alive||g.d>this.distance)continue;g.alive=false;
+   if(Math.abs(this.centerX-g.x)<g.width*.5){
+    const old=this.troops.length;this.stats.gates++;
+    if(g.operation==='multiply')this.addTroops(old*(g.value-1));
+    else if(g.value>=0)this.addTroops(g.value);
+    else this.removeTroops(this.troops.slice(-Math.abs(g.value)).map(t=>t.id),'negative-gate');
+    this.emit('gate',{x:g.x,d:g.d,value:g.value,operation:g.operation,delta:this.troops.length-old});
+   }
+  }
+  for(const p of this.pods){
+   if(!p.alive||p.d>this.distance)continue;p.alive=false;
+   if(Math.abs(this.centerX-p.x)<p.width*.5){
+    if(p.unlocked){const prev=this.weapon;this.weapon=Math.min(2,Math.max(this.weapon,p.tier));this.stats.upgrades+=this.weapon>prev?1:0;this.emit('upgrade',{x:this.centerX,d:this.distance,tier:this.weapon});if(prev===this.weapon)this.addTroops(5);}
+    else{const victims=this.troops.filter(t=>Math.abs(t.x-p.x)<p.width*.5).slice(0,Math.ceil(p.hp/7));this.removeTroops(victims.map(t=>t.id),'sealed-pod');this.emit('pod-break',{x:p.x,d:p.d});}
+   }
+  }
+  for(const e of this.enemies){
+   if(!e.alive)continue;const range=e.d-this.distance;
+   if(range>70)continue;
+   if(e.kind==='raider'){
+    e.d-=e.move*DT;
+    if(range<-5){e.alive=false;continue;}
+    if(Math.abs(e.d-this.distance)<4.5){
+     const victim=this.troops.find(t=>Math.hypot(t.x-e.x,t.d-e.d)<.52);
+     if(victim){this.removeTroops([victim.id],'enemy-contact');e.alive=false;this.emit('kill',{x:e.x,d:e.d,id:e.id});}
+    }
+   }else{
+    if(range<(e.final?50:28)){
+     if(e.final&&range>16)e.d-=3.2*DT;
+     if(!e.nextAttack)e.nextAttack=this.tick+24;
+     if(this.tick>=e.nextAttack&&!e.warning){e.warning={x:this.centerX,until:this.tick+78};this.emit('warning',{x:e.warning.x,d:this.distance,radius:1.95,bossId:e.id});}
+     if(e.warning&&this.tick>=e.warning.until){
+      const x=e.warning.x;const victims=this.troops.filter(t=>Math.abs(t.x-x)<1.75);
+      this.removeTroops(victims.filter((_,i)=>i%2===0).map(t=>t.id),'boss-strike');
+      this.emit('strike',{x,d:this.distance,bossId:e.id});e.warning=null;e.nextAttack=this.tick+150;
+     }
+    }
+    if(range<2.0){
+     const ids=this.troops.filter(t=>Math.abs(t.x-e.x)<1.50).map(t=>t.id);this.removeTroops(ids,'boss-contact');
+     if(!e.final&&range<-6)e.alive=false;
+    }
+   }
+  }
+  if(this.troops.length===0){this.phase='lost';this.reason='小队全员撤离战场';this.emit('defeat');}
+  else if(this.finalBossKilled){this.phase='won';this.reason='巨型守卫已被真实击败';this.emit('victory');}
+ }
+ drainEvents(){const events=this.events;this.events=[];return events;}
+ summary(){return {version:1,seed:this.seed,level:this.level,tick:this.tick,phase:this.phase,distance:+this.distance.toFixed(4),count:this.troops.length,weapon:this.weapon,stats:{...this.stats},bosses:this.enemies.filter(e=>e.kind==='boss').map(e=>({id:e.id,hp:e.hp,alive:e.alive,final:!!e.final})),inputCount:this.inputLog.length};}
+ replay(){const expected=this.summary();if(expected.phase==='paused'||expected.phase==='ready')expected.phase='running';return {format:'volley-run.replay',version:1,seed:this.seed,level:this.level,ticks:this.tick,inputs:this.inputLog.map(a=>[...a]),expected};}
+}
+export function validateReplay(data){
+ if(!data||data.format!=='volley-run.replay'||data.version!==1)throw new Error('不是受支持的回放文件');
+ if(!Number.isInteger(data.level)||data.level<0||data.level>2||!Number.isInteger(data.seed)||data.seed<0||data.seed>0xffffffff)throw new Error('关卡或种子无效');
+ if(!Number.isInteger(data.ticks)||data.ticks<0||data.ticks>60*60*15)throw new Error('回放长度无效（最多 15 分钟）');
+ if(!Array.isArray(data.inputs)||data.inputs.length>60000)throw new Error('输入记录无效');
+ let prev=-1;for(const a of data.inputs){if(!Array.isArray(a)||a.length!==2||!Number.isInteger(a[0])||a[0]<0||a[0]<=prev||a[0]>=data.ticks||!Number.isFinite(a[1])||Math.abs(a[1])>4.8)throw new Error('回放输入超出范围');prev=a[0];}
+ return data;
+}
+export function runReplay(data){validateReplay(data);const g=new Game(data);g.start();let index=0,target=g.targetX;for(let i=0;i<data.ticks;i++){while(index<data.inputs.length&&data.inputs[index][0]<=g.tick)target=data.inputs[index++][1];g.step(target);}return g;}
+/** Visible demo / QA steering only. It cannot modify health, counts, damage or outcomes. */
+export function demoInput(g){
+ let desired=0;
+ const rows=[...g.gates,...g.pods].filter(e=>e.alive&&e.d>g.distance+.2&&e.d<g.distance+44);
+ if(rows.length){
+  const nearest=Math.min(...rows.map(e=>e.d));const choices=rows.filter(e=>Math.abs(e.d-nearest)<2);
+  const score=e=>e.operation?(e.operation==='multiply'?g.troops.length:e.value)+8:(e.tier>g.weapon?65:1)+(e.unlocked?12:0);
+  choices.sort((a,b)=>score(b)-score(a));desired=nearest<40?2.65:choices[0].x;
+ }else{
+  const foes=g.enemies.filter(e=>e.alive&&e.d>g.distance+2&&e.d<g.distance+68).sort((a,b)=>a.d-b.d);
+  desired=foes.length?foes[0].x:0;
+ }
+ // Plan around the whole formation, not just the center. Passing a giant is a
+ // physical obstacle even between telegraphed attacks; never shortcut through it.
+ const warnings=g.enemies.filter(e=>e.alive&&e.warning);
+ const bodies=g.enemies.filter(e=>e.alive&&e.kind==='boss'&&e.d-g.distance<13&&e.d-g.distance>-7);
+ if(!warnings.length&&!bodies.length)return desired;
+ const radius=g.slots.reduce((r,p)=>Math.max(r,Math.abs(p.x)),0)+.38,edge=Math.max(0,ROAD_HALF-radius);
+ const candidates=[desired,g.centerX,-edge,edge,0,-2,2].map(x=>clamp(x,-edge,edge));
+ const cost=x=>g.slots.reduce((s,p)=>s+warnings.reduce((a,b)=>a+(Math.abs(x+p.x-b.warning.x)<1.85?1:0),0)+bodies.reduce((a,b)=>a+(Math.abs(x+p.x-b.x)<1.7?4:0),0),0)+Math.abs(x-desired)*.03+Math.abs(x-g.centerX)*.015;
+ candidates.sort((a,b)=>cost(a)-cost(b));return candidates[0];
+}
