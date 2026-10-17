@@ -53,5 +53,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: verification-${{ github.sha }}
-          path: artifacts/
+          path: |
+            artifacts/
+            games/garden-guard/artifacts/
           retention-days: 14
