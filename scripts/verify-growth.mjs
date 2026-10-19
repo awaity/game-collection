@@ -132,7 +132,8 @@ try{
    const page=await browser.newPage({viewport:{width:390,height:844}}),cocos=isCocos(slug),key=slug+'.career.v1';let latest;
    try{
     await page.goto((cocos?cocosHost:nativeHost).url);latest=await page.evaluate(({slug,target})=>boot(slug,target,1),{slug,target});
-    const frames=async(count=2)=>{latest=await page.evaluate(count=>call({type:'frames',count}),count);assert.deepEqual(latest.errors,[]);return latest;};
+    // Keep each software-WebGL request bounded while still rendering every frame.
+    const frames=async(count=2)=>{for(let remaining=count;remaining>0;remaining-=8){latest=await page.evaluate(count=>call({type:'frames',count}),Math.min(remaining,8));assert.deepEqual(latest.errors,[]);}return latest;};
     const items=()=>cocos?latest.state?.controls??[]:latest.texts??[];
     for(let n=0;n<160&&!items().some(b=>cocos?b.id==='career:open':/军需|补给站|机库|远征 ·/.test(b.label));n++){await page.waitForTimeout(60);await frames();}
     async function tap(match){const b=items().find(c=>typeof match==='string'?(c.id===match||c.label===match):match.test(c.label));assert.ok(b,`${slug}/${target} missing ${String(match)}`);
