@@ -29,6 +29,7 @@ FINGERPRINTS = {
     "MagicSkillConfig": "81209cf4d89d688cbfda8f8af6d7614a17f5e6ebe8c5b08bbb3555af10fddcc6",
     "MagicSkillLevelConfig": "d348f5fea6211c06e6b617798bd94ec925a910bad32bd858a4b5b3bcbaa1a22a",
     "SkillBaseConfg": "051c0e6e78db28d0ced63ca276cd3852ac26bc79235f5273d2f42a0fe6bb5651",
+    "LevelBaseConfig": "9ce6ca6e917c13cf855522eb104a894775592abc450762792eae09f51f79269b",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
     "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
@@ -227,6 +228,28 @@ def skill_base_row(table: Table) -> dict:
             "floatAtBody17": values[0], "floatAtBody21": values[1]}
 
 
+def level_base_header(table: Table) -> dict:
+    (prefix,) = table.unpack(">48s")
+    first_string = table.string()
+    (middle4,) = table.unpack(">I")
+    second_string = table.string()
+    (middle59,) = table.unpack(">59s")
+    scene = table.string()
+    # Unlike the skill tables, the unique ID is inside the second fixed block.
+    # Other fields retain offset-based names until their dispatch is verified.
+    return {"id": struct.unpack_from(">I", middle59, 9)[0],
+            "prefixHex": prefix.hex(), "firstString": first_string,
+            "valueAfterFirstString": middle4, "secondString": second_string,
+            "middle59Hex": middle59.hex(), "sceneReference": scene}
+
+
+def level_base_row(table: Table) -> dict:
+    start = table.offset
+    row = level_base_header(table)
+    (body,) = table.unpack(">159s")
+    return {**row, "bodyHex": body.hex(), "recordBytes": table.offset - start}
+
+
 def buff_row(table: Table) -> dict:
     (key,) = table.unpack(">I")
     name, icon = table.string(), table.string()
@@ -321,6 +344,17 @@ def inspect(directory: Path) -> dict:
     base_end = (partial_base + 386 + struct.unpack_from(">I", base_table.data, partial_base + 26)[0]
                 if partial_base is not None else base_table.offset)
     require(base_end == base_table.size, "SkillBaseConfg: inferred final boundary differs from file size")
+    level_bases = read_variable(tables["LevelBaseConfig"], level_base_row, lambda r: r["id"])
+    level_table = tables["LevelBaseConfig"]
+    partial_level = level_table.partial_record_offset
+    level_end, partial_level_id = level_table.offset, None
+    if partial_level is not None:
+        partial_header = level_base_header(level_table)
+        level_end, partial_level_id = level_table.offset + 159, partial_header["id"]
+        level_table.offset = partial_level
+        require(partial_level_id not in {r["id"] for r in level_bases},
+                "LevelBaseConfig: duplicate ID in incomplete final record")
+    require(level_end == level_table.size, "LevelBaseConfig: inferred final boundary differs from file size")
     magic_ids = {r["id"] for r in magic}
     levels = read_magic_levels(tables["MagicSkillLevelConfig"], texts, builds)
     level_families = {key: sorted(r["level"] for r in levels if r["skill"] == key)
@@ -362,6 +396,13 @@ def inspect(directory: Path) -> dict:
                                 "predictedFinalRecordEnd": base_end,
                                 "incompleteBodyExcluded": partial_base is not None,
                                 "missingMagicSkillBases": sorted(magic_ids - {r["id"] for r in skill_bases})},
+        "levelBaseBoundaries": {"prefixBytes": 48, "middleBytes": [4, 59], "bodyBytes": 159,
+                                "stringCount": 3, "fixedOverheadBytes": 282, "idOffsetInMiddle59": 9,
+                                "completeRecords": len(level_bases), "predictedFinalRecordEnd": level_end,
+                                "incompleteRecordId": partial_level_id,
+                                "incompleteBodyExcluded": partial_level is not None},
+        "selectedLevelBases": [r for r in level_bases
+                               if r["id"] in (9997, 9998, 9999, 1001, 1002, 1003, 2001, 2002)],
         "skillLevelBoundaries": {"recordBytes": 176, "completeRecords": len(levels),
                                  "familyLevels": level_families,
                                  "missingDisplayTexts": sorted({f["labelReference"] for r in levels
@@ -410,6 +451,7 @@ def inspect(directory: Path) -> dict:
         "limits": ["Partial block transform and checksum algorithm are unresolved.",
                    "Raw field offsets are not verified runtime field names.",
                    "Different selection groups are not mapped to modes or campaign stages.",
+                   "LevelBase record boundaries and scene references do not establish modes, wave dispatch or selection libraries.",
                    "A text row or card definition does not prove it is selectable in normal play.",
                    "Skill-level display labels do not establish runtime stacking, upgrade costs or maximum attainable research.",
                    "Lucky-roll timing, weight dispatch and inclusive range semantics need client evidence."],
