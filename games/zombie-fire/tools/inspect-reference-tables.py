@@ -27,6 +27,7 @@ FINGERPRINTS = {
     "BuildReplaceConfig": "8e7ef1e379ea9dffb775513190e3df2cd71df717bc1ebfdaecf7bcae93593632",
     "SubSkillConfg": "fd0f349dc6df06171dcb95fa6aa3396592e5017e881a01eecf746d0b333c4ffc",
     "MagicSkillConfig": "81209cf4d89d688cbfda8f8af6d7614a17f5e6ebe8c5b08bbb3555af10fddcc6",
+    "MagicSkillLevelConfig": "d348f5fea6211c06e6b617798bd94ec925a910bad32bd858a4b5b3bcbaa1a22a",
     "SkillBaseConfg": "051c0e6e78db28d0ced63ca276cd3852ac26bc79235f5273d2f42a0fe6bb5651",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
@@ -256,6 +257,44 @@ def read_skill_attributes(table: Table) -> list:
     return rows
 
 
+def read_magic_levels(table: Table, texts: dict, builds: dict) -> list:
+    rows, identities, pairs = [], set(), set()
+    for index, raw in enumerate(read_fixed(table, 176)):
+        prefix = struct.unpack_from(">8I", raw)
+        skill, level, identity, build, description = prefix[:5]
+        require(identity not in identities and (skill, level) not in pairs,
+                "MagicSkillLevelConfig: duplicate identity or skill/level pair")
+        identities.add(identity)
+        pairs.add((skill, level))
+        tail = struct.unpack_from(">4I", raw, 160)
+        for reference in (description, tail[0]):
+            require(not reference or reference in texts, "MagicSkillLevelConfig: unresolved milestone text")
+        for reference in (build, tail[2]):
+            require(not reference or reference in builds and builds[reference]["complete"],
+                    "MagicSkillLevelConfig: unresolved milestone build")
+        attributes = []
+        for offset in (32, 39):
+            key, method, value = struct.unpack_from(">HBf", raw, offset)
+            require(math.isfinite(value), "MagicSkillLevelConfig: nonfinite attribute")
+            attributes.append({"offset": offset, "attribute": key, "method": method, "value": value})
+        displays = []
+        for offset in range(46, 160, 19):
+            key, method, label, value, target, flag = struct.unpack_from(">HBIfII", raw, offset)
+            require(math.isfinite(value), "MagicSkillLevelConfig: nonfinite display value")
+            displays.append({"offset": offset, "attribute": key, "method": method,
+                             "labelReference": label, "label": texts.get(label, {}).get("text"),
+                             "value": value, "target": target, "flag": flag})
+        # Referenced labels establish display concepts, not attribute dispatch or stacking.
+        rows.append({"offset": 20 + index * 176, "skill": skill, "level": level,
+                     "identityAt8": identity, "buildAt12": build, "descriptionAt16": description,
+                     "descriptionText": texts.get(description, {}).get("text"),
+                     "valuesAt20To28": list(prefix[5:]), "attributesAt32And39": attributes,
+                     "displayFields": displays, "tailAt160To172": list(tail),
+                     "tailText": texts.get(tail[0], {}).get("text"),
+                     "tailBuildName": texts[builds[tail[2]]["title"]]["text"] if tail[2] else None})
+    return rows
+
+
 def inspect(directory: Path) -> dict:
     tables = {name: Table(directory, name) for name in FINGERPRINTS}
     texts = read_text(tables["TextConfig"])
@@ -283,6 +322,23 @@ def inspect(directory: Path) -> dict:
                 if partial_base is not None else base_table.offset)
     require(base_end == base_table.size, "SkillBaseConfg: inferred final boundary differs from file size")
     magic_ids = {r["id"] for r in magic}
+    levels = read_magic_levels(tables["MagicSkillLevelConfig"], texts, builds)
+    level_families = {key: sorted(r["level"] for r in levels if r["skill"] == key)
+                      for key in {r["skill"] for r in levels}}
+    require(level_families.keys() == magic_ids and all(v == list(range(1, 47)) for v in level_families.values()),
+            "MagicSkillLevelConfig: expected eighteen complete 1–46 sequences")
+    base_by_id = {r["id"]: r for r in skill_bases}
+    cooldown_comparisons = []
+    for row in levels:
+        if row["level"] != 1:
+            continue
+        for field in row["displayFields"]:
+            if field["label"] == "冷却":
+                value = base_by_id[row["skill"]]["floatAtBody17"]
+                require(value == field["value"], "MagicSkillLevelConfig: base/display cooldown comparison differs")
+                cooldown_comparisons.append({"skill": row["skill"], "baseFloatAtBody17": value,
+                                             "displayOffset": field["offset"], "displayValue": field["value"]})
+    require(len(cooldown_comparisons) == 17, "MagicSkillLevelConfig: unexpected primary cooldown display count")
     buffs = read_variable(tables["BuffConfig"], buff_row, lambda r: r["id"])
     buff_attrs = read_variable(tables["BuffAttrConfig"], buff_attr_row, lambda r: (r["id"], r["rank"]))
     skill_attrs = read_skill_attributes(tables["BuffFuncSkillAttrConfig"])
@@ -306,6 +362,14 @@ def inspect(directory: Path) -> dict:
                                 "predictedFinalRecordEnd": base_end,
                                 "incompleteBodyExcluded": partial_base is not None,
                                 "missingMagicSkillBases": sorted(magic_ids - {r["id"] for r in skill_bases})},
+        "skillLevelBoundaries": {"recordBytes": 176, "completeRecords": len(levels),
+                                 "familyLevels": level_families,
+                                 "missingDisplayTexts": sorted({f["labelReference"] for r in levels
+                                                                 for f in r["displayFields"]
+                                                                 if f["labelReference"] and f["label"] is None}),
+                                 "baseField17DisplayComparisons": cooldown_comparisons},
+        "selectedSkillLevels": [r for r in levels if r["level"] == 1 or
+                                r["skill"] in (14000, 15000, 18000) and r["descriptionAt16"]],
         "selectedGroups": [g for g in groups if g["group"] in (1014, 1015, 2002)],
         "selectedWeights": [list(struct.unpack(">21I", raw)) for raw in weights
                             if struct.unpack_from(">I", raw)[0] == 2002],
@@ -337,6 +401,7 @@ def inspect(directory: Path) -> dict:
                    "Raw field offsets are not verified runtime field names.",
                    "Different selection groups are not mapped to modes or campaign stages.",
                    "A text row or card definition does not prove it is selectable in normal play.",
+                   "Skill-level display labels do not establish runtime stacking, upgrade costs or maximum attainable research.",
                    "Lucky-roll timing, weight dispatch and inclusive range semantics need client evidence."],
     }
 
