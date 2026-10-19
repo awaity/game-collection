@@ -128,6 +128,7 @@ onmessage = async ({data}) => {
       globalThis.require('./game.js');
     }else if(data.type==='advance') {globalThis.__collectionAdvance(data.count);
     }else if(data.type==='shanhai-play') {globalThis.__shanhai.play(data.count);
+    }else if(data.type==='zombie-fire-play') {globalThis.__zombieFire.play(data.count);
     }else if(data.type==='clipboard') {clipboard=data.value;
     }else if(data.type==='modal') {modalResponse=data.value;
     }else if(data.type==='frames') {

@@ -1,0 +1,234 @@
+{
+  "verifiedAt": "2026-10-19T11:17:21.857041+00:00",
+  "milestone": "independent-reconstruction-not-full-reference-parity",
+  "creator": "3.8.8",
+  "unitTests": 31,
+  "localCampaign": {
+    "configuredStages": 36,
+    "successfulClears": 36,
+    "maps": 6
+  },
+  "exports": {
+    "web": {
+      "target": "web-mobile",
+      "sourceHash": "c81e0d3cf609d1e3cb305fc66186991770846d9802c886dc6c849a1ffbf80299",
+      "builtAt": "2026-10-19T11:12:58.909Z",
+      "cliExitCode": 36,
+      "appIdConfigured": false
+    },
+    "weixin": {
+      "target": "wechatgame",
+      "sourceHash": "f35d9df3725087125814bc1603456dfd1ca4b3af1ed5c00f6cdbaa60934c7c4c",
+      "builtAt": "2026-10-19T11:13:42.220Z",
+      "cliExitCode": 36,
+      "appIdConfigured": false
+    },
+    "douyin": {
+      "target": "bytedance-mini-game",
+      "sourceHash": "cf242d731b69f522ce594eec9a6ce164c8a159365380fe150d539faef46374d5",
+      "builtAt": "2026-10-19T11:14:29.018Z",
+      "cliExitCode": 36,
+      "appIdConfigured": false
+    }
+  },
+  "web": [
+    {
+      "target": "web",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        "legal-first-clear",
+        "three-choice-and-reroll",
+        "priority-aim-and-touch-cancel",
+        "pause-freezes-rules",
+        "endless-waves",
+        "checkin-and-free-supply",
+        "actual-weapon-and-wall-upgrades",
+        "research",
+        "mercenary-upgrade",
+        "five-skins",
+        "gem-equip",
+        "idempotent-rewards",
+        "codex",
+        "sound-motion-quality-volume",
+        "daily-seed",
+        "persistent-restart"
+      ],
+      "errors": [],
+      "diagnostics": [
+        "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
+      ]
+    },
+    {
+      "target": "web",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "flows": [
+        "legal-first-clear",
+        "three-choice-and-reroll",
+        "priority-aim-and-touch-cancel",
+        "pause-freezes-rules",
+        "endless-waves",
+        "checkin-and-free-supply",
+        "actual-weapon-and-wall-upgrades",
+        "research",
+        "mercenary-upgrade",
+        "five-skins",
+        "gem-equip",
+        "idempotent-rewards",
+        "codex",
+        "sound-motion-quality-volume",
+        "daily-seed",
+        "persistent-restart"
+      ],
+      "errors": [],
+      "diagnostics": []
+    },
+    {
+      "target": "web",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "flows": [
+        "legal-first-clear",
+        "three-choice-and-reroll",
+        "priority-aim-and-touch-cancel",
+        "pause-freezes-rules",
+        "endless-waves",
+        "checkin-and-free-supply",
+        "actual-weapon-and-wall-upgrades",
+        "research",
+        "mercenary-upgrade",
+        "five-skins",
+        "gem-equip",
+        "idempotent-rewards",
+        "codex",
+        "sound-motion-quality-volume",
+        "daily-seed",
+        "persistent-restart"
+      ],
+      "errors": [],
+      "diagnostics": [
+        "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
+      ]
+    },
+    {
+      "target": "web",
+      "viewport": {
+        "width": 320,
+        "height": 568
+      },
+      "flows": [
+        "legal-first-clear",
+        "three-choice-and-reroll",
+        "priority-aim-and-touch-cancel",
+        "pause-freezes-rules",
+        "endless-waves",
+        "checkin-and-free-supply",
+        "actual-weapon-and-wall-upgrades",
+        "research",
+        "mercenary-upgrade",
+        "five-skins",
+        "gem-equip",
+        "idempotent-rewards",
+        "codex",
+        "sound-motion-quality-volume",
+        "daily-seed",
+        "persistent-restart"
+      ],
+      "errors": [],
+      "diagnostics": [
+        "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
+      ]
+    }
+  ],
+  "native": [
+    {
+      "target": "weixin",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        "legal-first-clear",
+        "three-choice-and-reroll",
+        "priority-aim-and-touch-cancel",
+        "pause-freezes-rules",
+        "endless-waves",
+        "checkin-and-free-supply",
+        "actual-weapon-and-wall-upgrades",
+        "research",
+        "mercenary-upgrade",
+        "five-skins",
+        "gem-equip",
+        "idempotent-rewards",
+        "codex",
+        "sound-motion-quality-volume",
+        "daily-seed",
+        "persistent-restart"
+      ],
+      "errors": [],
+      "diagnostics": [],
+      "environment": {
+        "documentAbsent": true,
+        "windowAbsent": true,
+        "worker": true
+      },
+      "graphics": {
+        "error": 0,
+        "colors": 528,
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
+      },
+      "sounds": 0,
+      "audioBeforeRestart": 7
+    },
+    {
+      "target": "douyin",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "flows": [
+        "legal-first-clear",
+        "three-choice-and-reroll",
+        "priority-aim-and-touch-cancel",
+        "pause-freezes-rules",
+        "endless-waves",
+        "checkin-and-free-supply",
+        "actual-weapon-and-wall-upgrades",
+        "research",
+        "mercenary-upgrade",
+        "five-skins",
+        "gem-equip",
+        "idempotent-rewards",
+        "codex",
+        "sound-motion-quality-volume",
+        "daily-seed",
+        "persistent-restart"
+      ],
+      "errors": [],
+      "diagnostics": [],
+      "environment": {
+        "documentAbsent": true,
+        "windowAbsent": true,
+        "worker": true
+      },
+      "graphics": {
+        "error": 0,
+        "colors": 528,
+        "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
+      },
+      "sounds": 0,
+      "audioBeforeRestart": 3
+    }
+  ],
+  "officialDeveloperTools": false,
+  "realDevices": false,
+  "catalogIntegrated": false,
+  "newGamePublished": false
+}
