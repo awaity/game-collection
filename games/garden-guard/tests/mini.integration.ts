@@ -40,9 +40,15 @@ for (const platform of ['weixin', 'douyin']) test(`${platform}: actual built pac
   tap(352, 86); tapText('返回花园'); tapText('返回花园');
   tapText('挑战模式'); tapText('下一页');
   for (const name of ['冰火连奏', '爆破工坊', '十株小花圃', '阳光丰收节']) assert(drawing.texts.some(t => t.text === name));
+  tapText('下一页');
+  for (const name of ['雨林速生节', '气球嘉年华', '废铁回收日', '露台极简派']) assert(drawing.texts.some(t => t.text === name));
+  tapText('上一页');
   tapText('上一页'); tapText('无尽守卫'); tapText('开始种植');
-  assert(drawing.texts.some(t => t.text === '1 / 2 袋 · 可用 14 种'));
-  tapText('下一袋 E'); tapText('三线射手');
+  assert(drawing.texts.some(t => t.text === '1 / 3 袋 · 可用 18 种'));
+  tapText('下一袋 E'); tapText('下一袋 E');
+  for (const name of ['治愈三叶草','仙人掌']) assert(drawing.texts.some(t => t.text === name));
+  assert(drawing.texts.some(t => t.text === '3 / 3 袋 · 可用 18 种'));
+  tapText('上一袋 Q'); tapText('三线射手');
   tap(board.x + board.cw * 2.5, board.y + board.rh * 2.5);
   assert(drawing.texts.some(t => t.text === '325'));
   tapText('上一袋 Q'); tapText('寒冰射手');
@@ -52,7 +58,7 @@ for (const platform of ['weixin', 'douyin']) test(`${platform}: actual built pac
   tapText('返回花园'); tapText('返回花园'); tapText('植物与僵尸图鉴');
   tapText('下一页'); assert(drawing.texts.some(t => t.text === '冰晶菇'));
   tapText('僵尸来客'); tapText('下一页');
-  for (const name of ['舞王僵尸', '冰甲僵尸', '药箱僵尸']) assert(drawing.texts.some(t => t.text === name));
+  for (const name of ['舞王僵尸', '冰甲僵尸', '药箱僵尸','气球僵尸','矿工僵尸','鼓手僵尸','爆桶僵尸']) assert(drawing.texts.some(t => t.text === name));
   assert(audioPaths.includes('audio/plant.wav')); assert(audioPaths.includes('audio/sun.wav'));
   for (const path of new Set(audioPaths)) assert((await stat(`dist/${platform}/${path}`)).size > 44);
   assert(drawing.operations > 100000);
