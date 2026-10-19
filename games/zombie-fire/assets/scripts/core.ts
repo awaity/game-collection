@@ -1,4 +1,4 @@
-import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,ORB_TIMING,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,type Element,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId} from './content';
+import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,ORB_MOTION,ORB_TIMING,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,type Element,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId} from './content';
 export const DT=1/60,FIELD={halfWidth:170,height:640,wall:60},LIMITS={enemies:180,projectiles:320,fields:64,events:320,links:12,volleys:32};
 export type Mode='campaign'|'endless'|'daily';
 export type Phase='ready'|'playing'|'choice'|'paused'|'won'|'lost';
@@ -6,7 +6,7 @@ export interface Loadout {damage:number;haste:number;health:number;crit:number;a
 export const defaultLoadout=():Loadout=>({damage:1,haste:1,health:1000,crit:.05,armor:0,repair:0,research:{},mercenaries:[],mercenaryLevels:{},skin:'ranger'});
 export interface Enemy {id:number;kind:EnemyId;x:number;y:number;hp:number;maxHp:number;shield:number;speed:number;haste:number;hinder:number;radius:number;attack:number;ability:number;warning:number;burn:number;burnPower:number;freeze:number;stun:number;slow:number;root:number;bind:number;wound:number;vulnerable:number;orbSlow:number;orbSlowPower:number;fractures:number;fractureTime:number;age:number;child:boolean}
 type AttackSource='weapon'|'mercenary'|'skin'|'secondary'|'lucky'|'lucky-light';
-export interface Projectile {id:number;skill:SkillId;x:number;y:number;px:number;py:number;vx:number;vy:number;radius:number;splash:number;damage:number;remaining:number;hits:number[];life:number;mods:Stats;source?:AttackSource;rebounds?:number;hitTimes?:Record<number,number>;quality?:OrbQuality;prepare?:number;deriveAt?:number;wallBlast?:boolean;wallBlastAt?:number}
+export interface Projectile {id:number;skill:SkillId;x:number;y:number;px:number;py:number;vx:number;vy:number;radius:number;splash:number;damage:number;remaining:number;hits:number[];life:number;mods:Stats;source?:AttackSource;rebounds?:number;wallRebounds?:number;wallEventAt?:number;hitTimes?:Record<number,number>;quality?:OrbQuality;prepare?:number;deriveAt?:number;wallBlast?:boolean;wallBlastAt?:number}
 export interface Field {id:number;skill:SkillId;x:number;y:number;radius:number;life:number;total:number;tick:number;vy:number;delay:number;damage:number;mods:Stats;target?:number;source?:AttackSource;variant?:'plasma'|'ice-storm'|'dragon-slam';pulse?:number;merged?:number;linked?:boolean;nodes?:{x:number;y:number}[];hits?:number}
 export interface Dragon {x:number;y:number;energy:number;maxEnergy:number;hearts:number;attack:number;cooldown:number;animation:number;slams:number}
 export interface QuantumLink {ids:number[];damage:Record<number,number>;life:number;spent:boolean}
@@ -16,6 +16,13 @@ export interface Card {id:string;skill:SkillId;name:string;description:string;ki
 const clamp=(n:number,min:number,max:number)=>Math.max(min,Math.min(max,n));
 const finite=(n:number,fallback:number)=>Number.isFinite(n)?n:fallback;
 export function segmentDistance(px:number,py:number,ax:number,ay:number,bx:number,by:number){const dx=bx-ax,dy=by-ay,t=clamp(((px-ax)*dx+(py-ay)*dy)/(dx*dx+dy*dy||1),0,1);return Math.hypot(px-ax-t*dx,py-ay-t*dy);}
+function circleEntryTime(p:Projectile,e:Enemy,limit:number){
+ const dx=p.x-e.x,dy=p.y-e.y,r=p.radius+e.radius,c=dx*dx+dy*dy-r*r;
+ if(c<=1e-8)return 0;
+ const a=p.vx*p.vx+p.vy*p.vy,b=dx*p.vx+dy*p.vy,disc=b*b-a*c;
+ if(a<=1e-8||b>=0||disc<0)return Infinity;
+ const t=(-b-Math.sqrt(disc))/a;return t>=0&&t<=limit+1e-8?t:Infinity;
+}
 export function inRift(e:Pick<Enemy,'x'|'y'|'radius'>,f:Pick<Field,'x'|'y'|'radius'>){return Math.abs(e.x-f.x)/f.radius+Math.abs(e.y-f.y)/(f.radius*.7)<=1+e.radius/f.radius;}
 export function nextLuck(current:number,change:number){const sum=current+change;return sum>21?1:Math.max(0,sum);}
 export function onPillarLine(e:Pick<Enemy,'x'|'y'|'radius'>,f:Pick<Field,'radius'|'nodes'>){return !!f.nodes?.some((p,i,nodes)=>i>0&&segmentDistance(e.x,e.y,nodes[i-1].x,nodes[i-1].y,p.x,p.y)<=e.radius+f.radius);}
@@ -96,7 +103,7 @@ export class Battle {
  stats(id:SkillId):Stats{
   const s=skillById[id],mods:Record<Modifier,number>={damage:0,haste:0,count:0,radius:0,pierce:0,duration:0,burn:0,freeze:0,stun:0,bounce:0,crit:0,magazine:0,knock:0,vulnerability:0,repeat:0,size:0,speed:0};
   for(const u of UPGRADES)if(u.skill===id&&this.upgrades[u.id])for(const [key,value]of Object.entries(u.mods))mods[key as Modifier]+=(value??0)*this.upgrades[u.id];
-  return {damage:s.damage*Math.max(.1,1+mods.damage+(this.upgrades['global:power']??0)*.05+(this.loadout.research[id]??0)*.04)*this.loadout.damage,interval:s.interval*Math.max(.24,1-mods.haste)/this.loadout.haste,count:1+mods.count,radius:(s.radius+mods.radius)*Math.max(.25,1+mods.size),pierce:s.pierce+mods.pierce,duration:s.duration+mods.duration,burn:mods.burn,freeze:(id==='frost'?.7:0)+mods.freeze,stun:(id==='electro'?.6:0)+mods.stun,bounce:Math.max(0,(id==='electron'||id==='orb'?4:0)+mods.bounce),crit:Math.min(.85,this.loadout.crit+mods.crit),magazine:12+mods.magazine+(this.dailyRule?.ammo??0),knock:(id==='thermo'?20:id==='dryice'?7:id==='vehicle'?12:id==='orb'?10:0)+mods.knock,vulnerability:mods.vulnerability,repeat:mods.repeat,speed:1+mods.speed};
+  return {damage:s.damage*Math.max(.1,1+mods.damage+(this.upgrades['global:power']??0)*.05+(this.loadout.research[id]??0)*.04)*this.loadout.damage,interval:s.interval*Math.max(.24,1-mods.haste)/this.loadout.haste,count:1+mods.count,radius:(s.radius+mods.radius)*Math.max(.25,1+mods.size),pierce:s.pierce+mods.pierce,duration:s.duration+mods.duration,burn:mods.burn,freeze:(id==='frost'?.7:0)+mods.freeze,stun:(id==='electro'?.6:0)+mods.stun,bounce:Math.max(0,(id==='orb'?ORB_MOTION.targetRebounds:id==='electron'?4:0)+mods.bounce),crit:Math.min(.85,this.loadout.crit+mods.crit),magazine:12+mods.magazine+(this.dailyRule?.ammo??0),knock:(id==='thermo'?20:id==='dryice'?7:id==='vehicle'?12:id==='orb'?10:0)+mods.knock,vulnerability:mods.vulnerability,repeat:mods.repeat,speed:1+mods.speed};
  }
  private nextWave(){this.wave++;this.waveTime=0;this.spawnClock=.25;this.spawned=0;this.waveQuota=12+Math.min(72,Math.floor(this.stage*.6)+this.wave*3);this.bossSpawned=false;this.event('wave',0,400,{value:this.wave});}
  private spawn(kind:EnemyId,child=false,x?:number,y?:number){
@@ -240,33 +247,51 @@ export class Battle {
  }
  private addOrb(x:number,y:number,angle:number,mods:Stats,small:boolean){
   if(this.projectiles.length>=LIMITS.projectiles)return;
-  const radius=small?skillById.orb.radius*.65:mods.radius,speed=320*mods.speed;
-  this.projectiles.push({id:++this.serial,skill:'orb',x,y,px:x,py:y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,radius,splash:0,damage:mods.damage,remaining:mods.bounce,hits:[],life:small?ORB_TIMING.childLife:mods.duration,mods:{...mods},source:small?'secondary':'weapon',rebounds:0,hitTimes:{}});
+  const radius=small?skillById.orb.radius*ORB_MOTION.childRadiusRatio:mods.radius,speed=ORB_MOTION.speed*mods.speed*(small?ORB_MOTION.childSpeedRatio:1);
+  this.projectiles.push({id:++this.serial,skill:'orb',x,y,px:x,py:y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,radius,splash:0,damage:mods.damage,remaining:mods.bounce,hits:[],life:small?ORB_TIMING.childLife:mods.duration,mods:{...mods},source:small?'secondary':'weapon',rebounds:0,wallRebounds:0,wallEventAt:0,hitTimes:{}});
  }
  private splitOrb(p:Projectile){
   // Unenhanced children retain the captured loadout, but never recursively split.
-  const s=skillById.orb,mods:Stats={...p.mods,damage:s.damage*this.loadout.damage*(1+(this.loadout.research.orb??0)*.04),radius:s.radius,bounce:3,crit:this.loadout.crit,knock:10,speed:1};
+  const s=skillById.orb,mods:Stats={...p.mods,damage:s.damage*this.loadout.damage*(1+(this.loadout.research.orb??0)*.04),radius:s.radius,bounce:ORB_MOTION.targetRebounds,crit:this.loadout.crit,knock:10,speed:1};
   this.addOrb(p.x,p.y,Math.atan2(p.vy,p.vx)+Math.PI*.37,mods,true);
  }
  private stepOrb(p:Projectile){
   p.life-=DT;if(p.life<=1e-8){p.life=0;return;}
-  p.px=p.x;p.py=p.y;p.x+=p.vx*DT;p.y+=p.vy*DT;
-  const side=FIELD.halfWidth-p.radius,top=FIELD.height-p.radius,bottom=FIELD.wall+p.radius;let wall=false;
-  if(p.x>side&&p.vx>0||p.x<-side&&p.vx<0){p.x=2*(p.x>0?side:-side)-p.x;p.vx=-p.vx;wall=true;}
-  if(p.y>top&&p.vy>0||p.y<bottom&&p.vy<0){p.y=2*(p.y>top?top:bottom)-p.y;p.vy=-p.vy;wall=true;}
-  if(wall){
-   p.rebounds=(p.rebounds??0)+1;
-   if(p.source!=='secondary'){
+  p.px=p.x;p.py=p.y;
+  const side=FIELD.halfWidth-p.radius,top=FIELD.height-p.radius,bottom=FIELD.wall+p.radius;
+  p.x=clamp(p.x,-side,side);p.y=clamp(p.y,bottom,top);
+  const interval=Math.round(ORB_TIMING.hitInterval/DT);
+  // Resolve each impact before following the changed direction. A chord joining
+  // reflected endpoints misses the wall path and can hit an unrelated target.
+  let time=DT;
+  for(let contacts=0;time>1e-8&&p.life>0&&contacts<32;contacts++){
+   const tx=p.vx>0?(side-p.x)/p.vx:p.vx<0?(-side-p.x)/p.vx:Infinity;
+   const ty=p.vy>0?(top-p.y)/p.vy:p.vy<0?(bottom-p.y)/p.vy:Infinity;
+   const wallTime=Math.max(0,Math.min(tx,ty));let target:Enemy|undefined,hitTime=Infinity;
+   for(const e of this.enemies){
+    if(e.hp<=0||this.tick-(p.hitTimes?.[e.id]??-1000)<interval)continue;
+    const t=circleEntryTime(p,e,Math.min(time,wallTime));
+    if(Number.isFinite(t)&&(t<hitTime-1e-8||Math.abs(t-hitTime)<=1e-8&&e.id<(target?.id??Infinity))){target=e;hitTime=t;}
+   }
+   if(target){
+    p.x+=p.vx*hitTime;p.y+=p.vy*hitTime;time=Math.max(0,time-hitTime);this.hitOrb(p,target);continue;
+   }
+   if(wallTime>time){p.x+=p.vx*time;p.y+=p.vy*time;break;}
+   p.x=clamp(p.x+p.vx*wallTime,-side,side);p.y=clamp(p.y+p.vy*wallTime,bottom,top);time=Math.max(0,time-wallTime);
+   if(Math.abs(tx-wallTime)<=1e-8)p.vx=-p.vx;
+   if(Math.abs(ty-wallTime)<=1e-8)p.vy=-p.vy;
+   p.rebounds=(p.rebounds??0)+1;p.wallRebounds=(p.wallRebounds??0)+1;
+   // Boundary reflection has no effect on the enemy redirect budget. The high
+   // reference boundary limit is bounded here by lifetime and the shared cap.
+   if(p.source!=='secondary'&&this.tick>=(p.wallEventAt??0)){
+    p.wallEventAt=this.tick+Math.round(ORB_TIMING.wallEventInterval/DT);
     if(this.upgrades['orb:wall-blast'])this.area(p.x,p.y,52,p.damage*.8,'orb',p.mods);
     if(this.upgrades['orb:wall-split'])this.splitOrb(p);
    }
-   if(p.remaining--<=0){p.life=0;return;}
   }
-  const interval=Math.round(ORB_TIMING.hitInterval/DT);
-  const e=this.enemies.filter(e=>e.hp>0&&this.tick-(p.hitTimes?.[e.id]??-1000)>=interval&&segmentDistance(e.x,e.y,p.px,p.py,p.x,p.y)<=e.radius+p.radius)
-   .sort((a,b)=>Math.hypot(a.x-p.px,a.y-p.py)-Math.hypot(b.x-p.px,b.y-p.py)||a.id-b.id)[0];
-  if(!e)return;
-  p.x=e.x;p.y=e.y;(p.hitTimes??={})[e.id]=this.tick;p.hits.push(e.id);
+ }
+ private hitOrb(p:Projectile,e:Enemy){
+  (p.hitTimes??={})[e.id]=this.tick;p.hits.push(e.id);
   const enhanced=p.source!=='secondary',mods=enhanced&&this.upgrades['orb:armed']&&p.hits.length<=2?{...p.mods,crit:1}:p.mods;
   this.hurt(e,p.damage,'orb',mods,false,p.source??'weapon');
   if(e.hp>0){
@@ -280,7 +305,7 @@ export class Battle {
   p.rebounds=(p.rebounds??0)+1;
   if(enhanced&&this.upgrades['orb:split']&&p.hits.length%4===0)this.splitOrb(p);
   if(p.remaining--<=0){p.life=0;return;}
-  const next=this.enemies.filter(v=>v.hp>0&&v.id!==e.id&&Math.hypot(v.x-p.x,v.y-p.y)<=260)
+  const next=this.enemies.filter(v=>v.hp>0&&v.id!==e.id)
    .sort((a,b)=>Math.hypot(a.x-p.x,a.y-p.y)-Math.hypot(b.x-p.x,b.y-p.y)||a.id-b.id)[0];
   if(next){const angle=Math.atan2(next.y-p.y,next.x-p.x),speed=Math.hypot(p.vx,p.vy);p.vx=Math.cos(angle)*speed;p.vy=Math.sin(angle)*speed;}
   else {p.vx=-p.vx;p.vy=-p.vy;}
@@ -470,5 +495,5 @@ export class Battle {
   }
   this.checkLevel();
  }
- snapshot(){return {phase:this.phase,mode:this.mode,seed:this.seed,dailyRule:this.dailyRule?.id??null,priority:this.priority,stage:this.stage,map:this.mapIndex,tick:this.tick,time:this.time,wave:this.wave,maxWaves:Number.isFinite(this.maxWaves)?this.maxWaves:null,hp:Math.ceil(this.hp),maxHp:this.maxHp,level:this.level,xp:this.xp,xpNeeded:this.xpNeeded,kills:this.kills,bossKills:this.bossKills,damage:Math.round(this.damageDone),damageTaken:Math.round(this.damageTaken),ammo:this.ammo,reload:this.reload,learned:{...this.learned},upgrades:{...this.upgrades},cards:this.cards.map(c=>({...c})),rerolls:this.rerolls,skin:this.loadout.skin,skinProgress:this.skinProgress,orbLuck:this.orbLuck,luckyProgress:this.luckyProgress,lastLuck:this.lastLuck?{...this.lastLuck}:null,pendingVolleys:this.orbVolleys.length,dragon:this.dragon?{...this.dragon}:null,links:this.links.map(l=>({...l,ids:[...l.ids],damage:{...l.damage}})),counts:{enemies:this.enemies.length,projectiles:this.projectiles.length,fields:this.fields.length,links:this.links.length},fields:this.fields.map(f=>({id:f.id,skill:f.skill,x:f.x,y:f.y,radius:f.radius,life:f.life,delay:f.delay,variant:f.variant,merged:f.merged,pulse:f.pulse,hits:f.hits,nodes:f.nodes?.map(p=>({...p}))})),projectiles:this.projectiles.map(p=>({id:p.id,skill:p.skill,x:p.x,y:p.y,rebounds:p.rebounds,hits:p.hits.length,small:p.source==='secondary',source:p.source,quality:p.quality,prepare:p.prepare,life:p.life,radius:p.radius,damage:p.damage})),enemies:this.enemies.map(e=>({id:e.id,kind:e.kind,x:Math.round(e.x),y:Math.round(e.y),hp:Math.ceil(e.hp),shield:Math.ceil(e.shield),freeze:e.freeze,stun:e.stun,burn:e.burn,slow:e.slow,root:e.root,bind:e.bind,haste:e.haste,hinder:e.hinder,orbSlow:e.orbSlow,fractures:e.fractures,warning:e.warning})),randomState:this.randomState};}
+ snapshot(){return {phase:this.phase,mode:this.mode,seed:this.seed,dailyRule:this.dailyRule?.id??null,priority:this.priority,stage:this.stage,map:this.mapIndex,tick:this.tick,time:this.time,wave:this.wave,maxWaves:Number.isFinite(this.maxWaves)?this.maxWaves:null,hp:Math.ceil(this.hp),maxHp:this.maxHp,level:this.level,xp:this.xp,xpNeeded:this.xpNeeded,kills:this.kills,bossKills:this.bossKills,damage:Math.round(this.damageDone),damageTaken:Math.round(this.damageTaken),ammo:this.ammo,reload:this.reload,learned:{...this.learned},upgrades:{...this.upgrades},cards:this.cards.map(c=>({...c})),rerolls:this.rerolls,skin:this.loadout.skin,skinProgress:this.skinProgress,orbLuck:this.orbLuck,luckyProgress:this.luckyProgress,lastLuck:this.lastLuck?{...this.lastLuck}:null,pendingVolleys:this.orbVolleys.length,dragon:this.dragon?{...this.dragon}:null,links:this.links.map(l=>({...l,ids:[...l.ids],damage:{...l.damage}})),counts:{enemies:this.enemies.length,projectiles:this.projectiles.length,fields:this.fields.length,links:this.links.length},fields:this.fields.map(f=>({id:f.id,skill:f.skill,x:f.x,y:f.y,radius:f.radius,life:f.life,delay:f.delay,variant:f.variant,merged:f.merged,pulse:f.pulse,hits:f.hits,nodes:f.nodes?.map(p=>({...p}))})),projectiles:this.projectiles.map(p=>({id:p.id,skill:p.skill,x:p.x,y:p.y,rebounds:p.rebounds,wallRebounds:p.wallRebounds,remaining:p.remaining,hits:p.hits.length,small:p.source==='secondary',source:p.source,quality:p.quality,prepare:p.prepare,life:p.life,radius:p.radius,damage:p.damage})),enemies:this.enemies.map(e=>({id:e.id,kind:e.kind,x:Math.round(e.x),y:Math.round(e.y),hp:Math.ceil(e.hp),shield:Math.ceil(e.shield),freeze:e.freeze,stun:e.stun,burn:e.burn,slow:e.slow,root:e.root,bind:e.bind,haste:e.haste,hinder:e.hinder,orbSlow:e.orbSlow,fractures:e.fractures,warning:e.warning})),randomState:this.randomState};}
 }

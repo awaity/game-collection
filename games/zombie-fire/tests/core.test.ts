@@ -275,7 +275,7 @@ test('tidal orb makes two additional real contacts before expiring',()=>{
   b.enemies=[enemy('walker',{x:-60,y:300,hp:10000,maxHp:10000}),enemy('walker',{id:2,x:80,y:320,hp:10000,maxHp:10000})];
   const p=orb(b,{x:-95,px:-95,mods:{...b.stats('orb'),crit:0,knock:0}});b.projectiles=[p];until(b,()=>b.projectiles.length===0,900);
   assert.equal(b.damageDone,p.hits.length*38);assert.ok(p.hits.every((id,i)=>id===i%2+1),'contacts alternate between living enemies');return p.hits.length;};
- assert.equal(contacts(false),5);assert.equal(contacts(true),7);
+ assert.equal(contacts(false),4);assert.equal(contacts(true),6);
 });
 test('hinder halves only haste, expires independently of cripple, freezes while paused and ignores rage',()=>{
  const hit=(haste:number,cripple=false,rage=false)=>{const b=arena();b.upgrades['orb:hinder']=1;if(cripple)b.upgrades['orb:cripple']=1;
@@ -289,11 +289,11 @@ test('hinder halves only haste, expires independently of cripple, freezes while 
  const rage=hit(.3,true,true);assert.equal(rage.enemies[0].hinder,0);assert.equal(rage.enemies[0].orbSlow,0);close(movement(rage),2.34);
  const enraging=hit(.3);enraging.enemies[0].kind='butcher';enraging.enemies[0].age=26;close(movement(enraging),2.34);assert.equal(enraging.enemies[0].hinder,0);
 });
-test('balls travel between living targets, deal physical damage and have finite rebounds',()=>{
+test('balls travel between living targets, deal physical damage and have finite enemy redirects',()=>{
  const b=arena();b.enemies=[enemy('walker',{x:0,y:300,hp:10000,maxHp:10000}),enemy('armor',{id:2,x:100,y:330,hp:10000,maxHp:10000})];
  const p=orb(b,{x:-40,px:-40});b.projectiles=[p];until(b,()=>p.hits.length===1,20);assert.equal(b.enemies[0].hp,9962);assert.equal(b.enemies[1].hp,10000,'retargeting cannot deal instant damage');assert.ok(p.vx>0&&p.vy>0);
  until(b,()=>p.hits.length===2,60);assert.ok(Math.abs(b.enemies[1].hp-(10000-38*.35))<1e-6);assert.deepEqual(p.hits,[1,2]);
- until(b,()=>b.projectiles.length===0,900);assert.ok(p.rebounds!<=5,'the base ball cannot bounce forever');
+ until(b,()=>b.projectiles.length===0,900);assert.ok(p.hits.length<=4,'three redirects allow at most four target contacts');
 });
 test('armed balls guarantee their first two contact criticals, then use normal critical chance',()=>{
  const b=arena();b.upgrades['orb:armed']=1;b.enemies=[enemy('walker',{x:-60,y:300,hp:10000,maxHp:10000}),enemy('walker',{id:2,x:80,y:320,hp:10000,maxHp:10000})];
@@ -301,10 +301,10 @@ test('armed balls guarantee their first two contact criticals, then use normal c
  until(b,()=>p.hits.length===1);assert.equal(b.damageDone,76);until(b,()=>p.hits.length===2);assert.equal(b.damageDone,152);until(b,()=>p.hits.length===3);assert.equal(b.damageDone,190);
 });
 test('wall impacts cause optional blasts and unenhanced children cannot recursively split',()=>{
- const b=arena();b.upgrades['orb:wall-split']=1;b.upgrades['orb:wall-blast']=1;b.enemies=[enemy('walker',{x:140,y:340,hp:10000,maxHp:10000})];
- b.projectiles=[orb(b,{x:159,px:159,y:300,py:300,remaining:0,damage:100})];b.step();assert.equal(b.damageDone,80);assert.equal(b.projectiles.length,1);
- const child=b.projectiles[0];assert.equal(child.source,'secondary');assert.equal(child.damage,38);assert.equal(child.radius,6.5);
- stepsNoChoice(b,600);assert.equal(b.projectiles.length,0);assert.ok(b.damageDone<200,'children cannot inherit the wall blast or spawn a growing chain');
+ const b=arena(undefined,{...defaultLoadout(),crit:0});b.upgrades['orb:wall-split']=1;b.upgrades['orb:wall-blast']=1;b.enemies=[enemy('walker',{x:140,y:340,hp:10000,maxHp:10000})];
+ const parent=orb(b,{x:159,px:159,y:300,py:300,remaining:0,damage:100});b.projectiles=[parent];b.step();assert.equal(b.damageDone,80);assert.equal(b.projectiles.length,2);assert.equal(parent.remaining,0);
+ const child=b.projectiles.find(p=>p.source==='secondary')!;assert.ok(child);assert.equal(child.damage,38);assert.equal(child.radius,7);assert.ok(Math.abs(Math.hypot(child.vx,child.vy)-320*14/18)<1e-8);
+ b.projectiles=[child];stepsNoChoice(b,600);assert.equal(b.projectiles.length,0);assert.ok(b.damageDone<=80+38*4,'children cannot inherit the wall blast or spawn a growing chain');
  const full=arena();full.upgrades['orb:wall-split']=1;full.projectiles=Array.from({length:LIMITS.projectiles},(_,id)=>orb(full,{id,x:159,px:159}));full.step();assert.equal(full.projectiles.length,LIMITS.projectiles);
 });
 test('orb volley rounds are delayed, freeze on pause, and snapshot their cast stats',()=>{
@@ -317,17 +317,44 @@ test('ordinary balls expire at eight seconds and fission children at three and a
  const p=b.projectiles[0];assert.equal(p.source,'weapon');p.vx=p.vy=0;stepsNoChoice(b,478);assert.ok(b.projectiles.includes(p));assert.ok(p.life>0&&p.life<.017);
  b.pause();const paused=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),paused);b.resume();b.step();assert.equal(p.life,0);assert.equal(b.projectiles.length,0);
  const f=arena();f.upgrades['orb:wall-split']=1;f.projectiles=[orb(f,{x:159,px:159,remaining:0})];f.step();
- const child=f.projectiles[0];assert.equal(child.source,'secondary');assert.equal(child.life,3.5);child.x=child.px=0;child.vx=child.vy=0;
+ const child=f.projectiles.find(p=>p.source==='secondary')!;assert.ok(child);assert.equal(child.life,3.5);f.projectiles=[child];child.x=child.px=0;child.vx=child.vy=0;
  stepsNoChoice(f,209);assert.ok(f.projectiles.includes(child));f.phase='choice';const choice=f.snapshot();stepsNoChoice(f,60);assert.deepEqual(f.snapshot(),choice);f.phase='playing';f.step();assert.equal(child.life,0);assert.equal(f.projectiles.length,0);
 });
 test('ordinary ball repeat hits wait half a second per target without locking other targets',()=>{
  for(const source of ['weapon','secondary'] as const){
   const b=arena();b.enemies=[enemy('walker',{y:300,hp:10000,maxHp:10000}),enemy('walker',{id:2,y:300,hp:10000,maxHp:10000})];
   const p=orb(b,{source,vx:0,vy:0,remaining:10,mods:{...b.stats('orb'),crit:0,knock:0}});b.projectiles=[p];
-  b.step();assert.deepEqual(p.hits,[1]);b.step();assert.deepEqual(p.hits,[1,2]);stepsNoChoice(b,28);assert.deepEqual(p.hits,[1,2]);
+  b.step();assert.deepEqual(p.hits,[1,2]);stepsNoChoice(b,29);assert.deepEqual(p.hits,[1,2]);
   b.pause();const paused=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),paused);b.resume();
-  b.step();assert.deepEqual(p.hits,[1,2,1]);b.step();assert.deepEqual(p.hits,[1,2,1,2]);assert.equal(b.damageDone,152);assert.equal(p.remaining,6);
+  b.step();assert.deepEqual(p.hits,[1,2,1,2]);assert.equal(b.damageDone,152);assert.equal(p.remaining,6);
  }
+});
+test('boundary reflections preserve the enemy redirect budget until the ball expires',()=>{
+ for(const source of ['weapon','secondary'] as const){
+  const small=source==='secondary',b=arena(),p=orb(b,{source,life:small?3.5:8,radius:small?7:10,vx:small?320*14/18:320});b.projectiles=[p];stepsNoChoice(b,small?180:360);
+  assert.equal(p.remaining,3);assert.deepEqual(p.hits,[]);assert.ok(p.wallRebounds!>=(small?2:5));assert.ok(p.life>0);
+  b.pause();const frozen=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),frozen);b.resume();stepsNoChoice(b,small?30:120);assert.equal(b.projectiles.length,0);
+ }
+});
+test('orb collision follows both wall segments and resolves the first circle surface',()=>{
+ const b=arena();b.enemies=[enemy('walker',{x:169,y:300,radius:1,hp:10000,maxHp:10000})];
+ const p=orb(b,{x:155,px:155,vx:600,remaining:0,mods:{...b.stats('orb'),crit:0,knock:0}});b.projectiles=[p];b.step();assert.deepEqual(p.hits,[1]);assert.ok(Math.abs(p.x-158)<1e-8,'contact occurs on the surface, not at the enemy center');assert.equal(p.wallRebounds??0,0,'the enemy is reached before the wall');
+ const corner=arena();corner.enemies=[enemy('walker',{x:164.5,y:305,radius:.25,hp:10000,maxHp:10000})];
+ const q=orb(corner,{x:164.5,px:164.5,y:300,py:300,radius:.5,vx:600,vy:600});corner.projectiles=[q];corner.step();assert.deepEqual(q.hits,[],'the chord between reflected endpoints is not a travelled path');assert.equal(q.wallRebounds,1);assert.equal(q.remaining,3);assert.ok(Math.abs(q.x-164.5)<1e-8&&Math.abs(q.y-310)<1e-8);
+ const sizes=arena();sizes.enemies=[enemy('walker',{y:211,radius:1,hp:10000,maxHp:10000}),enemy('brute',{id:2,y:224,radius:20,hp:10000,maxHp:10000})];
+ const r=orb(sizes,{x:0,px:0,y:200,py:200,radius:1,vx:0,vy:600,remaining:0,mods:{...sizes.stats('orb'),crit:0,knock:0}});sizes.projectiles=[r];sizes.step();assert.deepEqual(r.hits,[2],'the larger enemy surface is closer despite its farther center');assert.ok(Math.abs(r.y-203)<1e-8);assert.equal(sizes.enemies[0].hp,10000);
+});
+test('target redirects can reach a distant living enemy across the battlefield',()=>{
+ const b=arena();b.enemies=[enemy('walker',{x:-120,y:200,hp:10000,maxHp:10000}),enemy('walker',{id:2,x:120,y:570,hp:10000,maxHp:10000})];
+ const p=orb(b,{x:-160,px:-160,y:200,py:200,mods:{...b.stats('orb'),crit:0,knock:0}});b.projectiles=[p];until(b,()=>p.hits.length===1,30);assert.ok(p.vx>0&&p.vy>0);assert.equal(b.enemies[1].hp,10000);
+ until(b,()=>p.hits.includes(2),180);assert.equal(b.enemies[1].hp,9962);
+});
+test('repeated wall contacts rate-limit their effects without consuming target redirects',()=>{
+ const b=arena(undefined,{...defaultLoadout(),crit:0});b.upgrades['orb:wall-split']=1;b.upgrades['orb:wall-blast']=1;b.enemies=[enemy('walker',{x:140,y:340,hp:10000,maxHp:10000})];
+ const p=orb(b,{x:159,px:159,y:300,py:300,damage:100});
+ const wall=()=>{p.x=159;p.y=300;p.vx=320;p.vy=0;b.projectiles=[p];b.step();};
+ wall();assert.equal(b.damageDone,80);assert.equal(b.projectiles.length,2);for(let n=0;n<29;n++)wall();assert.equal(b.damageDone,80);assert.equal(b.projectiles.length,1);
+ wall();assert.equal(b.damageDone,160);assert.equal(b.projectiles.length,2);assert.equal(p.remaining,3);assert.equal(p.wallRebounds,31);
 });
 test('kinetic fission occurs on the fourth real contact and small balls can apply destruction stacks',()=>{
  const b=arena();b.upgrades['orb:split']=1;b.upgrades['orb:destroy']=1;b.enemies=[enemy('walker',{x:-70,y:300,hp:100000,maxHp:100000}),enemy('walker',{id:2,x:80,y:320,hp:100000,maxHp:100000})];

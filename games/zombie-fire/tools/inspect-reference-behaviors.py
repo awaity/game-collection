@@ -15,7 +15,7 @@ import UnityPy
 ROOT = Path(__file__).resolve().parents[3]
 RESEARCH = ROOT / "artifacts/research/zombie-fire"
 BUNDLE_SHA256 = "2049e3dcf0ddfcb5cda86a09f9a37ace40c8d11f275fb7deb8d74f050b3e8a04"
-SELECTED = {15001, 15011, 15061, 15111, 15201, 15221, 15601, 15611, 15621, 15622, 15631, 15632, 15633}
+SELECTED = {1011, 2011, 6011, 15001, 15011, 15061, 15111, 15201, 15221, 15601, 15611, 15621, 15622, 15631, 15632, 15633}
 
 
 def require(ok: bool, message: str) -> None:
@@ -53,7 +53,7 @@ def bullet(element: dict) -> dict:
                            "m_shootFlyTime m_delayMove m_delayShowBullet m_initMoveSpeed m_acceSpeed "
                            "m_hitActorType m_reflectEnemyCount m_hitThroughCount m_sceneReflectCount "
                            "m_bulletScopeType m_sendHitScenceEvent4 m_hitScenceEventParam4 "
-                           "m_througtReflect m_reboundCount m_perHitCountTriggleScenceEvent "
+                           "m_througtReflect m_reboundCount m_reflectEnemyDistance m_perHitCountTriggleScenceEvent "
                            "m_perHitCountTriggleShootId"),
             "impact": pick(element["m_impactData"], "m_ImpactType m_damageRatio m_shootId"),
             "collision": normalize(element["m_bulletTestParam"])}

@@ -26,7 +26,10 @@ export const SKILLS:readonly Skill[]=[
 ];
 export const skillById=Object.fromEntries(SKILLS.map(s=>[s.id,s])) as Record<SkillId,Skill>;
 /** Ordinary and fission timing from the serialized reference; quantized to 60Hz in core. */
-export const ORB_TIMING={volleyInterval:.5,hitInterval:.5,childLife:3.5};
+export const ORB_TIMING={volleyInterval:.5,hitInterval:.5,childLife:3.5,wallEventInterval:.5};
+/** Reference has three enemy redirects; battlefield-boundary reflections use a separate budget.
+ * Pixel speed and target selection remain local mappings, see LUCKY-ORB-REFERENCE.md. */
+export const ORB_MOTION={targetRebounds:3,speed:320,childSpeedRatio:14/18,childRadiusRatio:.7};
 export type OrbQuality='low'|'mid'|'high';
 /** Cast gate, weights, delay, flight and derivative timing follow serialized reference settings.
  * World-to-screen units, lifetime start and damage composition are documented local choices. */

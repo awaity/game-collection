@@ -33,7 +33,7 @@ export async function verify({p,native,target,viewport,state,click,advance,event
   let observed=false;
   const ultimate=['orb:tide','orb:destroy','orb:cycle','orb:ultimate'];
   for(let attempt=0;attempt<(skill==='orb'?8:4)&&!observed;attempt++){
-   await click('endless');let s=await state(),evolvedAt21=false,capturedLuck=false;
+   await click('endless');let s=await state(),evolvedAt21=false,capturedLuck=false,wallEvidence=null;let previousOrbs=new Map();
    for(let n=0;n<(skill==='orb'?750:450);n++){
     let selectedLuck;
     if(s.battlePhase==='choice'){
@@ -66,13 +66,25 @@ export async function verify({p,native,target,viewport,state,click,advance,event
      if(native)await p.evaluate(count=>call({type:'advance',count}),count);else await p.evaluate(count=>__collectionAdvance(count),count);
     }else break;
     s=await fresh();
+    if(skill==='orb'){
+     const balls=s.projectiles.filter(p=>p.skill==='orb'&&(p.source==='weapon'||p.source==='secondary'));
+     for(const ball of balls){
+      assert.ok(ball.life>0&&ball.life<=(ball.source==='secondary'?3.5:8));assert.ok(Number.isInteger(ball.remaining)&&ball.remaining>=0);
+      const before=previousOrbs.get(ball.id);
+      if(before&&ball.wallRebounds>before.wallRebounds&&ball.hits===before.hits){
+       assert.equal(ball.remaining,before.remaining,'actual boundary reflections must preserve target redirects');
+       wallEvidence??={attempt:attempt+1,tick:s.tick,id:ball.id,source:ball.source,before:{walls:before.wallRebounds,hits:before.hits,remaining:before.remaining},after:{walls:ball.wallRebounds,hits:ball.hits,remaining:ball.remaining}};
+      }
+     }
+     previousOrbs=new Map(balls.map(p=>[p.id,p]));
+    }
     if(selectedLuck){assert.equal(s.orbLuck,selectedLuck.after);assert.deepEqual(s.lastLuck,selectedLuck,'selecting a card must apply the displayed outcome');}
     if(skill==='orb'&&ultimate.some(id=>s.upgrades[id])&&s.lastLuck?.before===21&&s.lastLuck.overflow)evolvedAt21=true;
     if(!s.learned[skill]&&Object.keys(s.learned).length>=5)break;
     assert.ok(Number.isInteger(s.orbLuck)&&s.orbLuck>=0&&s.orbLuck<=21,'lucky values stay finite in actual exports');
     observed=skill==='drone'?s.projectiles.some(p=>p.skill==='drone'&&p.rebounds>0):skill==='rift'?s.fields.some(f=>f.skill==='rift'):skill==='matrix'?s.fields.some(f=>f.skill==='matrix'&&f.merged>1)&&s.enemies.some(e=>e.bind>0):skill==='pillar'?s.fields.some(f=>f.skill==='pillar'&&f.nodes.length>=3&&f.hits>0):skill==='orb'?evolvedAt21&&s.projectiles.some(p=>p.skill==='orb'&&p.hits>1):s.dragon?.slams>0&&s.fields.some(f=>f.variant==='dragon-slam'&&f.delay<=0);
-    observed=observed&&s.battlePhase==='playing';
-    if(observed){assert.ok(s.learned[skill]);assert.ok(s.damage>0);assert.ok(s.counts.links<=12);await fits();await capture('advanced-'+skill);break;}
+    observed=observed&&s.battlePhase==='playing'&&(skill!=='orb'||!!wallEvidence);
+    if(observed){assert.ok(s.learned[skill]);assert.ok(s.damage>0);assert.ok(s.counts.links<=12);await fits();await capture('advanced-'+skill);if(skill==='orb')await writeFile(`artifacts/cocos/zombie-fire/${target}-${viewport.width}-orb-reflections.json`,JSON.stringify({verifiedAt:new Date().toISOString(),...wallEvidence},null,2)+'\n');break;}
    }
    await home();
   }
@@ -166,5 +178,5 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  else{await p.reload();await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await p.waitForFunction(()=>!document.querySelector('#collection-entrance'));}
  for(let n=0;n<150;n++){if((await fresh())?.phase==='menu')break;await p.waitForTimeout(50);}
  const restored=await state();assert.equal(restored.coins,saved.coins);assert.equal(restored.skin,'arc');assert.deepEqual(restored.profile.gear,saved.profile.gear);assert.deepEqual(restored.profile.mercs,saved.profile.mercs);assert.deepEqual(restored.profile.settings,saved.profile.settings);assert.equal(restored.profile.tutorial,true);
- return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-fixed-luck-preview-and-selection','lucky-three-qualities-piercing-lights-and-blasts','lucky-preparation-pause','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
+ return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-boundaries-preserve-target-redirects','orb-fixed-luck-preview-and-selection','lucky-three-qualities-piercing-lights-and-blasts','lucky-preparation-pause','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
 }
