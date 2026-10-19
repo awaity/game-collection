@@ -4,7 +4,7 @@ import {AREAS,TRIALS,Run,type Action,type Mode} from './core';
 import {ARTIFACTS,Journey,LORE,QUESTS,SKINS,dateKey} from './profile';
 export type Panel=''|'trials'|'skins'|'artifacts'|'quests'|'lore'|'settings';
 export interface Commands {start:(mode:Mode,trial?:number)=>void;action:(action:Action)=>void;pause:()=>void;resume:()=>void;home:()=>void;rescue:()=>void;}
-const ink='#183e39',paper='#ede5cd',gold='#e3b55f',soft='#b4c6b6';
+const ink='#153d3b',paper='#f3e6c6',gold='#e9bc64',soft='#b9d1c5';
 
 /** Canvas UI and Web semantic controls share the same visible bounds and actions. */
 export class ShanhaiUI {
@@ -13,6 +13,7 @@ export class ShanhaiUI {
   private journey!:Journey;
   private run!:Run;
   constructor(ui:GameView,private readonly commands:Commands){this.ui=ui;}
+  get previewSkin(){return SKINS[this.page%SKINS.length];}
   open(panel:Panel){this.commands.pause();this.panel=panel;this.page=0;}
   close(){this.panel='';this.page=0;}
   private text(id:string,text:string,x:number,y:number,size=14,width=300,hex=paper,title=false,align=Label.HorizontalAlign.CENTER,height=size*1.8){
@@ -29,13 +30,16 @@ export class ShanhaiUI {
   }
   private button(id:string,text:string,x:number,y:number,w:number,action:()=>void,primary=false,h=44,muted=false){
     const node=this.ui.button(id,text,x,y,w,action,primary,h),g=node.getComponent(Graphics)!,b=this.ui.buttons.get(id)!;
-    g.clear();g.fillColor=new Color().fromHEX(primary?gold:muted?'#36544cdd':'#224b43e8');g.strokeColor=new Color().fromHEX(primary?'#f3d596':'#a9ba9380');g.lineWidth=1;
+    g.clear();g.fillColor=new Color().fromHEX(primary?gold:muted?'#36544cdd':'#17423fed');g.strokeColor=new Color().fromHEX(primary?'#ffe2a6':'#8bba9d80');g.lineWidth=1;
     const cut=5;g.moveTo(-w/2+cut,-h/2);g.lineTo(w/2-cut,-h/2);g.lineTo(w/2,-h/2+cut);g.lineTo(w/2,h/2-cut);g.lineTo(w/2-cut,h/2);g.lineTo(-w/2+cut,h/2);g.lineTo(-w/2,h/2-cut);g.lineTo(-w/2,-h/2+cut);g.close();g.fill();g.stroke();
-    b.label.fontFamily='Noto Sans CJK SC';b.label.fontSize=primary?16:13;b.label.color=new Color().fromHEX(primary?ink:muted?'#9bafa0':paper);b.label.isBold=primary;
+    g.strokeColor=new Color().fromHEX(primary?'#c48b42':'#73ad9340');g.moveTo(-w/2+9,-h/2+3);g.lineTo(w/2-9,-h/2+3);g.stroke();
+    if(primary&&w>240){g.fillColor=new Color().fromHEX(ink);g.moveTo(w/2-25,-5);g.lineTo(w/2-18,0);g.lineTo(w/2-25,5);g.close();g.fill();}
+    b.label.fontFamily='Noto Sans CJK SC';b.label.fontSize=primary?17:w<100?12:14;b.label.color=new Color().fromHEX(primary?ink:muted?'#9bafa0':paper);b.label.isBold=primary;
     return node;
   }
   draw(run:Run,journey:Journey){
     this.run=run;this.journey=journey;
+    if(this.panel==='skins'){this.wardrobe();return;}
     if(this.panel){this.sheet();return;}
     if(run.phase==='ready')this.menu();
     else if(run.phase==='paused')this.pause();
@@ -50,12 +54,13 @@ export class ShanhaiUI {
     this.button('wallet',`◆ ${p.coins} 灵玉`,u.width/2-12-cap/2,this.top-30,cap,()=>this.open('quests'),false,38);
     if(!short)this.button('checkin',p.lastCheckin>=dateKey()?'今日已签到':'领取每日灵玉',-u.width/2+12+cap/2,this.top-30,cap,()=>this.journey.checkin(),false,38);
     else this.button('checkin',p.lastCheckin>=dateKey()?'今日已签到':'领取每日灵玉',u.width*.29,this.top-89,168,()=>this.journey.checkin(),false,40);
-    const titleY=short?this.top-83:wide?this.top-175:this.top-145;
-    const title=this.text('game-title',wide?'山海逃亡':'山海\n逃亡',x,titleY,short?39:wide?62:55,w+30,'#f3e4bc',true,Label.HorizontalAlign.CENTER,short?105:145);
+    const titleY=short?this.top-83:wide?this.top-175:this.top-125;
+    const title=this.text('game-title','山海逃亡',x,titleY,short?39:wide?62:46,w+30,'#f3e4bc',true,Label.HorizontalAlign.CENTER,80);
     const outline=title.node.getComponent(LabelOutline)??title.node.addComponent(LabelOutline);outline.color=new Color().fromHEX(ink);outline.width=2;
-    const tagline=this.text('tagline','携照夜玉，踏失落古道。',x,titleY-(short?63:wide?67:91),13,w,'#f3e4bc');
+    const tagline=this.text('tagline','携照夜玉，踏失落古道。',x,titleY-(short?43:wide?57:48),13,w,'#f3e4bc');
     const shadow=tagline.node.getComponent(LabelOutline)??tagline.node.addComponent(LabelOutline);shadow.color=new Color().fromHEX(ink);shadow.width=1;
     const base=short?this.bottom+162:this.bottom+193;
+    this.frame('menu-deck',x,base-(short?55:70),w+24,short?170:230,'#153d3b77','#d9bd7733');
     this.text('endless-reward','无尽古道 · 拾玉双倍',x,base+(short?35:40),12,w,paper);
     this.button('start','开始逃亡',x,base,w,()=>this.commands.start('endless'),true,short?46:54);
     const pair=(w-10)/2;
@@ -69,7 +74,7 @@ export class ShanhaiUI {
       this.text('desktop-story','古卷散落，山门重开。\n守山兽已醒，回头不是归途。',u.width*.31,-u.height*.18,16,270,'#345c4f',false,Label.HorizontalAlign.LEFT,60);
       this.text('desktop-guide','方向键 / WASD 移动\n上 / 空格跳跃，下滑铲\n路口左右转弯，F 御风',u.width*.31,-u.height*.31,13,270,'#426c5d',false,Label.HorizontalAlign.LEFT,84);
     }
-    if(this.journey.message)this.text('message',this.journey.message,wide?x:0,short?this.top-22:u.height*.07,12,Math.min(u.width-24,520),'#345b4d');
+    if(this.journey.message)this.text('message',this.journey.message,wide?x:0,short?this.top-22:this.top-207,13,Math.min(u.width-24,520),'#345b4d');
   }
   private hud(){
     const u=this.ui,s=this.run,short=u.height<500,top=this.top,bottom=this.bottom;
@@ -95,6 +100,7 @@ export class ShanhaiUI {
       (['left','jump','slide','right'] as const).forEach((action,i)=>this.button(action,['←','跳跃','滑铲','→'][i],(i-1.5)*(width+8),bottom+35,width,()=>this.commands.action(action),false,44));
     }else if(s.phase==='running')this.text('swipe-hint','上滑跳跃　下滑滑铲　左右转向 / 变道',0,bottom+30,12,Math.min(u.width-30,400),ink);
     if(s.spirit>=100&&s.wind<=0&&s.phase==='running')this.button('wind','御风 F',u.width/2-51,bottom+(short?143:174),82,()=>this.commands.action('wind'),true,42);
+    if(s.spirit<100&&s.wind<=0&&!short){this.frame('spirit-bg',0,bottom+156,152,28,'#153d3bcc');this.text('spirit',`御风蓄能  ${Math.floor(s.spirit)}%`,0,bottom+156,12,144,gold);}
     const power=s.wind>0?`乘风翎 ${s.wind.toFixed(1)}s`:s.magnet>0?`引玉铃 ${s.magnet.toFixed(1)}s`:s.shield>0?`玄龟符 ${s.shield.toFixed(1)}s`:'';
     if(power)this.text('power',power,0,top-(short?(s.mode==='trial'||s.mode==='daily'?108:78):112),15,280,ink,true);
     if(s.mode==='trial')this.text('trial-goal',`${TRIALS[s.trial].name}  ${Math.min(100,Math.floor(s.distance/s.goal*100))}%`,0,top-(short?81:133),12,290,ink);
@@ -177,6 +183,25 @@ export class ShanhaiUI {
     this.text('pagination',`${this.page+1} / ${pages}`,0,pageY,13,90,soft);
     this.button('page-next','下一页',w/2-64,pageY,92,()=>this.page=Math.min(pages-1,this.page+1),false,38,this.page===pages-1);
     this.text('sheet-message',this.journey.message||'灵玉来自跑酷、试炼、任务与签到。',0,bottom+12,10,w-28,soft);
+  }
+  private wardrobe(){
+    const u=this.ui,p=this.journey.data,short=u.height<500,top=this.top,bottom=this.bottom,w=Math.min(740,u.width-24),skin=this.previewSkin,owned=p.owned.includes(skin.id),equipped=p.skin===skin.id;
+    this.frame('wardrobe-header',0,top-52,w,102,'#153d3bf2','#e9bc6477');
+    this.text('wardrobe-title','行者衣装',-w/2+70,top-27,22,130,paper,true);
+    this.text('wardrobe-wallet',`◆ ${p.coins}`,w/2-121,top-27,13,76,gold);
+    this.button('panel-close','返回',w/2-43,top-27,68,()=>this.close(),false,44);
+    const tabs:[Panel,string][]=[['trials','试炼'],['skins','衣装'],['artifacts','法宝'],['quests','任务'],['lore','图鉴']],tw=(w-24)/5;
+    tabs.forEach(([id,label],i)=>this.button('tab:'+id,label,(i-2)*tw,top-76,tw-4,()=>{this.panel=id;this.page=0;},id==='skins',40));
+    const cardW=short?270:Math.min(400,u.width-28),cx=short?u.width*.29:0,cy=bottom+112;
+    this.frame('wardrobe-card',cx,cy,cardW,200,'#153d3be9','#e9bc6477');
+    this.text('wardrobe-name',skin.name,cx,cy+71,24,cardW-26,skin.accent,true);
+    this.text('wardrobe-copy',skin.detail,cx,cy+36,13,cardW-32,soft,false,Label.HorizontalAlign.CENTER,38);
+    this.button('skin:'+skin.id,equipped?'已穿戴':owned?'换上衣装':`解锁衣装 · ${skin.price} 灵玉`,cx,cy-12,cardW-36,()=>this.journey.buySkin(skin.id),true,46);
+    this.button('page-prev','上一套',cx-cardW/2+57,cy-66,88,()=>this.page=(this.page+SKINS.length-1)%SKINS.length,false,44);
+    this.text('wardrobe-page',`${this.page+1} / ${SKINS.length}`,cx,cy-66,13,64,soft);
+    this.button('page-next','下一套',cx+cardW/2-57,cy-66,88,()=>this.page=(this.page+1)%SKINS.length,false,44);
+    if(!short)this.text('wardrobe-preview',equipped?'当前衣装':owned?'已拥有 · 可免费更换':'自由试穿 · 解锁后永久拥有',0,top-126,13,w-24,paper);
+    if(this.journey.message)this.text('wardrobe-message',this.journey.message,short?-u.width*.25:0,short?bottom+30:bottom+229,12,short?250:u.width-28,paper);
   }
 }
 const uiCentre=(ui:GameView)=>ui.height*.08;

@@ -1,11 +1,11 @@
 import {clamp,TRIALS,type Run,type Upgrades} from './core';
 
 export const SKINS=[
-  {id:'traveler',name:'寻山行者',price:0,color:'#315e55',accent:'#b75d49',detail:'青衣、朱色飘带，轻装踏入山海。',form:'traveler'},
-  {id:'fox',name:'青丘狐裳',price:360,color:'#be819d',accent:'#f2d5b9',detail:'狐耳与九尾披帛，林间一抹花影。',form:'fox'},
-  {id:'feather',name:'羽民云衣',price:720,color:'#75acb3',accent:'#eef2d8',detail:'羽冠与白羽双翼，衣上带着云光。',form:'feather'},
-  {id:'bifang',name:'毕方赤羽',price:1100,color:'#b9583b',accent:'#f4c765',detail:'赤羽冠、火纹衣，踏过赤水长风。',form:'bifang'},
-  {id:'moon',name:'望舒月影',price:1600,color:'#665b89',accent:'#d6dfd6',detail:'银月冠与星纹长袍，照夜而行。',form:'moon'},
+  {id:'traveler',name:'寻山行者',price:0,color:'#296e66',accent:'#dc7862',detail:'青衣、朱色飘带，轻装踏入山海。',form:'traveler'},
+  {id:'fox',name:'青丘狐裳',price:360,color:'#81527f',accent:'#f4c8d4',detail:'狐耳与九尾披帛，林间一抹花影。',form:'fox'},
+  {id:'feather',name:'羽民云衣',price:720,color:'#347f95',accent:'#f2e7c7',detail:'羽冠与白羽双翼，衣上带着云光。',form:'feather'},
+  {id:'bifang',name:'毕方赤羽',price:1100,color:'#344e67',accent:'#f19b58',detail:'赤羽冠、火纹衣，踏过赤水长风。',form:'bifang'},
+  {id:'moon',name:'望舒月影',price:1600,color:'#535b91',accent:'#d1e5ee',detail:'银月冠与星纹长袍，照夜而行。',form:'moon'},
 ] as const;
 export const ARTIFACTS=[
   {id:'magnet',name:'引玉铃',description:'自动吸引灵玉，每级延长 1.5 秒。'},

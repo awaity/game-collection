@@ -8,7 +8,7 @@ try{
  const p=await browser.newPage({viewport:{width:840,height:630}});
  await p.addInitScript(()=>window.__COLLECTION_TEST__=true);
  await p.goto(`http://127.0.0.1:${server.address().port}/game-collection/games/shanhai-run/dist/web/`);
- await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await presentCocos(p);
+ await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await p.waitForFunction(()=>!document.querySelector('#collection-entrance'));await presentCocos(p);
  await p.getByRole('button',{name:'开始逃亡',exact:true}).click();await presentCocos(p);
  await p.evaluate(()=>__shanhai.play(540));
  // Photograph the actual running world, with only the HUD hidden for the cover.

@@ -3,6 +3,7 @@ import {GameView} from 'db://assets/collection/runtime';
 import {Geometry} from './geometry';
 import {AREAS,Random,Run,LANE_WIDTH,type Segment,type Hazard} from './core';
 import {SKINS} from './profile';
+import {character} from './character';
 type Skin=typeof SKINS[number];
 const effect=()=>new Promise<EffectAsset>((resolve,reject)=>resources.load('shanhai',EffectAsset,(error,value)=>error?reject(error):resolve(value)));
 
@@ -116,39 +117,6 @@ function segmentGeometry(segment:Segment,hazards:Hazard[],quality:string){
   return g;
 }
 
-function character(g:Geometry,skin:Skin,time:number,run:Run,menu:boolean){
-  const moving=run.phase==='running',stride=moving?Math.sin(time*16):0,jump=run.jumpAge>=0,slide=run.sliding;
-  const dying=run.phase==='dying'||run.phase==='dead',fall=dying&&run.deathKind==='fall',age=run.deathTime;
-  const height=fall?-Math.min(8,age*age*9):run.height+(run.wind>0?.65:run.landing/.25*.65),lean=run.wind>0?-22:slide?-65:dying?Math.min(75,age*95):jump?10:0;
-  const scale=slide?.82:1;
-  g.at(0,height+(slide?.3:0),0,1,scale,1,lean,menu?180:0,(run.targetLane-run.x)*-9,()=>{
-    for(const side of [-1,1]){
-      const swing=slide?side*12:jump?side*22:stride*side*30;
-      g.at(side*.18,.63,0,1,1,1,swing,0,0,()=>{g.cone(0,-.29,0,.13,.105,.58,'#33463e',6);g.box(0,-.59,-.075,.25,.16,.4,'#283a35');g.box(0,-.50,-.03,.22,.12,.25,skin.accent);});
-    }
-    g.cone(0,1.02,0,.29,.43,.88,skin.color,8);g.cone(0,.64,0,.42,.47,.24,skin.color,8);
-    g.box(0,.92,0,.68,.11,.46,skin.accent);g.box(-.19,.82,.28,.17,.30,.09,'#d5c18c');
-    g.cone(0,1.49,0,.14,.16,.21,'#e7bd91',7);g.sphere(0,1.77,0,.52,.56,.50,'#efd0ab',5,8);
-    g.sphere(0,1.94,.07,.55,.38,.49,'#263a33',4,8);g.sphere(.08,2.11,.13,.26,.27,.25,'#263a33',4,6);
-    g.box(.08,2.10,.18,.25,.08,.25,skin.accent);g.cone(0,1.69,.25,.12,.085,.42,'#263a33',6,20);
-    // Face details are visible on the main-menu turntable and during turns.
-    for(const side of [-1,1])g.sphere(side*.105,1.79,-.225,.055,.065,.035,'#314137',3,5);
-    g.sphere(0,1.70,-.25,.075,.09,.05,'#dca47d',3,5);
-    for(const side of [-1,1]){
-      const angle=slide?-90:jump?-105:-stride*side*35;
-      g.at(side*.37,1.40,0,1,1,1,angle,0,side*10,()=>{g.cone(0,-.24,0,.16,.12,.5,skin.color,6);g.cone(0,-.46,0,.12,.10,.14,skin.accent,6);g.sphere(0,-.56,0,.18,.20,.18,'#e8c499',3,6);});
-    }
-    g.box(0,1.42,.23,.54,.16,.12,skin.accent);
-    for(let n=0;n<4;n++)g.box(.12+Math.sin(time*6-n*.9)*.055,1.33-n*.1,.30+n*.20,.22,.08,.25,skin.accent,Math.sin(time*6-n*.8)*9,0,0);
-    if(skin.form==='fox'){
-      for(const side of [-1,1]){g.cone(side*.23,2.10,0,0,.14,.38,skin.accent,3,0,side*20,side*-15);g.cone(side*.23,2.10,-.01,0,.08,.26,skin.color,3);}
-      for(let n=0;n<9;n++)g.at((n-4)*.07,.77,.25,1,1,1,0,(n-4)*14,0,()=>{g.cone(0,-.10,.4,.13,.04,.9,skin.accent,6,65+Math.sin(time*4+n)*7);});
-    }
-    if(skin.form==='feather')for(const side of [-1,1])for(let n=0;n<4;n++)g.at(side*.30,1.35,.22,1,1,1,0,side*(26+n*10),side*(-20-n*12),()=>g.cone(0,.15,.24,.02,.13,1.0-n*.11,'#e9eee0',4,50));
-    if(skin.form==='bifang')for(let n=0;n<5;n++)g.cone((n-2)*.085,2.13+(.15-Math.abs(n-2)*.04),.07,0,.09,.48, n%2?skin.accent:skin.color,3,12,0,(n-2)*-14);
-    if(skin.form==='moon'){g.ring(0,2.13,.04,.25,.17,skin.accent,0,.72);g.box(0,1.28,.28,.28,.36,.03,'#b8b9d5',0,0,45);}
-  });
-}
 function beast(g:Geometry,time:number,pressure:number){
   const color='#3a493d',horn='#c6aa71',stride=Math.sin(time*12);
   g.sphere(0,1.0,0,1.8,1.65,2.5,color,5,9);g.sphere(0,1.37,-.85,1.45,1.35,1.2,'#52614c',5,9);
@@ -166,12 +134,14 @@ function beast(g:Geometry,time:number,pressure:number){
 export class ShanhaiArt {
   private readonly staticMeshes=new Map<string,Mesh>();
   private readonly roads=new Map<number,Mesh>();
-  private readonly actors=new Batch(26000);
+  private readonly actors=new Batch(48000);
   private readonly items=new Batch(18000);
-  private readonly effects=new Batch(9000);
+  private readonly effects=new Batch(22000);
   private readonly scenery=new Map<number,Mesh>();
   private readonly material:Material;
   private readonly waterMaterial:Material;
+  private readonly glowMaterial:Material;
+  private bursts:{kind:string;age:number}[]=[];
   private water:Mesh;
   private yaw=0;
   private priorTick=0;
@@ -179,6 +149,7 @@ export class ShanhaiArt {
   private lastSeed=-1;
   private constructor(private readonly ui:GameView,fx:EffectAsset){
     this.material=new Material();this.material.initialize({effectAsset:fx});
+    this.glowMaterial=new Material();this.glowMaterial.initialize({effectAsset:fx,technique:1,defines:{GLOW:true}});
     this.waterMaterial=new Material();this.waterMaterial.initialize({effectAsset:fx,defines:{WATER:true}});
     const g=new Geometry();for(let x=-180;x<180;x+=18)for(let z=-180;z<180;z+=18)g.quad([x,-8,z],[x,-8,z+18],[x+18,-8,z+18],[x+18,-8,z],'#4b9698',true);
     this.water=utils.createMesh(g.static());
@@ -221,21 +192,23 @@ export class ShanhaiArt {
     }
     const mesh=utils.createMesh(g.static());this.staticMeshes.set(key,mesh);return mesh;
   }
-  draw(run:Run,skin:Skin,delta:number,idle:number,quality:string,reducedMotion=false){
-    const ui=this.ui,a=AREAS[run.area],menu=run.phase==='ready';
+  emit(kinds:Iterable<string>){for(const kind of kinds){if(this.bursts.some(b=>b.kind===kind&&b.age<.08))continue;this.bursts.push({kind,age:0});}this.bursts=this.bursts.slice(-12);}
+  draw(run:Run,skin:Skin,delta:number,idle:number,quality:string,reducedMotion=false,wardrobe=false){
+    const ui=this.ui,a=AREAS[run.area],menu=run.phase==='ready'||wardrobe;
     if(this.lastSeed!==run.seed||run.tick<this.priorTick||quality!==this.lastQuality){for(const [id,mesh] of this.roads){const node=ui.objects.get('segment'+id);node?.destroy();ui.objects.delete('segment'+id);mesh.destroy();}this.roads.clear();this.yaw=run.segment.heading;this.lastSeed=run.seed;this.lastQuality=quality;}
     const target=run.segment.heading;
     if(Math.abs(run.tick-this.priorTick)>100||menu)this.yaw=target;
     else this.yaw+=(target-this.yaw)*Math.min(1,Math.max(delta,1/60)*(reducedMotion?16:9));
     this.priorTick=run.tick;
-    const origin=run.sample(run.distance,run.x*.55),c=Math.cos(this.yaw),s=Math.sin(this.yaw),time=menu?idle:run.time;
+    const origin=run.sample(run.distance,run.x*.55),c=Math.cos(this.yaw),s=Math.sin(this.yaw),time=menu?idle:run.time,decorTime=reducedMotion?0:time;
     const transform=(x:number,z:number)=>({x:(x-origin.x)*c+(z-origin.z)*s,z:-(x-origin.x)*s+(z-origin.z)*c});
     const point=(d:number,lane=0)=>{const p=run.sample(d,lane);return {...transform(p.x,p.z),heading:(p.heading-this.yaw)*180/Math.PI,area:p.area};};
+    this.glowMaterial.setProperty('fogColor',new Color().fromHEX(a.fog));this.glowMaterial.setProperty('params',new Vec4(38,155,time,0));
     this.material.setProperty('fogColor',new Color().fromHEX(a.fog));this.material.setProperty('params',new Vec4(38,155,time,0));
     this.waterMaterial.setProperty('fogColor',new Color().fromHEX(a.fog));this.waterMaterial.setProperty('params',new Vec4(30,155,reducedMotion?0:time,0));
     ui.camera.clearColor=new Color().fromHEX(a.sky);ui.camera.fov=ui.width/ui.height<.43?59:55;
     const shake=!reducedMotion&&run.stumbleRemaining>0?Math.sin(run.time*48)*run.stumbleRemaining*.08:0;
-    ui.camera.node.setPosition(shake,menu?6.5:4.7,menu?10.5:8.3);ui.camera.node.lookAt(new Vec3(0,menu?0:1.1,menu?(ui.height<650?-3.5:-8):-12));
+    const previewX=wardrobe&&ui.height<500?1.3:0;ui.camera.node.setPosition(shake+previewX,wardrobe?2.8:menu?3.6:4.7,wardrobe?(ui.height<500?4.6:ui.height<650?6.4:5.4):menu?7.1:8.3);ui.camera.node.lookAt(new Vec3(previewX,wardrobe?(ui.height<500?1.0:ui.height<650?.55:1.15):menu?.9:1.1,wardrobe?0:menu?-2.8:-12));
     ui.meshNode('distant-mountains',this.backdrop(run.area),this.material,0,0,0).setRotationFromEuler(0,this.yaw*180/Math.PI,0);
     if(run.area===3)ui.meshNode('sea',this.water,this.waterMaterial,0,0,0);
     for(const segment of run.segments){
@@ -245,34 +218,69 @@ export class ShanhaiArt {
     }
     for(const [id,mesh]of this.roads)if(id<run.currentSegment-2){mesh.destroy();this.roads.delete(id);const node=ui.objects.get('segment'+id);node?.destroy();ui.objects.delete('segment'+id);}
     let obstacleIndex=0;
-    for(const h of run.hazards){if(h.kind==='gap'||h.d<run.distance-8||h.d>run.distance+100)continue;const p=point(h.d,run.hazardLane(h));
-      const node=ui.meshNode('obstacle'+obstacleIndex++,this.obstacle(h,p.area),this.material,p.x,0,p.z);node.setRotationFromEuler(0,-p.heading,h.kind==='blade'?time*130:0);
+    for(const h of run.hazards){if(h.kind==='gap'||(h.kind==='lintel'&&h.d<run.distance-1)||h.d<run.distance-8||h.d>run.distance+100)continue;const p=point(h.d,run.hazardLane(h));
+      const node=ui.meshNode('obstacle'+obstacleIndex++,this.obstacle(h,p.area),this.material,p.x,0,p.z);node.setRotationFromEuler(0,-p.heading,h.kind==='blade'?decorTime*130:0);
     }
     const coins=this.items.geometry;coins.reset();
-    for(const item of run.pickups){if(item.taken||item.d<run.distance-2||item.d>run.distance+(quality==='low'?65:90))continue;const p=point(item.d,item.lane),y=item.height+Math.sin(time*3+item.id)*.07;
-      if(item.kind==='jade'){coins.ring(p.x,y,p.z,.24,.115,'#f2c861',time*75+item.id*19);coins.sphere(p.x,y,p.z,.09,.11,.09,'#fff0bc',3,4);}
-      else {coins.ring(p.x,y,p.z,.65,.59,AREAS[p.area].accent,time*20);coins.sphere(p.x,y,p.z,.55,.65,.55,item.kind==='shield'?'#80c6b0':item.kind==='wind'?'#e5d2b5':item.kind==='scroll'?'#ebc576':'#c38eb6',4,8);}
+    for(const item of run.pickups){if(item.taken||item.d<run.distance-2||item.d>run.distance+(quality==='low'?65:90))continue;const p=point(item.d,item.lane),y=item.height+Math.sin(decorTime*3+item.id)*.07;
+      if(item.kind==='jade'){coins.ring(p.x,y,p.z,.24,.115,'#f2c861',decorTime*75+item.id*19);coins.sphere(p.x,y,p.z,.09,.11,.09,'#fff0bc',3,4);}
+      else {coins.ring(p.x,y,p.z,.65,.59,AREAS[p.area].accent,decorTime*20);coins.sphere(p.x,y,p.z,.55,.65,.55,item.kind==='shield'?'#80c6b0':item.kind==='wind'?'#e5d2b5':item.kind==='scroll'?'#ebc576':'#c38eb6',4,8);}
     }
     this.items.draw(ui,'collectibles',this.material);
     const actors=this.actors.geometry;actors.reset();const hero=point(run.distance,run.x);
-    actors.at(hero.x,0,hero.z,1,1,1,0,-hero.heading,0,()=>character(actors,skin,time,run,menu));
+    actors.at(hero.x,0,hero.z,1,1,1,0,-hero.heading,0,()=>character(actors,skin,time,run,menu,reducedMotion));
     if(!menu){const gap=run.deathKind==='caught'&&run.deathTime>0?Math.max(.7,2.5-run.deathTime*2):run.distance<25?3.9+run.distance*.07:2.5+(1-Math.min(1,run.pressure))*4.2,p=point(run.distance-gap);actors.at(p.x,0,p.z,.87,.87,.87,0,-p.heading,0,()=>beast(actors,time,run.pressure));}
     else {const p=point(run.distance+11);actors.at(p.x,0,p.z,1.05,1.05,1.05,0,180-p.heading,0,()=>beast(actors,time,.3));}
+    actors.at(hero.x,.07,hero.z,1,1,1,90,0,0,()=>actors.ring(0,0,0,.65,0,'#173e3870'));
     this.actors.draw(ui,'actors',this.material);
     const fx=this.effects.geometry;fx.reset();
-    fx.at(hero.x,.04,hero.z,1,1,1,90,0,0,()=>fx.ring(0,0,0,.65,0,'#35584d55'));
     if(run.shield>0)fx.ring(hero.x,1.1+run.height,hero.z+.15,.95,.91,'#92edc999',0);
-    if(run.magnet>0)for(let n=0;n<3;n++)fx.ring(hero.x,1.0+run.height,hero.z,.6+n*.25,.57+n*.25,'#e3c0eb70',time*50+n*60);
+    if(run.magnet>0)for(let n=0;n<3;n++)fx.ring(hero.x,1.0+run.height,hero.z,.6+n*.25,.57+n*.25,'#e3c0eb70',decorTime*50+n*60);
     if(run.wind>0)for(let n=0;n<9;n++)fx.box(hero.x+Math.sin(n*2.4)*.8,1.0+Math.cos(n*2.4)*.6,hero.z+1+n*.3,.035,.035,.8,'#e9e8c8a0');
     if(!reducedMotion)for(let n=0;n<(quality==='low'?12:32);n++){
       const x=Math.sin(n*7.2+time*.15)*12,y=2+(n*3.17+time*.8)%8,z=-((n*4.17-time*1.4)%60+60)%60;
       fx.box(x,y,z,.07,run.area===2?.20:.04,.14,run.area===1?'#e9b4c6b0':run.area===2?'#ffc47cc0':'#e1d6ab80',n*30+time*20,time*12,n*20);
     }
-    this.effects.draw(ui,'air-and-magic',this.material);
+    this.magic(fx,hero.x,hero.z,run,skin,time,delta,menu,quality,reducedMotion);
+    this.effects.draw(ui,'air-and-magic',this.glowMaterial);
+  }
+  private magic(g:Geometry,x:number,z:number,run:Run,skin:Skin,time:number,delta:number,menu:boolean,quality:string,reduced:boolean){
+    const t=reduced?0:time,y=menu?0:run.height,c=skin.accent,limit=quality==='low'?7:15;
+    // Outfit auras have distinct shapes and palettes; gameplay is fully unchanged.
+    if(skin.form!=='traveler'){
+      g.at(x,.055,z,1,1,1,90,0,0,()=>{g.ring(0,0,0,.90,.87,c+'55',0);g.ring(0,0,0,.73,.72,c+'44',0);});
+      for(let n=0;n<(quality==='low'?3:6);n++){
+        const a=t*.7+n*Math.PI/3,r=skin.form==='fox'?.75:skin.form==='moon'?.92:.65;
+        const px=x+Math.cos(a)*r,py=.75+y+Math.sin(a*1.4)*.45,pz=z+Math.sin(a)*r;
+        if(skin.form==='fox'){g.sphere(px,py,pz,.12,.22,.12,'#e9a5df99',4,7);g.cone(px,py+.13,pz,0,.05,.18,'#ffd7f7aa',5);}
+        else if(skin.form==='moon'){g.box(px,py+.6,pz,.045,.16,.025,'#c8e8ffcc',0,0,45);g.box(px,py+.6,pz,.045,.16,.025,'#c8e8ffcc',0,0,-45);}
+        else g.at(px,py,pz,1,1,1,0,t*40,n*36,()=>g.quad([0,-.14,0],[-.055,0,0],[0,.18,0],[.055,0,0],skin.form==='bifang'?'#ffb765b0':'#ccfff2a0',true));
+      }
+    }
+    if(!menu&&run.wind>0){
+      for(const side of [-1,1])for(let n=0;n<4;n++){
+        const points:[number,number,number][]=Array.from({length:8},(_,i)=>[x+side*(.5+Math.sin(i*.45)*(.4+n*.15)),y+.65+i*.04+n*.11,z+.1+i*.30]);
+        g.ribbon(points,points.map((_,i)=>.06*(1-i/8)),'#b2f5e199');
+      }
+    }
+    if(!menu&&run.shield>0)for(let n=0;n<6;n++){const a=t+n*Math.PI/3;g.box(x+Math.cos(a)*.85,1.1+y+Math.sin(a)*.85,z+.1,.08,.08,.04,'#aeefd7bb',0,0,45);}
+    if(!menu&&run.sliding&&!reduced)for(let n=0;n<limit;n++)g.box(x+Math.sin(n*9)*.3,.08,z+.4+n*.09,.024,.025,.17,'#f7cb8d99',0,n*16);
+    for(const burst of this.bursts){
+      burst.age+=Math.min(.1,Math.max(0,delta));
+      const life=burst.kind==='jade'?.45:.7;if(burst.age>life)continue;
+      const progress=burst.age/life,tint=burst.kind==='hit'?'#ff936b':burst.kind==='jade'?'#ffe7a6':'#b8f4dc';
+      const alpha=Math.round((1-progress)*(reduced?90:190)).toString(16).padStart(2,'0');
+      if(['jump','slide','revive','power','turn'].includes(burst.kind))g.at(x,.08,z,1,1,1,90,0,0,()=>g.ring(0,0,0,.5+progress*1.5,.46+progress*1.5,tint+alpha));
+      if(!reduced)for(let n=0;n<limit;n++){
+        const a=n/limit*Math.PI*2+time*.2,r=.18+progress*(burst.kind==='jade'?.7:1.35);
+        g.box(x+Math.cos(a)*r,.8+y+Math.sin(n*3)*.3+progress*(1.1-progress),z+Math.sin(a)*r,.035,.095*(1-progress),.035,tint+alpha,0,n*23,n*57);
+      }
+    }
+    this.bursts=this.bursts.filter(b=>b.age<.7);
   }
   metrics(){return [['actors',this.actors],['collectibles',this.items],['air-and-magic',this.effects]].map(([id,batch])=>{
     const node=this.ui.objects.get(id as string),renderer=node?.getComponent(MeshRenderer);
     return {id,active:(batch as Batch).geometry.count>0&&(node?.active??false),vertices:(batch as Batch).geometry.count,drawn:renderer?.model?.subModels[0]?.inputAssembler?.indexCount??null};
   });}
-  destroy(){for(const mesh of [...this.staticMeshes.values(),...this.roads.values(),...this.scenery.values()])mesh.destroy();this.actors.mesh.destroy();this.items.mesh.destroy();this.effects.mesh.destroy();this.water.destroy();this.material.destroy();this.waterMaterial.destroy();}
+  destroy(){for(const mesh of [...this.staticMeshes.values(),...this.roads.values(),...this.scenery.values()])mesh.destroy();this.actors.mesh.destroy();this.items.mesh.destroy();this.effects.mesh.destroy();this.water.destroy();this.material.destroy();this.waterMaterial.destroy();this.glowMaterial.destroy();}
 }

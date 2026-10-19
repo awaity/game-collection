@@ -19,6 +19,14 @@ export async function verify({p,native,target,viewport,state,click,advance,event
   const s=await fresh();assert.equal(s.x,0,'cancelled short gesture does not move lanes');assert.equal(s.stats.jumps,0);
  }
  assert.equal((await state()).phase,'menu');await fits();await capture('menu');
+ // Every locked outfit is previewable before earning or spending currency.
+ await click('wardrobe');
+ const beforePreview=await state();
+ for(const id of ['traveler','fox','feather','bifang','moon']){
+  const preview=await fresh();assert.equal(preview.previewSkin,id);assert.equal(preview.skin,beforePreview.skin);assert.equal(preview.coins,beforePreview.coins);
+  await fits();await capture('preview-'+id);await click('page-next');
+ }
+ await click('panel-close');assert.equal((await state()).skin,beforePreview.skin);
  // A fresh profile earns every coin used below; no currency or unlock fixtures.
  if((await state()).controls.some(b=>b.id==='checkin')){await click('checkin');assert.equal((await state()).coins,100);await click('checkin');assert.equal((await state()).coins,100);}
  await click('training');
@@ -54,9 +62,9 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  const saved=await state();
  if(native){const result=await p.evaluate(()=>call({type:'frames',count:0}));const storage=result.storage;assert.ok(storage['shanhai-run.save.v1']);await p.reload();await p.evaluate(({target,storage})=>boot('shanhai-run',target,1,storage),{target,storage});}
  else await p.reload();
- if(!native)await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});
+ if(!native){await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await p.waitForFunction(()=>!document.querySelector('#collection-entrance'));}
  for(let n=0;n<180;n++){const s=await fresh();if(s?.controls?.some(b=>b.id==='start'))break;await p.waitForTimeout(60);}
  const loaded=await state();assert.equal(loaded.skin,'moon');assert.deepEqual(loaded.upgrades,saved.upgrades);assert.equal(loaded.coins,saved.coins);assert.equal(loaded.settings.sound,false);assert.equal(loaded.settings.quality,'low');assert.equal(loaded.tutorial,true);
  await click('start');await play(150);await capture('equipped');await home();await fits();
- return ['real-gestures','touch-cancel','interactive-tutorial','eight-legal-trial-clears','four-regions','7000m-endless','bounded-scene','checkin-and-earned-currency','five-outfits','four-artifacts','quests','lore','pause','paid-rescue','daily-seed','settings','persistent-restart'];
+ return ['real-gestures','touch-cancel','interactive-tutorial','eight-legal-trial-clears','four-regions','7000m-endless','bounded-scene','checkin-and-earned-currency','five-free-previews','five-outfits','four-artifacts','quests','lore','pause','paid-rescue','daily-seed','settings','persistent-restart'];
 }

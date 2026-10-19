@@ -74,12 +74,14 @@ export class ShanhaiRun extends Component {
       if(event.type==='power'){this.hud.notice=({magnet:'引玉铃 · 灵玉自动靠近',shield:'玄龟符 · 抵挡一次碰撞',wind:'乘风翎 · 御风穿障',scroll:'寻回一片山海图',blocked:'玄龟符护住了你'} as Record<string,string>)[String(event.value)]??'';this.noticeUntil=this.idle+2.5;}
     }
     if(settings.sound)for(const type of sound){const clip=this.clips.get(type);if(clip)this.audio.playOneShot(clip,type==='jade'?.20:.55);}
+    this.art.emit(sound);
     if(this.idle>this.noticeUntil)this.hud.notice='';
     this.hud.trainingHint=this.session.hint;
-    ui.begin();this.art.draw(s,j.skin,delta,this.idle,settings.quality,!settings.motion||ui.services.reducedMotion);this.hud.draw(s,j);
+    if(ui.entrance)ui.entrance.reduced=!settings.motion||ui.services.reducedMotion;
+    ui.begin();this.art.draw(s,this.hud.panel==='skins'?this.hud.previewSkin:j.skin,delta,this.idle,settings.quality,!settings.motion||ui.services.reducedMotion,this.hud.panel==='skins');this.hud.draw(s,j);
     const phase=s.phase==='ready'?'menu':s.phase==='paused'?'paused':['dead','won'].includes(s.phase)?'result':'playing';
     ui.platform.state(phase);
-    ui.end({slug:'shanhai-run',...s.snapshot(),phase,runPhase:s.phase,mode:s.mode,trial:s.trial,panel:this.hud.panel,lesson:this.session.lesson,waiting:this.session.waiting,coins:j.data.coins,skin:j.data.skin,unlocked:j.data.unlocked,stars:j.data.stars,lore:j.data.lore,settings:j.data.settings,upgrades:j.data.upgrades,tutorial:j.data.tutorial,revived:s.revived,profileSerial:j.data.serial,renderObjects:ui.objects.size,geometry:this.art.metrics()});
+    ui.end({slug:'shanhai-run',...s.snapshot(),phase,runPhase:s.phase,mode:s.mode,trial:s.trial,panel:this.hud.panel,previewSkin:this.hud.panel==='skins'?this.hud.previewSkin.id:null,lesson:this.session.lesson,waiting:this.session.waiting,coins:j.data.coins,skin:j.data.skin,unlocked:j.data.unlocked,stars:j.data.stars,lore:j.data.lore,settings:j.data.settings,upgrades:j.data.upgrades,tutorial:j.data.tutorial,revived:s.revived,profileSerial:j.data.serial,renderObjects:ui.objects.size,geometry:this.art.metrics()});
   }
   onDestroy(){this.session?.save();this.audio?.stop();this.music?.stop();this.art?.destroy();this.ui?.destroy();}
 }

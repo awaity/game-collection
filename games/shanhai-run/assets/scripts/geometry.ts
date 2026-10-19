@@ -50,6 +50,17 @@ export class Geometry {
   ring(x:number,y:number,z:number,radius:number,hole:number,hex:string,rotation=0,arc=1){
     this.at(x,y,z,1,1,1,0,rotation,0,()=>{const sides=12;for(let i=0;i<sides*arc;i++){const a=i/sides*Math.PI*2,b=(i+1)/sides*Math.PI*2;this.quad([Math.cos(a)*radius,Math.sin(a)*radius,0],[Math.cos(b)*radius,Math.sin(b)*radius,0],[Math.cos(b)*hole,Math.sin(b)*hole,0],[Math.cos(a)*hole,Math.sin(a)*hole,0],hex,true);}});
   }
+  /** A tapered curved volume for hair, cloth cords, tails and feather shafts. */
+  sweep(points:Point[],radii:number[],hex:string,sides=8){
+    for(let n=0;n<points.length-1;n++)for(let i=0;i<sides;i++){
+      const a=i/sides*Math.PI*2,b=(i+1)/sides*Math.PI*2;
+      const p=(at:number,angle:number):Point=>[points[at][0]+Math.cos(angle)*radii[at],points[at][1]+Math.sin(angle)*radii[at],points[at][2]];
+      this.quad(p(n,a),p(n,b),p(n+1,b),p(n+1,a),hex);
+    }
+  }
+  ribbon(points:Point[],widths:number[],hex:string){
+    for(let i=0;i<points.length-1;i++){const a=points[i],b=points[i+1];this.quad([a[0]-widths[i]/2,a[1],a[2]],[a[0]+widths[i]/2,a[1],a[2]],[b[0]+widths[i+1]/2,b[1],b[2]],[b[0]-widths[i+1]/2,b[1],b[2]],hex);}
+  }
   bounds(){return {minPos:{x:this.low[0],y:this.low[1],z:this.low[2]},maxPos:{x:this.high[0],y:this.high[1],z:this.high[2]}};}
   dynamic(){return {positions:this.positions.subarray(0,this.count*3),colors:this.colors.subarray(0,this.count*4),indices16:this.indices.subarray(0,this.count),...this.bounds()};}
   static(){return {positions:Array.from(this.positions.subarray(0,this.count*3)),colors:Array.from(this.colors.subarray(0,this.count*4)),indices:Array.from(this.indices.subarray(0,this.count)),...this.bounds()};}

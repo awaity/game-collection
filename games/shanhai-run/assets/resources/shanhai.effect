@@ -13,6 +13,19 @@ CCEffect %{
       properties:
         fogColor: { value: [0.65, 0.78, 0.73, 1], editor: { type: color } }
         params: { value: [35, 145, 0, 0] }
+  - passes:
+    - vert: shanhai-vs:vert
+      frag: shanhai-fs:frag
+      rasterizerState: { cullMode: none }
+      depthStencilState: { depthTest: true, depthWrite: false }
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one
+      properties:
+        fogColor: { value: [0.65, 0.78, 0.73, 1], editor: { type: color } }
+        params: { value: [35, 145, 0, 0] }
 }%
 CCProgram shanhai-vs %{
   precision highp float;
@@ -47,6 +60,10 @@ CCProgram shanhai-fs %{
     #endif
     float mist=smoothstep(params.x,params.y,length(worldPos.xz));
     mist=max(mist,(1.-smoothstep(-25.,-1.,worldPos.y))*.48);
-    return vec4(mix(rgb,fogColor.rgb,mist),tint.a);
+    #if GLOW
+      return vec4(rgb*.45,tint.a*(1.-mist));
+    #else
+      return vec4(mix(rgb,fogColor.rgb,mist),tint.a);
+    #endif
   }
 }%
