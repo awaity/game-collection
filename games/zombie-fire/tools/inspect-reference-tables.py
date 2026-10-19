@@ -11,6 +11,7 @@ from collections import Counter, defaultdict
 import hashlib
 import json
 import math
+import re
 import struct
 from pathlib import Path
 
@@ -32,6 +33,8 @@ FINGERPRINTS = {
     "SkillBaseConfg": "051c0e6e78db28d0ced63ca276cd3852ac26bc79235f5273d2f42a0fe6bb5651",
     "LevelBaseConfig": "9ce6ca6e917c13cf855522eb104a894775592abc450762792eae09f51f79269b",
     "ChapterConfig": "9c5dba0a9d52998459ef5095a86dfd4530348ef564017af996bb8a3a44ecc98f",
+    "MonsterCfg": "691e8cda216bd1fb3025950118a4d055e2823143c1ab3cbe13db03af3fd9c713",
+    "MonsterManualCfg": "29a5d955f39c76a27331a55de7464a54f9b6443841ee1a40b2d280f541203cf9",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
     "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
@@ -40,6 +43,9 @@ PERMUTATION = (5, 4, 2, 6, 1, 0, 3, 7, 8, 15, 10, 11, 9, 13, 14, 12)
 SUBTRACT = {1: 0x8F, 9: 0x69, 10: 0x0D, 11: 0xD8, 13: 0xED, 14: 0x5F}
 XOR = {5: 0x40, 8: 0xD4}
 ROTATE_RIGHT = {2: 7, 3: 4, 7: 3}
+# Numeric filename order; each entry is UTF-8 name + NUL + lowercase SHA-256 + LF.
+# This pins the complete extracted collection without publishing original tables.
+WAVE_COLLECTION_SHA256 = "47b4d347884fdac88681ca6fac2ba132f1d611eaeafb8792634f55e74658d1b0"
 
 
 def require(ok: bool, message: str) -> None:
@@ -254,6 +260,177 @@ def level_base_row(table: Table) -> dict:
             "recordBytes": table.offset - start}
 
 
+def monster_row(table: Table) -> dict:
+    start = table.offset
+    (prefix,) = table.unpack(">191s")
+    first_string, second_string = table.string(), table.string()
+    table.unpack(">41s")
+    return {"id": struct.unpack_from(">I", prefix)[0],
+            "valueAt4": struct.unpack_from(">I", prefix, 4)[0],
+            "byteAt8": prefix[8], "nameReferenceAt9": struct.unpack_from(">I", prefix, 9)[0],
+            "descriptionReferenceAt13": struct.unpack_from(">I", prefix, 13)[0],
+            "firstString": first_string, "secondString": second_string,
+            "recordBytes": table.offset - start}
+
+
+def monster_references(monsters: list, manual_table: Table, texts: dict) -> dict:
+    by_id = {row["id"]: row for row in monsters}
+    manual = [{"id": struct.unpack_from(">I", raw)[0],
+               "valueAt4": struct.unpack_from(">I", raw, 4)[0]}
+              for raw in read_fixed(manual_table, 52)]
+    require(len({row["id"] for row in manual}) == len(manual),
+            "MonsterManualCfg: duplicate ID")
+    missing_texts = sorted({row[key] for row in monsters
+                           for key in ("nameReferenceAt9", "descriptionReferenceAt13")
+                           if row[key] not in texts})
+    return {
+        "monsterLayout": {"prefixBytes": 191, "stringCount": 2, "tailBytes": 41,
+                          "fixedOverheadBytes": 240},
+        "recordByteCounts": dict(sorted(Counter(row["recordBytes"] for row in monsters).items())),
+        "nonemptySecondStrings": [{"id": row["id"], "value": row["secondString"]}
+                                  for row in monsters if row["secondString"]],
+        "missingTextReferences": missing_texts,
+        "manualRecordBytes": 52, "manualRows": len(manual),
+        "matchedManualValuesAt4": sum(row["valueAt4"] in by_id for row in manual),
+        "unresolvedManualValuesAt4": [row for row in manual if row["valueAt4"] not in by_id],
+        "manualAliases": [row for row in manual if row["id"] != row["valueAt4"]],
+        "selectedMonsters": [{**row, "name": texts.get(row["nameReferenceAt9"], {}).get("text"),
+                              "description": texts.get(row["descriptionReferenceAt13"], {}).get("text")}
+                             for row in monsters if row["id"] in (10, 20, 30, 40, 50, 60, 70,
+                                                                  80, 90, 100, 5300, 6001, 8014)],
+        "limits": ["Names and descriptions are static text references, not observed combat behavior.",
+                   "Manual offset 4 has three unresolved rows; do not replace them by the manual row ID.",
+                   "Health, damage, resistance, animation and mode-specific attribute merging remain unverified."],
+    }
+
+
+def wave_references(directory: Path, levels: list, monsters: list) -> dict:
+    files = list(directory.glob("LevelWaveConfig*"))
+    require(all(path.name[15:].isdigit() and str(int(path.name[15:])) == path.name[15:]
+                for path in files), "LevelWaveConfig: unexpected filename")
+    files.sort(key=lambda path: int(path.name[15:]))
+    require(len(files) == 12987, "LevelWaveConfig: incomplete or unexpected collection")
+    level_ids, monster_ids = {row["id"] for row in levels}, {row["id"] for row in monsters}
+    digest = hashlib.sha256()
+    row_count, total_bytes = 0, 0
+    monster_counts, mode_counts, byte24_counts = Counter(), Counter(), Counter()
+    wave_ids, nonconsecutive, nonmonotonic, selected = set(), [], [], []
+    for path in files:
+        level, raw = int(path.name[15:]), path.read_bytes()
+        digest.update((path.name + "\0" + hashlib.sha256(raw).hexdigest() + "\n").encode("utf8"))
+        require(len(raw) >= 20, f"{path.name}: incomplete header")
+        magic, size, version, count, checksum = struct.unpack_from(">5I", raw)
+        require((magic, size, version, checksum) == (0x2DEF, len(raw), 1, 9999),
+                f"{path.name}: unexpected header")
+        require(size == 20 + count * 139, f"{path.name}: invalid record stride")
+        wave_ids.add(level)
+        row_count += count
+        total_bytes += size
+        ids, times, rows = [], [], []
+        for index in range(count):
+            offset = 20 + index * 139
+            key, row_id, value8, value12, value16 = struct.unpack_from(">4If", raw, offset)
+            require(key == level, f"{path.name}: row/file ID mismatch")
+            require(math.isfinite(value16) and value16 >= 0, f"{path.name}: invalid float at 16")
+            monster = struct.unpack_from(">I", raw, offset + 33)[0]
+            ids.append(row_id)
+            times.append(value16)
+            monster_counts[monster] += 1
+            mode_counts[value8] += 1
+            byte24_counts[raw[offset + 24]] += 1
+            if level in (1001, 1002, 2001, 2007, 81015, 84001):
+                rows.append({"idAt4": row_id, "valueAt8": value8, "valueAt12": value12,
+                             "floatAt16": value16, "byteAt24": raw[offset + 24],
+                             "monsterReferenceAt33": monster,
+                             "valueAt41": struct.unpack_from(">I", raw, offset + 41)[0]})
+        require(len(set(ids)) == len(ids), f"{path.name}: duplicate row ID")
+        # Preserve valid exceptions. Sorting/reindexing would erase dispatch evidence.
+        if ids != list(range(1, count + 1)):
+            nonconsecutive.append(level)
+        if times != sorted(times):
+            nonmonotonic.append(level)
+        if rows:
+            selected.append({"level": level, "rows": rows})
+    require(digest.hexdigest() == WAVE_COLLECTION_SHA256, "LevelWaveConfig: unknown reference revision")
+    unresolved_levels = sorted(wave_ids - level_ids)
+    unresolved_monsters = sorted(set(monster_counts) - monster_ids - {0})
+    require(not unresolved_levels, "LevelWaveConfig: unresolved complete level reference")
+    require(not unresolved_monsters, "LevelWaveConfig: unresolved nonzero monster reference")
+    return {
+        "files": len(files), "bytes": total_bytes, "completeRows": row_count,
+        "recordBytes": 139, "aggregateSha256": digest.hexdigest(),
+        "aggregateFormat": "Numeric filename order; UTF-8 filename + NUL + SHA-256 hex + LF.",
+        "declaredChecksum": 9999, "checksumVerified": False,
+        "matchedLevelReferences": len(wave_ids), "levelsWithoutWaveFile": sorted(level_ids - wave_ids),
+        "monsterReferenceOffset": 33, "matchedNonzeroMonsterRows": row_count - monster_counts[0],
+        "distinctNonzeroMonsterReferences": len(monster_counts) - (0 in monster_counts),
+        "zeroMonsterReferenceRows": monster_counts[0],
+        "unresolvedLevelReferences": unresolved_levels, "unresolvedMonsterReferences": unresolved_monsters,
+        "uniqueRowIdsWithinEachFile": True, "nonconsecutiveRowIdFiles": nonconsecutive,
+        "nonmonotonicFloat16Files": nonmonotonic,
+        "valuesAt8": dict(sorted(mode_counts.items())), "bytesAt24": dict(sorted(byte24_counts.items())),
+        "selectedWaves": selected,
+        "limits": ["The collection includes multiple modes; file count is not the campaign stage count.",
+                   "A zero monster field is not a spawnable monster; dynamic library/event dispatch is unresolved.",
+                   "Offsets 12, 16 and 41 remain candidates for wave, timing and count; units and dispatch are unverified.",
+                   "Nonmonotonic timing and gaps in row IDs must be retained, not sorted away.",
+                   "No raw reference records are imported into the playable campaign by this reader."],
+    }
+
+
+def numbered_level_candidates(levels: list, texts: dict, waves: dict) -> dict:
+    """Select an explicit static numbering series without asserting live availability."""
+    groups = defaultdict(list)
+    title_separator_exceptions = []
+    title_label_conflicts = []
+    for row in levels:
+        title, label = [texts.get(key, {}).get("text", "")
+                        for key in row["textReferencesAtMiddle51And55"]]
+        label_number = re.fullmatch(r"第(\d+)(?:-(\d+))?关", label)
+        title_number = re.match(r"^(\d+)(?:-(\d+))?", title)
+        if not title_number or not label_number or row["valueAtBody28"] != 2:
+            continue
+        number, sub = int(title_number[1]), int(title_number[2]) if title_number[2] else None
+        expected_id = 1000 + number if sub is None else 10000 + number * 10 + sub
+        if row["id"] != expected_id:
+            continue
+        prefix = str(number) + (f"-{sub}" if sub is not None else "")
+        if title_number.groups() != label_number.groups():
+            title_label_conflicts.append({"id": row["id"], "title": title, "label": label,
+                                          "textReferences": row["textReferencesAtMiddle51And55"]})
+        if not title.startswith(prefix + "."):
+            title_separator_exceptions.append({"id": row["id"], "title": title, "label": label})
+        require(row["id"] not in waves["levelsWithoutWaveFile"],
+                "Numbered levels: missing wave file")
+        groups[number].append({"id": row["id"], "numberFromTitle": number, "subnumberFromTitle": sub,
+                               "numberFromLabel": int(label_number[1]),
+                               "subnumberFromLabel": int(label_number[2]) if label_number[2] else None,
+                               "title": title, "label": label, "sceneReference": row["sceneReference"]})
+    numbers = sorted(groups)
+    require(numbers, "Numbered levels: missing reference series")
+    for rows in groups.values():
+        subs = [row["subnumberFromTitle"] for row in rows]
+        require(subs == [None] or None not in subs and sorted(subs) == list(range(1, len(subs) + 1)),
+                "Numbered levels: duplicate or missing subnumber")
+    return {
+        "criterion": "Body28=2; title number N with ID=1000+N, or N-S with ID=10000+10*N+S. Description labels are parsed independently and conflicts retained.",
+        "distinctNumbers": len(numbers), "firstNumber": min(numbers), "lastNumber": max(numbers),
+        "missingNumbers": sorted(set(range(min(numbers), max(numbers) + 1)) - set(numbers)),
+        "records": sum(len(rows) for rows in groups.values()),
+        "recordsPerNumberCounts": dict(sorted(Counter(len(rows) for rows in groups.values()).items())),
+        "firstSplitNumber": min(number for number, rows in groups.items()
+                                if rows[0]["subnumberFromTitle"] is not None),
+        "titleSeparatorExceptions": title_separator_exceptions,
+        "titleLabelNumberConflicts": title_label_conflicts,
+        "allWaveReferencesPresent": True,
+        "selectedNumbers": {number: groups[number] for number in (1, 299, 300, 399, 400, 409, 419)},
+        "limits": ["This explicit ID/text criterion identifies a static candidate series only.",
+                   "Conflicting description labels are retained; neither title nor description proves runtime dispatch.",
+                   "It does not establish current live stage availability, unlock rules, skill locks or difficulty.",
+                   "Other mode series and nonnumbered levels remain outside this selection, not outside the full collection."],
+    }
+
+
 def level_library_candidates(table: Table, libraries: list, groups: list,
                              level_bases: list, texts: dict) -> dict:
     """Cross-reference a candidate field without naming it as proven dispatch."""
@@ -453,6 +630,9 @@ def inspect(directory: Path) -> dict:
                 "LevelBaseConfig: duplicate ID in incomplete final record")
     require(level_end == level_table.size, "LevelBaseConfig: inferred final boundary differs from file size")
     chapter_links = chapter_level_links(tables["ChapterConfig"], level_bases, texts)
+    monsters = read_variable(tables["MonsterCfg"], monster_row, lambda row: row["id"])
+    monster_links = monster_references(monsters, tables["MonsterManualCfg"], texts)
+    waves = wave_references(directory, level_bases, monsters)
     library_candidates = level_library_candidates(tables["BuildLibraryConfig"], libraries,
                                                   groups, level_bases, texts)
     magic_ids = {r["id"] for r in magic}
@@ -504,6 +684,9 @@ def inspect(directory: Path) -> dict:
         "selectedLevelBases": [r for r in level_bases
                                if r["id"] in (9997, 9998, 9999, 1001, 1002, 1003, 2001, 2002)],
         "chapterLevelLinks": chapter_links,
+        "monsterReferences": monster_links,
+        "waveReferences": waves,
+        "numberedLevelCandidates": numbered_level_candidates(level_bases, texts, waves),
         "levelLibraryCandidates": library_candidates,
         "orbGroupComparisons": orb_group_comparisons(groups),
         "skillLevelBoundaries": {"recordBytes": 176, "completeRecords": len(levels),
@@ -576,6 +759,12 @@ def main() -> None:
         print(f"{name}: {summary['completeRows']}/{summary['declaredRows']} complete records; "
               f"{summary['undecodedTailBytes']} tail bytes excluded")
     print(f"Unresolved group/build references: {len(report['unresolvedGroupBuildReferences'])}")
+    waves = report["waveReferences"]
+    print(f"Wave collection: {waves['files']} files, {waves['completeRows']} complete rows; "
+          f"{waves['matchedNonzeroMonsterRows']} nonzero monster references matched")
+    numbered = report["numberedLevelCandidates"]
+    print(f"Numbered candidate series: {numbered['distinctNumbers']} numbers, {numbered['records']} records; "
+          "live campaign availability not verified")
     print(f"Report: {args.output}")
 
 

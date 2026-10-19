@@ -1,0 +1,536 @@
+{
+  "verifiedAt": "2026-10-19T18:06:02.839793+00:00",
+  "readerSha256": "302c4c984a20f05038d5cb11470d376841d4e61a1431a28cf8143652f88ca5fb",
+  "scope": "offline reference reader only; runtime implementation unchanged",
+  "tables": 18,
+  "waveFiles": 12987,
+  "waveRows": 501407,
+  "monsterRows": 3210,
+  "candidateNumbers": 419,
+  "candidateRecords": 683,
+  "results": [
+    {
+      "case": "complete-fixed-reference",
+      "command": [
+        "pnpm",
+        "--filter",
+        "zombie-fire",
+        "reference:inspect"
+      ],
+      "exitCode": 0,
+      "startedAt": "2026-10-19T18:05:55.455263+00:00",
+      "completedAt": "2026-10-19T18:05:57.426669+00:00"
+    },
+    {
+      "case": "missing-wave",
+      "exitCode": 1,
+      "expectedRejection": "incomplete or unexpected collection",
+      "previousReportPreserved": true
+    },
+    {
+      "case": "truncated-wave",
+      "exitCode": 1,
+      "expectedRejection": "unexpected header",
+      "previousReportPreserved": true
+    },
+    {
+      "case": "changed-wave-version",
+      "exitCode": 1,
+      "expectedRejection": "unknown reference revision",
+      "previousReportPreserved": true
+    },
+    {
+      "case": "changed-monster-version",
+      "exitCode": 1,
+      "expectedRejection": "MonsterCfg: unknown reference revision",
+      "previousReportPreserved": true
+    }
+  ],
+  "startedServices": 0,
+  "temporaryInputsRemoved": true,
+  "readerFile": "games/zombie-fire/tools/inspect-reference-tables.py",
+  "runtimeSourceUnchangedFrom": "42590fa4952e0794439216448764ab59ea2f398a",
+  "inputs": {
+    "TextConfig": {
+      "sha256": "7b274d8c9693f91576f08aeab3aa6ab22c0a283719ff8a98667eaf6a83af8da4",
+      "encoding": "transformed-blocks",
+      "declaredRows": 100614,
+      "completeRows": 100613,
+      "undecodedTailBytes": 14
+    },
+    "BuildConfig": {
+      "sha256": "dd4344431ec6c7d137bcd1e62d5166ba97367bc905a223cc54ba7461c985101f",
+      "encoding": "transformed-blocks",
+      "declaredRows": 4959,
+      "completeRows": 4958,
+      "undecodedTailBytes": 7
+    },
+    "BuildGroupConfig": {
+      "sha256": "077e378670d6ae4b25721dbc473cf3b89b87692c8e63e9ca37b9cd986ce932c0",
+      "encoding": "transformed-blocks",
+      "declaredRows": 6196,
+      "completeRows": 6195,
+      "undecodedTailBytes": 8
+    },
+    "BuildGroupWeightConfig": {
+      "sha256": "e585a9c495fc388fb428783422c338c6a3f566e1a316d26bb6c347e7623e5483",
+      "encoding": "transformed-blocks",
+      "declaredRows": 1382,
+      "completeRows": 1381,
+      "undecodedTailBytes": 12
+    },
+    "BuildGroupConditionConfig": {
+      "sha256": "180c0436a1883a76cf39cc528f25bf68e343061fe5df4890b2c024aeef6d700b",
+      "encoding": "transformed-blocks",
+      "declaredRows": 20,
+      "completeRows": 19,
+      "undecodedTailBytes": 4
+    },
+    "BuildLibraryConfig": {
+      "sha256": "d5210a455bf64ccec8ea739864338a0cc8045b2f87e1b53faaa79a3f875af1ba",
+      "encoding": "transformed-blocks",
+      "declaredRows": 233,
+      "completeRows": 231,
+      "undecodedTailBytes": 12
+    },
+    "BuildReplaceConfig": {
+      "sha256": "8e7ef1e379ea9dffb775513190e3df2cd71df717bc1ebfdaecf7bcae93593632",
+      "encoding": "transformed-blocks",
+      "declaredRows": 724,
+      "completeRows": 723,
+      "undecodedTailBytes": 4
+    },
+    "SubSkillConfg": {
+      "sha256": "fd0f349dc6df06171dcb95fa6aa3396592e5017e881a01eecf746d0b333c4ffc",
+      "encoding": "transformed-blocks",
+      "declaredRows": 1259,
+      "completeRows": 1258,
+      "undecodedTailBytes": 10
+    },
+    "MagicSkillConfig": {
+      "sha256": "81209cf4d89d688cbfda8f8af6d7614a17f5e6ebe8c5b08bbb3555af10fddcc6",
+      "encoding": "plain",
+      "declaredRows": 18,
+      "completeRows": 18,
+      "undecodedTailBytes": 0
+    },
+    "MagicSkillLevelConfig": {
+      "sha256": "d348f5fea6211c06e6b617798bd94ec925a910bad32bd858a4b5b3bcbaa1a22a",
+      "encoding": "plain",
+      "declaredRows": 828,
+      "completeRows": 828,
+      "undecodedTailBytes": 0
+    },
+    "SkillBaseConfg": {
+      "sha256": "051c0e6e78db28d0ced63ca276cd3852ac26bc79235f5273d2f42a0fe6bb5651",
+      "encoding": "transformed-blocks",
+      "declaredRows": 2154,
+      "completeRows": 2153,
+      "undecodedTailBytes": 11
+    },
+    "LevelBaseConfig": {
+      "sha256": "9ce6ca6e917c13cf855522eb104a894775592abc450762792eae09f51f79269b",
+      "encoding": "transformed-blocks",
+      "declaredRows": 13014,
+      "completeRows": 13013,
+      "undecodedTailBytes": 5
+    },
+    "ChapterConfig": {
+      "sha256": "9c5dba0a9d52998459ef5095a86dfd4530348ef564017af996bb8a3a44ecc98f",
+      "encoding": "plain",
+      "declaredRows": 50,
+      "completeRows": 50,
+      "undecodedTailBytes": 0
+    },
+    "MonsterCfg": {
+      "sha256": "691e8cda216bd1fb3025950118a4d055e2823143c1ab3cbe13db03af3fd9c713",
+      "encoding": "plain",
+      "declaredRows": 3210,
+      "completeRows": 3210,
+      "undecodedTailBytes": 0
+    },
+    "MonsterManualCfg": {
+      "sha256": "29a5d955f39c76a27331a55de7464a54f9b6443841ee1a40b2d280f541203cf9",
+      "encoding": "plain",
+      "declaredRows": 207,
+      "completeRows": 207,
+      "undecodedTailBytes": 0
+    },
+    "BuffConfig": {
+      "sha256": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
+      "encoding": "transformed-blocks",
+      "declaredRows": 5171,
+      "completeRows": 5170,
+      "undecodedTailBytes": 14
+    },
+    "BuffAttrConfig": {
+      "sha256": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
+      "encoding": "transformed-blocks",
+      "declaredRows": 5204,
+      "completeRows": 5203,
+      "undecodedTailBytes": 6
+    },
+    "BuffFuncSkillAttrConfig": {
+      "sha256": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
+      "encoding": "plain",
+      "declaredRows": 4275,
+      "completeRows": 4275,
+      "undecodedTailBytes": 0
+    }
+  },
+  "waveCollection": {
+    "files": 12987,
+    "bytes": 69955313,
+    "completeRows": 501407,
+    "recordBytes": 139,
+    "aggregateSha256": "47b4d347884fdac88681ca6fac2ba132f1d611eaeafb8792634f55e74658d1b0",
+    "aggregateFormat": "Numeric filename order; UTF-8 filename + NUL + SHA-256 hex + LF.",
+    "declaredChecksum": 9999,
+    "checksumVerified": false,
+    "matchedLevelReferences": 12987,
+    "levelsWithoutWaveFile": [
+      9997,
+      84300,
+      84310,
+      84320,
+      84330,
+      84340,
+      84350,
+      84360,
+      84370,
+      84380,
+      84600,
+      84610,
+      84620,
+      84630,
+      84640,
+      84650,
+      84660,
+      84670,
+      84680,
+      91000,
+      119001,
+      119002,
+      119003,
+      120001,
+      120002,
+      120101
+    ],
+    "monsterReferenceOffset": 33,
+    "matchedNonzeroMonsterRows": 418776,
+    "distinctNonzeroMonsterReferences": 788,
+    "zeroMonsterReferenceRows": 82631,
+    "unresolvedLevelReferences": [],
+    "unresolvedMonsterReferences": [],
+    "uniqueRowIdsWithinEachFile": true,
+    "nonconsecutiveRowIdFiles": [
+      84001,
+      84002,
+      84003,
+      84011,
+      84012,
+      84013,
+      84021,
+      84022,
+      84023,
+      84031,
+      84032,
+      84033,
+      84201,
+      84202,
+      84203,
+      84211,
+      84212,
+      84213,
+      84221,
+      84222,
+      84223,
+      84401,
+      84402,
+      84403,
+      84411,
+      84412,
+      84413,
+      84421,
+      84422,
+      84423,
+      84431,
+      84432,
+      84433,
+      84501,
+      84502,
+      84503,
+      84511,
+      84512,
+      84513,
+      84521,
+      84522,
+      84523
+    ],
+    "nonmonotonicFloat16Files": [
+      2007,
+      81015,
+      81016,
+      81017,
+      81018,
+      81019,
+      81020,
+      81021,
+      81022,
+      81023,
+      81024,
+      81025,
+      81026,
+      81027,
+      81028,
+      81029,
+      81030,
+      81031,
+      81032,
+      81033,
+      81034,
+      81035,
+      81036,
+      81037,
+      81038,
+      81039,
+      81040,
+      84321,
+      84322,
+      84351,
+      84352,
+      84381,
+      84382,
+      84621,
+      84622,
+      84651,
+      84652,
+      84681,
+      84682
+    ]
+  },
+  "monsterExceptions": {
+    "recordByteCounts": {
+      "242": 3,
+      "248": 3206,
+      "251": 1
+    },
+    "nonemptySecondStrings": [
+      {
+        "id": 5300,
+        "value": "6.2"
+      }
+    ],
+    "missingTextReferences": [
+      451005220,
+      451005222,
+      451005223,
+      451103330,
+      452005220,
+      452005222,
+      452005223
+    ],
+    "unresolvedManualValuesAt4": [
+      {
+        "id": 330,
+        "valueAt4": 0
+      },
+      {
+        "id": 302,
+        "valueAt4": 1
+      },
+      {
+        "id": 303,
+        "valueAt4": 1
+      }
+    ]
+  },
+  "numberedCandidates": {
+    "criterion": "Body28=2; title number N with ID=1000+N, or N-S with ID=10000+10*N+S. Description labels are parsed independently and conflicts retained.",
+    "distinctNumbers": 419,
+    "firstNumber": 1,
+    "lastNumber": 419,
+    "missingNumbers": [],
+    "records": 683,
+    "recordsPerNumberCounts": {
+      "1": 299,
+      "2": 24,
+      "3": 71,
+      "4": 2,
+      "5": 23
+    },
+    "firstSplitNumber": 300,
+    "titleSeparatorExceptions": [
+      {
+        "id": 13142,
+        "title": "314-2鬼啸荒丘",
+        "label": "第314-2关"
+      },
+      {
+        "id": 13242,
+        "title": "324-2废厂尸嚎",
+        "label": "第324-2关"
+      }
+    ],
+    "titleLabelNumberConflicts": [
+      {
+        "id": 13254,
+        "title": "325-4.暗渠逃杀",
+        "label": "第323-4关",
+        "textReferences": [
+          401513254,
+          401613254
+        ]
+      },
+      {
+        "id": 13255,
+        "title": "325-5.暗渠逃杀",
+        "label": "第323-5关",
+        "textReferences": [
+          401513255,
+          401613255
+        ]
+      },
+      {
+        "id": 13354,
+        "title": "335-4.血色要塞",
+        "label": "第333-4关",
+        "textReferences": [
+          401513354,
+          401613354
+        ]
+      },
+      {
+        "id": 13355,
+        "title": "335-5.血色要塞",
+        "label": "第333-5关",
+        "textReferences": [
+          401513355,
+          401613355
+        ]
+      },
+      {
+        "id": 13454,
+        "title": "345-4.迷影之森",
+        "label": "第343-4关",
+        "textReferences": [
+          401513454,
+          401613454
+        ]
+      },
+      {
+        "id": 13455,
+        "title": "345-5.迷影之森",
+        "label": "第343-5关",
+        "textReferences": [
+          401513455,
+          401613455
+        ]
+      },
+      {
+        "id": 13554,
+        "title": "355-4.机械迷城",
+        "label": "第353-4关",
+        "textReferences": [
+          401513554,
+          401613554
+        ]
+      },
+      {
+        "id": 13555,
+        "title": "355-5.机械迷城",
+        "label": "第353-5关",
+        "textReferences": [
+          401513555,
+          401613555
+        ]
+      },
+      {
+        "id": 13654,
+        "title": "365-4.危楼困局",
+        "label": "第363-4关",
+        "textReferences": [
+          401513654,
+          401613654
+        ]
+      },
+      {
+        "id": 13655,
+        "title": "365-5.危楼困局",
+        "label": "第363-5关",
+        "textReferences": [
+          401513655,
+          401613655
+        ]
+      },
+      {
+        "id": 13754,
+        "title": "375-4.幽庭围猎",
+        "label": "第373-4关",
+        "textReferences": [
+          401513754,
+          401613754
+        ]
+      },
+      {
+        "id": 13755,
+        "title": "375-5.幽庭围猎",
+        "label": "第373-5关",
+        "textReferences": [
+          401513755,
+          401613755
+        ]
+      },
+      {
+        "id": 13854,
+        "title": "385-4.腐叶沼泽",
+        "label": "第383-4关",
+        "textReferences": [
+          401513854,
+          401613854
+        ]
+      },
+      {
+        "id": 13855,
+        "title": "385-5.腐叶沼泽",
+        "label": "第383-5关",
+        "textReferences": [
+          401513855,
+          401613855
+        ]
+      },
+      {
+        "id": 13954,
+        "title": "395-4.残庭清剿",
+        "label": "第393-4关",
+        "textReferences": [
+          401513954,
+          401613954
+        ]
+      },
+      {
+        "id": 13955,
+        "title": "395-5.残庭清剿",
+        "label": "第393-5关",
+        "textReferences": [
+          401513955,
+          401613955
+        ]
+      }
+    ],
+    "allWaveReferencesPresent": true
+  },
+  "discoveryFailures": [
+    {
+      "log": "artifacts/zombie-fire-campaign-reference-numbering-first-attempt.log",
+      "finding": "Two titles omit the period after the numeric prefix; numbering is parsed independently of punctuation."
+    },
+    {
+      "log": "artifacts/zombie-fire-campaign-reference-formula-first-attempt.log",
+      "finding": "Matching only the description to the ID excluded sixteen conflicting sublevels. The final reader preserves title and description numbering separately."
+    }
+  ],
+  "gameplayChanged": false,
+  "newGamePublished": false,
+  "fullGoalComplete": false
+}
