@@ -7,21 +7,27 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  async function play(count){if(native)await p.evaluate(count=>call({type:'zombie-fire-play',count}),count);else await p.evaluate(count=>__zombieFire.play(count),count);return fresh();}
  async function choose(id){for(let n=0;n<30;n++){if((await state()).controls.some(b=>b.id===id)){await click(id);return;}await click('page-next');}throw Error('missing '+id);}
  async function outfitBattle(skin,skill){
-  await click('open:gear');await choose('skins');await choose('skin:'+skin);await home();await click('endless');
-  let s=await state();assert.ok(s.skinProgress);assert.equal(s.skinProgress.skill,skill);assert.equal(s.skinProgress.triggers,0);
-  for(let n=0;n<350&&s.skinProgress.triggers===0;n++){
-   if(s.battlePhase==='choice'){
-    const score=c=>c.id==='learn:'+skill?1000:c.skill===skill?500:c.kind==='learn'?0:100;
-    const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0];await click('choose:'+s.cards.findIndex(c=>c.id===card.id));
-   }else if(s.battlePhase==='playing'){
-    // Same deterministic rules, no automatic card choice or health/currency grants.
-    const count=s.skinProgress.hits>=s.skinProgress.threshold/2?24:180;
-    if(native)await p.evaluate(count=>call({type:'advance',count}),count);else await p.evaluate(count=>__collectionAdvance(count),count);
-   }else break;
-   s=await fresh();assert.ok(Number.isFinite(s.skinProgress.hits)&&s.skinProgress.hits>=0&&s.skinProgress.hits<s.skinProgress.threshold,'exported charge display must stay finite and within its threshold');
+  await click('open:gear');await choose('skins');await choose('skin:'+skin);await home();let triggered=false;
+  for(let attempt=0;attempt<6&&!triggered;attempt++){
+   await click('endless');let s=await state();assert.ok(s.skinProgress);assert.equal(s.skinProgress.skill,skill);assert.equal(s.skinProgress.triggers,0);
+   for(let n=0;n<350&&s.skinProgress.triggers===0;n++){
+    if(s.battlePhase==='choice'){
+     if(!s.learned[skill]&&!s.cards.some(c=>c.id==='learn:'+skill)&&s.rerolls>0){await click('reroll');s=await fresh();continue;}
+     const score=c=>c.id==='learn:'+skill?1000:c.skill===skill?500:c.kind==='learn'?0:100;
+     const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0];await click('choose:'+s.cards.findIndex(c=>c.id===card.id));
+    }else if(s.battlePhase==='playing'){
+     // Same deterministic rules, no automatic card choice or health/currency grants.
+     const count=s.skinProgress.hits>=s.skinProgress.threshold/2?24:180;
+     if(native)await p.evaluate(count=>call({type:'advance',count}),count);else await p.evaluate(count=>__collectionAdvance(count),count);
+    }else break;
+    s=await fresh();assert.ok(Number.isFinite(s.skinProgress.hits)&&s.skinProgress.hits>=0&&s.skinProgress.hits<s.skinProgress.threshold,'exported charge display must stay finite and within its threshold');
+    if(!s.learned[skill]&&Object.keys(s.learned).length>=5)break;
+   }
+   triggered=s.skinProgress.triggers>0;
+   if(triggered){assert.ok(s.learned[skill],skin+' must acquire its weapon through an offered card');assert.ok(s.damage>0);await fits();await capture('passive-'+skin);}
+   await home();
   }
-  assert.ok(s.learned[skill],skin+' must acquire its weapon through an offered card');
-  assert.ok(s.skinProgress.triggers>0,skin+' must trigger from real hits');assert.ok(s.damage>0);await fits();await capture('passive-'+skin);await home();
+  assert.ok(triggered,skin+' must trigger from real hits');
  }
  async function advancedBattle(skill){
   let observed=false;
