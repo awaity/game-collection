@@ -1,8 +1,12 @@
 {
-  "revision": "930592deca1cb7d1e1fbc6d1c912789a574ea81d",
-  "builtAt": "2026-10-19T03:14:47.519Z",
+  "revision": "9af7522539062f83fbf77999713e0163d945b31d",
+  "builtAt": "2026-10-19T06:22:41.167Z",
   "base": "/game-collection/",
   "games": [
+    {
+      "slug": "shanhai-run",
+      "path": "/game-collection/games/shanhai-run/"
+    },
     {
       "slug": "endless-night",
       "path": "/game-collection/games/endless-night/"
