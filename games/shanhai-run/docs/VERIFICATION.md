@@ -32,4 +32,17 @@ pnpm check
 
 封面来自真实运行画面，只隐藏 HUD 后拍摄，复现脚本 `scripts/capture-shanhai-cover.mjs`。大厅从 catalog 读取第九款入口，全站统一部署并通过 `release.json` 关联源码。
 
+## 品牌与美术升级回归（2026-10-19）
+
+精修行者的面部、发束、交领、护肩、玉佩、衣摆与靴子；五套衣装增加九尾、层叠羽翼、火羽、月轮等独立轮廓，并使用有界的动作粒子和加色光效。行装页支持购买前实时试穿，主菜单、战斗 HUD 和衣装页适配手机、桌面与横屏。
+
+四个 Web 视口与微信/抖音两原生宿主的完整流程均通过。新增断言确认免费试穿只改变预览，不扣灵玉、不装备、不写存档；离开面板后恢复实际装备。原八试炼、四区域、7 公里以上无尽、合法赚币后的购买和法宝升级、后台暂停及重载继续通过。五套衣装的预览和实际装备均保留截图，动态网格绘制数量检查仍通过。
+
+- `artifacts/brand-shanhai-web-flows.log`、`artifacts/cocos/shanhai-run/web-verification.json`：四视口完整流程。
+- `artifacts/brand-shanhai-native-flows.log`、`artifacts/cocos/shanhai-run/native-verification.json`：双原生完整流程。
+- `artifacts/cocos/shanhai-run/*-preview-*.png`、`*-outfit-*.png`：五衣装的免费预览与已装备状态；主菜单、四区域和动作截图同目录保存。
+- `artifacts/brand-shanhai-preview.log`、`artifacts/brand-cover.log`：美术预览与实机封面采集。
+
+角色、衣装和特效均为仓库内原创几何与着色器。保留原皮肤 ID、价格、存档结构和战斗规则；低画质减少装饰粒子，关闭画面动态时停用装饰运动。上述软件 GPU 验证不作为手机性能结论。
+
 官方微信/抖音开发者工具、iOS/Android 真机、平台上传与审核未执行。公开网页版参考停在准备状态，没有把 HTML 或加载页面当作实际试玩证据。网页发布与小游戏平台上线分开记录。

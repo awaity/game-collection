@@ -76,7 +76,7 @@ try {
     // underlying menu actions will appear. It must only dismiss the entrance.
     for(const name of ['TouchStart','TouchEnd'])await p.evaluate(name=>call({type:'event',name,event:{touches:name==='TouchStart'?[{identifier:1,clientX:195,clientY:640}]:[],changedTouches:[{identifier:1,clientX:195,clientY:640}]}}),name);
     s=await p.evaluate(()=>call({type:'frames',count:4}));assert.equal(s.entrance.done,true);assert.deepEqual(s.errors,[]);
-    if(isCocos){assert.deepEqual(s.bootBrand,{drawn:true,ended:true});assert.equal(s.state.phase,phases[game.slug]);assert.ok(!s.state.labels.includes('开局游戏'));assert.equal(s.environment.documentAbsent,true);assert.equal(s.graphics.error,0);}
+    if(isCocos){assert.deepEqual(s.bootBrand,{drawn:true,ended:true});assert.ok(!s.reads.some(name=>/(^|\/)(logo|slogan)\.png$/.test(name)),'legacy engine branding is never loaded');assert.equal(s.state.phase,phases[game.slug]);assert.ok(!s.state.labels.includes('开局游戏'));assert.equal(s.environment.documentAbsent,true);assert.equal(s.graphics.error,0);}
     else assert.ok(s.texts.some(t=>t.label===labels[game.slug]),'skip leaves initial menu intact');
     await p.screenshot({path:`${out}/${target}-${game.slug}-ready.png`});report.push({slug:game.slug,target,passed:['real-export','brand-drawn','skip-consumed','initial-state-intact']});console.log('entrance',game.slug,target,'passed');
    }finally{await p.close();}

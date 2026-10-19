@@ -108,6 +108,9 @@ try {
         "no horizontal overflow",
       );
     const press = async (locator) => {
+      await page.waitForFunction(()=>!document.querySelector('#collection-entrance'));
+      const presentRun = new URL(page.url()).pathname === `${base}games/shanhai-run/`
+        && await locator.evaluate(el => el.tagName !== 'A');
       // Zombie's semantic buttons are keyboard mirrors; real pointer input goes
       // to Canvas at the exact same bounds. Exercise that actual user path.
       if (
@@ -123,6 +126,10 @@ try {
         else await page.mouse.click(x, y);
       } else if (size.width < 600) await locator.tap();
       else await locator.click();
+      // Keep this navigation check on a controlled presentation clock. Actual
+      // running/collision progress is covered by the dedicated legal-play flow;
+      // software-GPU screenshot latency must not finish the run before pause.
+      if (presentRun) await presentCocos(page);
     };
     try {
       await page.goto(origin + base);
@@ -205,6 +212,8 @@ try {
         await page.locator(".collection-return").waitFor({ state: "visible" });
         await page.reload();
         await page.locator(ui.start).waitFor({ state: "visible" });
+        await page.waitForFunction(()=>!document.querySelector('#collection-entrance'));
+        if (game.slug === "shanhai-run") await presentCocos(page);
         await page.screenshot({
           path: path.join(artifacts, `${game.slug}-${size.width}-menu.png`),
         });
@@ -308,6 +317,7 @@ try {
           const state = await page.evaluate(() => __VOLLEY__.advance(20));
           assert.equal(state.phase, "running");
         }
+        if (game.slug === "shanhai-run") await presentCocos(page);
         await page.screenshot({
           path: path.join(artifacts, `${game.slug}-${size.width}-play.png`),
         });

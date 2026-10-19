@@ -38,6 +38,7 @@ try {
     const context = await browser.newContext({ viewport, deviceScaleFactor: mobile ? 2 : 1, isMobile: mobile, hasTouch: mobile });
     const page = await context.newPage(); page.on('pageerror', e => errors.push(`${tag}: ${e.message}`)); page.on('console', m => { if (m.type() === 'error') errors.push(`${tag}: ${m.text()}`); });
     await page.goto(`${base}/?qa=1`); await page.waitForSelector('[data-action="continue-level"]');
+    await page.waitForFunction(()=>!document.querySelector('#collection-entrance'));
     await page.screenshot({ path: `${artifacts}/home-${tag}.png` }); await validateBounds(page);
     for (const mode of ['levels', 'adventure', 'challenges', 'almanac']) {
       await click(page, mode); await validateBounds(page);

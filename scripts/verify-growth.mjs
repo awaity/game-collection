@@ -33,6 +33,7 @@ try{
   };
   const has=async id=>cocos?(await pulse()).controls.some(b=>b.id===id):await page.locator(`[data-action="${id}"]`).count()>0;
   async function click(id){
+   await page.waitForFunction(()=>!document.querySelector('#collection-entrance'));
    let locator;
    if(cocos){const s=await pulse(),b=s.controls.find(b=>b.id===id);assert.ok(b,'Missing '+id);locator=page.getByRole('button',{name:b.label,exact:true}).nth(s.controls.filter(c=>c.label===b.label).findIndex(c=>c.id===id));}
    else locator=page.locator(id==='career:open'&&slug==='volley-run'?'#career-open':`[data-action="${id}"]`);
