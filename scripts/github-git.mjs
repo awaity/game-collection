@@ -32,6 +32,23 @@ function localTree(tree){
   });
 }
 
+export function treeChanges(before,after){
+  const old=new Map(before.map(entry=>[entry.path,entry]));
+  const next=new Map(after.map(entry=>[entry.path,entry]));
+  const directories=entries=>new Set(entries.flatMap(entry=>entry.path.split('/').slice(0,-1).map((_,i)=>entry.path.split('/').slice(0,i+1).join('/'))));
+  const oldDirs=directories(before),newDirs=directories(after);
+  const removed=[...oldDirs].filter(dir=>!newDirs.has(dir));
+  const removedRoots=removed.filter(dir=>!removed.some(parent=>dir.startsWith(parent+'/')));
+  const changes=removedRoots.map(path=>({path,mode:'040000',type:'tree',sha:null}));
+  for(const entry of before)if(!next.has(entry.path)&&!removedRoots.some(dir=>entry.path.startsWith(dir+'/')))
+    changes.push({path:entry.path,mode:entry.mode,type:entry.type,sha:null});
+  for(const entry of after){
+    const prior=old.get(entry.path);
+    if(!prior||prior.sha!==entry.sha||prior.mode!==entry.mode||prior.type!==entry.type)changes.push(entry);
+  }
+  return changes;
+}
+
 export async function createGitHubPublisher(){
   let credential;
   try {
@@ -47,12 +64,21 @@ export async function createGitHubPublisher(){
     // redirect, log headers, persist credentials, or change global Git config.
     assert.ok(endpoint.startsWith('/git/'));
     let response;
-    try {
-      response=await fetch(repository+endpoint,{method,redirect:'error',signal:AbortSignal.timeout(30000),headers:{
-        Accept:'application/vnd.github+json',Authorization:authorization,'Content-Type':'application/json',
-        'X-GitHub-Api-Version':'2022-11-28','User-Agent':'game-collection-publisher',
-      },body:body===undefined?undefined:JSON.stringify(body)});
-    }catch{throw Error(`GitHub API connection failed for ${method} ${endpoint}; remote state must be checked before retrying.`);}
+    for(let attempt=0;attempt<3;attempt++){
+      try {
+        response=await fetch(repository+endpoint,{method,redirect:'error',signal:AbortSignal.timeout(30000),headers:{
+          Accept:'application/vnd.github+json',Authorization:authorization,'Content-Type':'application/json',
+          'X-GitHub-Api-Version':'2022-11-28','User-Agent':'game-collection-publisher',
+        },body:body===undefined?undefined:JSON.stringify(body)});
+      }catch{
+        if(method!=='PATCH'&&attempt<2){await delay(1000*2**attempt);continue;}
+        throw Error(`GitHub API connection failed for ${method} ${endpoint}; remote state must be checked before retrying.`);
+      }
+      if(method!=='PATCH'&&[502,503,504].includes(response.status)&&attempt<2){
+        await response.arrayBuffer();await delay(1000*2**attempt);continue;
+      }
+      break;
+    }
     if(!response.ok)throw Error(`GitHub API ${method} ${endpoint} returned HTTP ${response.status}`);
     const result=await response.json();
     if(method!=='GET')await delay(850); // Stay below secondary content-creation limits.
@@ -65,7 +91,7 @@ export async function createGitHubPublisher(){
     assert.equal(result.truncated,false,'Remote tree must be complete before publishing');
     return {tree,entries:result.tree.filter(entry=>entry.type!=='tree')};
   }
-  async function uploadTree(tree,known){
+  async function uploadTree(tree,known,base){
     const entries=localTree(tree),pending=[...new Set(entries.filter(entry=>entry.type==='blob'&&!known.has(entry.sha)).map(entry=>entry.sha))];
     console.log(`GitHub: 上传 ${pending.length} 个新文件对象，保留 ${entries.length} 个文件条目。`);
     for(const [i,id]of pending.entries()){
@@ -74,17 +100,19 @@ export async function createGitHubPublisher(){
       assert.equal(result.sha,id,'Uploaded blob does not match local source');known.add(id);
       if((i+1)%10===0||i===pending.length-1)console.log(`GitHub 文件对象 ${i+1}/${pending.length}`);
     }
-    // A complete tree also deletes obsolete assets and empty directories. Its
-    // SHA must equal the local tree before any branch can be advanced.
-    const result=await api('/git/trees',{tree:entries});
+    // Send only changed entries, including obsolete directories, to avoid a
+    // large full-tree reconstruction. Still require the exact complete SHA.
+    const result=await api('/git/trees',{base_tree:base.tree,tree:treeChanges(base.entries,entries)});
     assert.equal(result.sha,tree,'Uploaded tree does not match local source');
+    return {tree,entries};
   }
-  async function uploadCommit(revision,parent,known){
+  async function uploadCommit(revision,parent,known,base){
     const body=parseCommit(git(['cat-file','commit',revision]).toString());
     assert.equal(body.parents[0],parent,'Publication must preserve linear history');
-    await uploadTree(body.tree,known);
+    const uploaded=await uploadTree(body.tree,known,base);
     const result=await api('/git/commits',body);assert.equal(result.sha,revision,'Uploaded commit hash differs; branch remains unchanged');
     console.log('GitHub 提交已核对：'+revision);
+    return uploaded;
   }
   async function advance(branch,before,after){
     assert.ok(['main','gh-pages'].includes(branch));
@@ -98,10 +126,10 @@ export async function createGitHubPublisher(){
   async function publishMain(revision){
     sha(revision);const before=await ref('main');if(before===revision)return {before,revision,commits:[]};
     try{git(['merge-base','--is-ancestor',before,revision]);}catch{throw Error('Remote main is not an ancestor of the checked source.');}
-    const base=await remoteTree(before),known=new Set(base.entries.map(entry=>entry.sha));
+    let base=await remoteTree(before);const known=new Set(base.entries.map(entry=>entry.sha));
     const commits=git(['rev-list','--reverse',before+'..'+revision]).toString().trim().split('\n');
     let parent=before;
-    for(const commit of commits){await uploadCommit(sha(commit),parent,known);parent=commit;}
+    for(const commit of commits){base=await uploadCommit(sha(commit),parent,known,base);parent=commit;}
     await advance('main',before,revision);return {before,revision,commits};
   }
   async function publishSite(siteDir,sourceRevision){
@@ -117,7 +145,7 @@ export async function createGitHubPublisher(){
     const author=git(['var','GIT_AUTHOR_IDENT']).toString().trim(),committer=git(['var','GIT_COMMITTER_IDENT']).toString().trim();
     const raw=`tree ${tree}\nparent ${before}\nauthor ${author}\ncommitter ${committer}\n\nchore(pages): 发布游戏合集 ${sourceRevision.slice(0,8)}\n`;
     const revision=sha(git(['hash-object','-t','commit','-w','--stdin'],{input:raw}).toString().trim());
-    await uploadCommit(revision,before,new Set(base.entries.map(entry=>entry.sha)));
+    await uploadCommit(revision,before,new Set(base.entries.map(entry=>entry.sha)),base);
     await advance('gh-pages',before,revision);
     return {before,revision,tree,sourceRevision};
   }

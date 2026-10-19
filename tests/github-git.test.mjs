@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {parseCommit} from '../scripts/github-git.mjs';
+import {parseCommit,treeChanges} from '../scripts/github-git.mjs';
 
 test('GitHub upload preserves author time zones and exact multiline messages',()=>{
   const message='feat(game): 发布试玩\n\n说明中的 `代码` 与 $() 保持字面值。\n';
@@ -15,4 +15,18 @@ test('GitHub upload rejects histories it cannot reproduce without changing commi
   assert.throws(()=>parseCommit(base.replace('\nauthor',`\nparent ${'3'.repeat(40)}\nauthor`)+'\n\nmerge\n'),/unsigned linear/);
   assert.throws(()=>parseCommit(base+'\ngpgsig signature\n\nmessage\n'),/unsigned linear/);
   assert.throws(()=>parseCommit(base.replace('1'.repeat(40),'invalid')+'\n\nmessage\n'));
+});
+
+test('publication removes an obsolete game directory without disturbing retained games',()=>{
+  const file=(path,sha)=>({path,mode:'100644',type:'blob',sha});
+  const before=[file('games/old/index.html','a'),file('games/old/assets/main.js','b'),file('games/keep/index.html','c')];
+  const after=[before[2],file('games/new/index.html','d')];
+  assert.deepEqual(treeChanges(before,after),[{path:'games/old',mode:'040000',type:'tree',sha:null},after[1]]);
+});
+
+test('publication handles renamed bundles, changed files and permissions while preserving their directory',()=>{
+  const file=(path,sha,mode='100644')=>({path,mode,type:'blob',sha});
+  const before=[file('assets/old.js','a'),file('assets/style.css','b'),file('index.html','c'),file('script','d')];
+  const after=[file('assets/new.js','e'),before[1],file('index.html','f'),file('script','d','100755')];
+  assert.deepEqual(treeChanges(before,after),[{path:'assets/old.js',mode:'100644',type:'blob',sha:null},after[0],after[2],after[3]]);
 });
