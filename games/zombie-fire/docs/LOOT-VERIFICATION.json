@@ -1,0 +1,749 @@
+{
+  "verifiedAt": "2026-10-19T18:36:57.705041+00:00",
+  "readerSha256": "0dae6e22f2f7d575607b0e6a07fa26d7e11a3f233ea21bc676101978fc3ad757",
+  "tables": 22,
+  "inputs": {
+    "BootyConfig": {
+      "sha256": "43fdfdd5f281ea3c9802a099045cb267edab3bc8f5a0fa51bcf875b58b2eaaac",
+      "encoding": "transformed-blocks",
+      "bytes": 5644596,
+      "declaredRows": 100796,
+      "completeRows": 100795,
+      "decodedPrefixBytes": 5644592,
+      "undecodedTailBytes": 4,
+      "declaredChecksum": "f62062e5",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": true,
+      "incompleteRecordOffset": null
+    },
+    "GoodsConfig": {
+      "sha256": "eeab422ac2eac80d9836f33f90b047fcfe756be2c564555dfef259c81247d013",
+      "encoding": "transformed-blocks",
+      "bytes": 1104317,
+      "declaredRows": 5685,
+      "completeRows": 5684,
+      "decodedPrefixBytes": 1104304,
+      "undecodedTailBytes": 13,
+      "declaredChecksum": "16dc6597",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": false,
+      "incompleteRecordOffset": 1104133
+    },
+    "CurrencyTypeConfig": {
+      "sha256": "6a6a4a5cf01660b5721798f591fae27cf55688c0cec8edafb4762811f67246d1",
+      "encoding": "plain",
+      "bytes": 4087,
+      "declaredRows": 97,
+      "completeRows": 97,
+      "decodedPrefixBytes": 4087,
+      "undecodedTailBytes": 0,
+      "declaredChecksum": "4aaa2a1d",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": true,
+      "incompleteRecordOffset": null
+    }
+  },
+  "links": {
+    "bootyRecordBytes": 56,
+    "completeBootyRows": 100795,
+    "uniqueBootyGroups": 33643,
+    "incompleteBootyGroupExcluded": 30840005,
+    "candidateLevels": 683,
+    "waveNumberSets": [
+      {
+        "numbers": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20
+        ],
+        "levels": 683
+      }
+    ],
+    "references": {
+      "89": {
+        "nonzeroWaveRows": 3415,
+        "distinctGroups": 2095,
+        "perLevelNonzeroCounts": {
+          "5": 683
+        }
+      },
+      "93": {
+        "nonzeroWaveRows": 13660,
+        "distinctGroups": 419,
+        "perLevelNonzeroCounts": {
+          "20": 683
+        }
+      },
+      "97": {
+        "nonzeroWaveRows": 683,
+        "distinctGroups": 419,
+        "perLevelNonzeroCounts": {
+          "1": 683
+        }
+      }
+    },
+    "parentNumberGroupPattern": "(1000+titleNumber)*100 + 1..5 / 51 / 11 for wave offsets 89 / 93 / 97",
+    "matchedGroups": 2933,
+    "matchedGroupRows": 17598,
+    "unresolvedGoodsReferencesAt20": [],
+    "selectedGroups": {
+      "100101": [
+        [
+          100101,
+          1,
+          1,
+          10000,
+          4,
+          99004,
+          15,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ],
+      "100151": [
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61001,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61002,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61003,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61004,
+          1,
+          0,
+          0,
+          0,
+          0,
+          6,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61005,
+          1,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61006,
+          1,
+          0,
+          0,
+          0,
+          0,
+          32,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61007,
+          1,
+          0,
+          0,
+          0,
+          0,
+          27,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61008,
+          1,
+          0,
+          0,
+          0,
+          0,
+          9,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61009,
+          1,
+          0,
+          0,
+          0,
+          0,
+          13,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61010,
+          1,
+          0,
+          0,
+          0,
+          0,
+          17,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61011,
+          1,
+          0,
+          0,
+          0,
+          0,
+          22,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61012,
+          1,
+          0,
+          0,
+          0,
+          0,
+          38,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61013,
+          1,
+          0,
+          0,
+          0,
+          0,
+          35,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61014,
+          1,
+          0,
+          0,
+          0,
+          0,
+          40,
+          0,
+          0
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61015,
+          1,
+          0,
+          0,
+          0,
+          0,
+          43,
+          0,
+          3
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61016,
+          1,
+          0,
+          0,
+          0,
+          0,
+          45,
+          0,
+          3
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61017,
+          1,
+          0,
+          0,
+          0,
+          0,
+          47,
+          0,
+          1
+        ],
+        [
+          100151,
+          2,
+          1,
+          100,
+          9,
+          61018,
+          1,
+          0,
+          0,
+          0,
+          0,
+          47,
+          0,
+          2
+        ]
+      ],
+      "100111": [
+        [
+          100111,
+          1,
+          1,
+          10000,
+          1,
+          90002,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    "goodsLayout": {
+      "idAndNameBytes": 8,
+      "stringCount": 2,
+      "tailBytes": 152,
+      "predictedFinalRecordEnd": 1104317,
+      "incompleteIdExcluded": 6723109,
+      "nonemptySecondStrings": 983
+    },
+    "selectedGoods": [
+      {
+        "offset": 54737,
+        "id": 99004,
+        "nameReference": 430099004,
+        "firstString": "icon_common_exp_1",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440099004,
+        "name": "经验",
+        "description": "通过作战等方式获得的经验，用于人物升级"
+      },
+      {
+        "offset": 549717,
+        "id": 90002,
+        "nameReference": 430090002,
+        "firstString": "icon_zhuangbei_qiangxietuzhi",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440090002,
+        "name": "枪械图纸",
+        "description": "记载着枪械构造的图纸，使用后可以提升枪械等级"
+      },
+      {
+        "offset": 356547,
+        "id": 61001,
+        "nameReference": 430061001,
+        "firstString": "icon_kejishouce_wenyadan",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061001,
+        "name": "温压弹手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 356741,
+        "id": 61002,
+        "nameReference": 430061002,
+        "firstString": "icon_kejishouce_ganbingzimudan",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061002,
+        "name": "干冰弹手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 356941,
+        "id": 61003,
+        "nameReference": 430061003,
+        "firstString": "icon_kejishouce_diancichuanci",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061003,
+        "name": "电磁穿刺手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 357140,
+        "id": 61004,
+        "nameReference": 430061004,
+        "firstString": "icon_kejishouce_gaonengshexian",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061004,
+        "name": "高能射线手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 357340,
+        "id": 61005,
+        "nameReference": 430061005,
+        "firstString": "icon_kejishouce_gangtiehongliu",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061005,
+        "name": "装甲车手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 357540,
+        "id": 61006,
+        "nameReference": 430061006,
+        "firstString": "icon_kejishouce_yasuoqiren",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061006,
+        "name": "压缩气刃手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 357736,
+        "id": 61007,
+        "nameReference": 430061007,
+        "firstString": "icon_kejishouce_kongtouhongzha",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061007,
+        "name": "空投轰炸手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 357936,
+        "id": 61008,
+        "nameReference": 430061008,
+        "firstString": "icon_kejishouce_zhidaojiguang",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061008,
+        "name": "制导激光手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 358135,
+        "id": 61009,
+        "nameReference": 430061009,
+        "firstString": "icon_kejishouce_bingbao",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061009,
+        "name": "冰暴发生器手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 358328,
+        "id": 61010,
+        "nameReference": 430061010,
+        "firstString": "icon_kejishouce_yuedaodianzi",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061010,
+        "name": "跃迁电子手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 358526,
+        "id": 61011,
+        "nameReference": 430061011,
+        "firstString": "icon_kejishouce_xuanfengjianong",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061011,
+        "name": "旋风加农手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 358727,
+        "id": 61012,
+        "nameReference": 430061012,
+        "firstString": "icon_kejishouce_wurenji",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061012,
+        "name": "无人机冲击手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 358920,
+        "id": 61013,
+        "nameReference": 430061013,
+        "firstString": "icon_kejishouce_ranyoudan",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061013,
+        "name": "燃油弹手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 359115,
+        "id": 61014,
+        "nameReference": 430061014,
+        "firstString": "icon_kejishouce_dianjizhu",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061014,
+        "name": "电极柱手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 359310,
+        "id": 61015,
+        "nameReference": 430061015,
+        "firstString": "icon_kejishouce_duoweitanqiu",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061015,
+        "name": "多维弹球手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 359508,
+        "id": 61016,
+        "nameReference": 430061016,
+        "firstString": "icon_kejishouce_shikongliexi",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061016,
+        "name": "时空裂隙手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 359706,
+        "id": 61017,
+        "nameReference": 430061017,
+        "firstString": "icon_kejishouce_shenghuajuzhen",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061017,
+        "name": "生化矩阵手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      },
+      {
+        "offset": 359906,
+        "id": 61018,
+        "nameReference": 430061018,
+        "firstString": "icon_kejishouce_bingzhulongti",
+        "secondString": "",
+        "descriptionReferenceAtTail36": 440061018,
+        "name": "冰筑龙体手册",
+        "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
+      }
+    ],
+    "currencyLayout": {
+      "prefixBytes": 16,
+      "stringCount": 1,
+      "tailBytes": 4
+    },
+    "currencyGoodsReferences": {
+      "matched": 96,
+      "unresolved": [
+        {
+          "offset": 4047,
+          "id": 225,
+          "valueAt4": 225,
+          "textReferenceAt8": 400900224,
+          "goodsReferenceAt12": 99222,
+          "iconReference": "icon_hxdjy_jsyb",
+          "tail": 0
+        }
+      ]
+    },
+    "selectedCurrencies": [
+      {
+        "offset": 20,
+        "id": 1,
+        "valueAt4": 5,
+        "textReferenceAt8": 400900001,
+        "goodsReferenceAt12": 99001,
+        "iconReference": "icon_common_tili",
+        "tail": 0,
+        "label": "体力"
+      },
+      {
+        "offset": 61,
+        "id": 2,
+        "valueAt4": 2,
+        "textReferenceAt8": 400900002,
+        "goodsReferenceAt12": 99002,
+        "iconReference": "icon_huobi_jinbi",
+        "tail": 0,
+        "label": "金币"
+      },
+      {
+        "offset": 102,
+        "id": 3,
+        "valueAt4": 3,
+        "textReferenceAt8": 400900003,
+        "goodsReferenceAt12": 99003,
+        "iconReference": "icon_huobi_zuanshi",
+        "tail": 0,
+        "label": "钻石"
+      },
+      {
+        "offset": 145,
+        "id": 4,
+        "valueAt4": 4,
+        "textReferenceAt8": 400900004,
+        "goodsReferenceAt12": 99004,
+        "iconReference": "icon_common_exp",
+        "tail": 0,
+        "label": "经验"
+      }
+    ],
+    "limits": [
+      "Only the explicit numbered candidate series is checked here; live availability remains unknown.",
+      "These fields refer to loot groups, not proven monster multipliers.",
+      "Preserve repeated group rows, zero values and gating fields; dispatch/weights are unverified.",
+      "Experience item 99004 describes character leveling; this does not prove combat-XP timing.",
+      "Goods references may denote other item families; unresolved values are retained."
+    ]
+  },
+  "positiveLog": "artifacts/zombie-fire-campaign-loot-reference.log",
+  "positiveCommand": [
+    "pnpm",
+    "--filter",
+    "zombie-fire",
+    "reference:inspect"
+  ],
+  "positiveExitCode": 0,
+  "invalidInputs": [
+    {
+      "case": "missing-goods",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-campaign-loot-reader-missing-goods.log"
+    },
+    {
+      "case": "truncated-goods",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-campaign-loot-reader-truncated-goods.log"
+    },
+    {
+      "case": "changed-booty",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-campaign-loot-reader-changed-booty.log"
+    },
+    {
+      "case": "changed-currency",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-campaign-loot-reader-changed-currency.log"
+    }
+  ],
+  "temporaryInputsRemoved": true,
+  "scope": "Offline reference reader; runtime exports remain those of 7f65e64."
+}

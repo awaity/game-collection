@@ -36,6 +36,9 @@ FINGERPRINTS = {
     "MonsterCfg": "691e8cda216bd1fb3025950118a4d055e2823143c1ab3cbe13db03af3fd9c713",
     "MonsterManualCfg": "29a5d955f39c76a27331a55de7464a54f9b6443841ee1a40b2d280f541203cf9",
     "AttrDataConfig": "ce78e68f04d6dc3184dc7628711acab160b4be848f99bc681bc2e6c3ac890521",
+    "BootyConfig": "43fdfdd5f281ea3c9802a099045cb267edab3bc8f5a0fa51bcf875b58b2eaaac",
+    "GoodsConfig": "eeab422ac2eac80d9836f33f90b047fcfe756be2c564555dfef259c81247d013",
+    "CurrencyTypeConfig": "6a6a4a5cf01660b5721798f591fae27cf55688c0cec8edafb4762811f67246d1",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
     "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
@@ -285,6 +288,109 @@ def attribute_row(table: Table) -> dict:
     return {"id": key, "label": label}
 
 
+def goods_header(table: Table) -> dict:
+    key, name = table.unpack(">2I")
+    return {"id": key, "nameReference": name,
+            "firstString": table.string(), "secondString": table.string()}
+
+
+def goods_row(table: Table) -> dict:
+    row = goods_header(table)
+    (body,) = table.unpack(">152s")
+    return {**row, "descriptionReferenceAtTail36": struct.unpack_from(">I", body, 36)[0]}
+
+
+def currency_row(table: Table) -> dict:
+    key, value4, text8, goods12 = table.unpack(">4I")
+    icon = table.string()
+    (tail,) = table.unpack(">I")
+    return {"id": key, "valueAt4": value4, "textReferenceAt8": text8,
+            "goodsReferenceAt12": goods12, "iconReference": icon, "tail": tail}
+
+
+def campaign_loot_links(directory: Path, candidates: list, booty: Table, goods_table: Table,
+                        currency_table: Table, texts: dict) -> dict:
+    goods = read_variable(goods_table, goods_row, lambda r: r["id"])
+    partial_goods = goods_table.partial_record_offset
+    goods_end = goods_table.offset
+    partial_goods_id = None
+    if partial_goods is not None:
+        partial_goods_id = goods_header(goods_table)["id"]
+        goods_end = goods_table.offset + 152
+        goods_table.offset = partial_goods
+        require(partial_goods_id not in {r["id"] for r in goods}, "GoodsConfig: duplicate partial ID")
+    require(goods_end == goods_table.size, "GoodsConfig: final boundary differs from file size")
+    currencies = read_variable(currency_table, currency_row, lambda r: r["id"])
+    by_goods = {r["id"]: r for r in goods}
+    rows = [struct.unpack(">14I", raw) for raw in read_fixed(booty, 56)]
+    groups = defaultdict(list)
+    for row in rows:
+        groups[row[0]].append(row)
+    # An incomplete final row may belong to an otherwise readable group. Never
+    # treat such a group as fully known, even if its first ID is available.
+    partial_booty = 20 + len(rows) * 56
+    partial_group = None
+    if len(rows) < booty.count:
+        require(partial_booty + 4 <= len(booty.data), "BootyConfig: incomplete group identity unavailable")
+        partial_group = struct.unpack_from(">I", booty.data, partial_booty)[0]
+    refs = {offset: Counter() for offset in (89, 93, 97)}
+    per_level_counts = {offset: Counter() for offset in refs}
+    wave_number_sets = Counter()
+    for level in candidates:
+        raw = (directory / f"LevelWaveConfig{level['id']}").read_bytes()
+        local = Counter()
+        numbers = set()
+        prefix = (1000 + level["number"]) * 100
+        allowed = {89: set(range(prefix + 1, prefix + 6)), 93: {prefix + 51}, 97: {prefix + 11}}
+        # Collection fingerprints and row boundaries were verified earlier.
+        for start in range(20, len(raw), 139):
+            numbers.add(struct.unpack_from(">I", raw, start + 12)[0])
+            for offset in refs:
+                key = struct.unpack_from(">I", raw, start + offset)[0]
+                if not key:
+                    continue
+                require(key in groups and key != partial_group, "Campaign loot: unresolved or incomplete group")
+                require(key in allowed[offset], "Campaign loot: unexpected parent-number group pattern")
+                refs[offset][key] += 1
+                local[offset] += 1
+        wave_number_sets[tuple(sorted(numbers))] += 1
+        for offset in refs:
+            per_level_counts[offset][local[offset]] += 1
+    used = {key for values in refs.values() for key in values}
+    used_rows = [row for key in sorted(used) for row in groups[key]]
+    missing_goods = sorted({row[5] for row in used_rows if row[5] not in by_goods})
+    selected_goods = []
+    for key in (99004, 90002, *range(61001, 61019)):
+        row = by_goods[key]
+        selected_goods.append({**row, "name": texts[row["nameReference"]]["text"],
+                               "description": texts[row["descriptionReferenceAtTail36"]]["text"]})
+    return {"bootyRecordBytes": 56, "completeBootyRows": len(rows), "uniqueBootyGroups": len(groups),
+            "incompleteBootyGroupExcluded": partial_group, "candidateLevels": len(candidates),
+            "waveNumberSets": [{"numbers": list(numbers), "levels": count}
+                               for numbers, count in sorted(wave_number_sets.items())],
+            "references": {offset: {"nonzeroWaveRows": sum(values.values()), "distinctGroups": len(values),
+                                    "perLevelNonzeroCounts": dict(sorted(per_level_counts[offset].items()))}
+                           for offset, values in refs.items()},
+            "parentNumberGroupPattern": "(1000+titleNumber)*100 + 1..5 / 51 / 11 for wave offsets 89 / 93 / 97",
+            "matchedGroups": len(used), "matchedGroupRows": len(used_rows),
+            "unresolvedGoodsReferencesAt20": missing_goods,
+            "selectedGroups": {key: [list(row) for row in groups[key]] for key in (100101, 100151, 100111)},
+            "goodsLayout": {"idAndNameBytes": 8, "stringCount": 2, "tailBytes": 152,
+                            "predictedFinalRecordEnd": goods_end, "incompleteIdExcluded": partial_goods_id,
+                            "nonemptySecondStrings": sum(bool(r["secondString"]) for r in goods)},
+            "selectedGoods": selected_goods,
+            "currencyLayout": {"prefixBytes": 16, "stringCount": 1, "tailBytes": 4},
+            "currencyGoodsReferences": {"matched": sum(r["goodsReferenceAt12"] in by_goods for r in currencies),
+                                        "unresolved": [r for r in currencies if r["goodsReferenceAt12"] not in by_goods]},
+            "selectedCurrencies": [{**r, "label": texts[r["textReferenceAt8"]]["text"]}
+                                   for r in currencies if r["id"] in (1, 2, 3, 4)],
+            "limits": ["Only the explicit numbered candidate series is checked here; live availability remains unknown.",
+                       "These fields refer to loot groups, not proven monster multipliers.",
+                       "Preserve repeated group rows, zero values and gating fields; dispatch/weights are unverified.",
+                       "Experience item 99004 describes character leveling; this does not prove combat-XP timing.",
+                       "Goods references may denote other item families; unresolved values are retained."]}
+
+
 def monster_attribute_links(monsters: list, attributes: list, texts: dict) -> dict:
     by_id = {row["id"]: row for row in attributes}
     slots = [slot for row in monsters for slot in row["attributeSlotsAt83"]]
@@ -469,6 +575,8 @@ def numbered_level_candidates(levels: list, texts: dict, waves: dict) -> dict:
         "titleSeparatorExceptions": title_separator_exceptions,
         "titleLabelNumberConflicts": title_label_conflicts,
         "allWaveReferencesPresent": True,
+        "candidateIdentities": [{"id": row["id"], "number": number, "subnumber": row["subnumberFromTitle"]}
+                                for number in numbers for row in groups[number]],
         "selectedNumbers": {number: groups[number] for number in (1, 299, 300, 399, 400, 409, 419)},
         "limits": ["This explicit ID/text criterion identifies a static candidate series only.",
                    "Conflicting description labels are retained; neither title nor description proves runtime dispatch.",
@@ -681,6 +789,9 @@ def inspect(directory: Path) -> dict:
     attribute_links = monster_attribute_links(monsters, attributes, texts)
     monster_links = monster_references(monsters, tables["MonsterManualCfg"], texts)
     waves = wave_references(directory, level_bases, monsters)
+    numbered = numbered_level_candidates(level_bases, texts, waves)
+    loot = campaign_loot_links(directory, numbered["candidateIdentities"], tables["BootyConfig"],
+                               tables["GoodsConfig"], tables["CurrencyTypeConfig"], texts)
     library_candidates = level_library_candidates(tables["BuildLibraryConfig"], libraries,
                                                   groups, level_bases, texts)
     magic_ids = {r["id"] for r in magic}
@@ -735,7 +846,8 @@ def inspect(directory: Path) -> dict:
         "monsterReferences": monster_links,
         "monsterAttributeLinks": attribute_links,
         "waveReferences": waves,
-        "numberedLevelCandidates": numbered_level_candidates(level_bases, texts, waves),
+        "numberedLevelCandidates": numbered,
+        "campaignLootLinks": loot,
         "levelLibraryCandidates": library_candidates,
         "orbGroupComparisons": orb_group_comparisons(groups),
         "skillLevelBoundaries": {"recordBytes": 176, "completeRecords": len(levels),
