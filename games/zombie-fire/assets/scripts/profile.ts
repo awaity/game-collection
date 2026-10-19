@@ -1,5 +1,5 @@
 import {Battle,defaultLoadout,type Loadout,type Mode} from './core';
-import {SKILLS,STAGES,type SkillId} from './content';
+import {SKILLS,STAGES,type SkillId,type SkinId} from './content';
 export const SLOTS=['weapon','helmet','armor','gloves','trousers','boots'] as const;
 export type Slot=typeof SLOTS[number];
 export const SLOT_NAMES:Record<Slot,string>={weapon:'枪械',helmet:'头盔',armor:'战甲',gloves:'手套',trousers:'护腿',boots:'战靴'};
@@ -78,7 +78,7 @@ export class Armory {
    p.coins+=reward;return true;});if(result)this.lastEarned=reward;return result;
  }
  loadout():Loadout{
-  const p=this.data,l=defaultLoadout();l.damage+=p.weapon*.07;l.health+=p.wall*120;l.research={...p.research};l.mercenaries=[...p.team];l.mercenaryLevels={...p.mercs};
+  const p=this.data,l=defaultLoadout();l.damage+=p.weapon*.07;l.health+=p.wall*120;l.research={...p.research};l.mercenaries=[...p.team];l.mercenaryLevels={...p.mercs};l.skin=p.skin as SkinId;
   for(const slot of SLOTS){const g=p.gear[slot],bonus=g.level*.008+g.tier*.045;if(['helmet','armor','trousers'].includes(slot))l.health+=Math.round(bonus*1200);else l.damage+=bonus;
    for(const id of g.gems){const gem=p.gems.find(g=>g.id===id);if(!gem)continue;const power=(gem.grade+1)*(gem.grade+2)/2;if(gem.type==='power')l.damage+=power*.015;if(gem.type==='haste')l.haste+=power*.008;if(gem.type==='crit')l.crit+=power*.008;if(gem.type==='health')l.health+=power*35;if(gem.type==='armor')l.armor+=power*.005;if(gem.type==='repair')l.repair+=power*2;}
   }return l;

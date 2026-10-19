@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Battle,DT,FIELD,LIMITS,defaultLoadout,segmentDistance,type Enemy,type Loadout} from '../assets/scripts/core';
-import {ENEMIES,SKILLS,STAGES,UPGRADES,enemyById,type EnemyId,type SkillId} from '../assets/scripts/content';
+import {ENEMIES,SKILLS,STAGES,UPGRADES,enemyById,type EnemyId,type SkillId,type SkinId} from '../assets/scripts/content';
 import {Armory} from '../assets/scripts/profile';
 import {Session} from '../assets/scripts/session';
 
@@ -70,6 +70,52 @@ test('flying enemies bypass ground flames and vehicles',()=>{
 test('mercenary levels increase real attacks and repairs',()=>{
  const run=(level:number,id:string)=>{const b=arena(undefined,{...defaultLoadout(),crit:0,mercenaries:[id],mercenaryLevels:{[id]:level}});b.hp=500;b.enemies=[enemy('brute',{hp:10000,maxHp:10000})];steps(b,120);return b;};
  assert.ok(run(5,'storm').damageDone>run(1,'storm').damageDone*1.5);assert.ok(run(5,'engineer').hp>run(1,'engineer').hp);
+});
+function skinArena(skin:SkinId,skill?:SkillId){
+ const b=arena(skill,{...defaultLoadout(),skin,crit:0});b.enemies=[enemy('walker',{hp:1000000,maxHp:1000000})];return b;
+}
+function until(b:Battle,condition:()=>boolean,limit=15000){for(let n=0;n<limit&&!condition();n++)b.step();assert.ok(condition(),'condition did not occur through normal rule steps');}
+test('electromagnetic skin counts each target once per strike, then deals both stated pulse ratios',()=>{
+ const b=skinArena('arc','electro');b.step();assert.equal(b.skinProgress?.hits,1);assert.equal(b.skinProgress?.triggers,0,'direct strike and its splash are one hit');
+ until(b,()=>b.skinProgress?.triggers===1);assert.equal(b.skinProgress?.hits,0);assert.equal(b.fields.filter(f=>f.variant==='plasma').length,1);
+ const before=b.damageDone,base=b.stats('electro').damage;
+ stepsNoChoice(b,20);assert.ok(Math.abs(b.damageDone-before-base*.1)<.0001,'expansion is 10% electric damage');
+ stepsNoChoice(b,28);assert.ok(Math.abs(b.damageDone-before-base*.15)<.0001,'contraction adds 5% electric damage');
+ assert.equal(b.skinProgress?.hits,0,'the plasma cannot charge itself');assert.equal(b.skinProgress?.triggers,1);
+});
+test('electromagnetic charge belongs to an individual living enemy',()=>{
+ const b=skinArena('arc','electro');b.enemies.push(enemy('walker',{id:2,x:135,hp:1000000,maxHp:1000000}));b.step();
+ b.aim(135,270);until(b,()=>b.enemies[1].hp<1000000);assert.equal(b.skinProgress?.triggers,0,'two different enemies are not two hits on one enemy');assert.equal(b.skinProgress?.targets,2);
+ b.enemies[0].hp=0;b.step();assert.equal(b.skinProgress?.targets,1,'dead targets release their charge entries');
+ until(b,()=>b.skinProgress?.triggers===1);assert.equal(b.skinProgress?.hits,0);
+});
+test('thermo and blade outfits release real volleys at their hit thresholds without recursive charge',()=>{
+ for(const [skin,skill,threshold,power]of [['ember','thermo',12,1],['hazard','blade',36,.8]] as const){
+  const b=skinArena(skin,skill);until(b,()=>b.skinProgress?.hits===threshold-1);assert.equal(b.skinProgress?.triggers,0);
+  until(b,()=>b.skinProgress?.triggers===1);const volley=b.projectiles.filter(p=>p.source==='skin');assert.equal(volley.length,3);
+  assert.equal(new Set(volley.map(p=>p.x)).size,3,'the extra volley has separate muzzle positions');assert.ok(volley.every(p=>p.damage===b.stats(skill).damage*power));
+  const damage=b.damageDone;b.enemies[0].wound=0;until(b,()=>b.damageDone>damage,180);assert.equal(b.skinProgress?.hits,0);assert.equal(b.skinProgress?.triggers,1);
+  if(skill==='blade')assert.ok(b.enemies[0].wound>0,'extra blades apply the same healing wound');
+ }
+});
+test('ice outfit creates a damaging freezing storm, pauses with combat, and resets each run',()=>{
+ const b=skinArena('arctic','dryice');until(b,()=>b.skinProgress?.hits===31);assert.equal(b.skinProgress?.triggers,0);
+ until(b,()=>b.skinProgress?.triggers===1);assert.ok(b.fields.some(f=>f.variant==='ice-storm'));const damage=b.damageDone;
+ b.step();assert.ok(b.damageDone>damage);assert.ok(b.enemies[0].freeze>0);assert.equal(b.skinProgress?.hits,0);
+ b.pause();const snapshot=b.snapshot(),life=b.fields[0].life;stepsNoChoice(b,180);assert.deepEqual(b.snapshot(),snapshot);assert.equal(b.fields[0].life,life);
+ b.resume();stepsNoChoice(b,120);assert.ok(!b.fields.some(f=>f.variant==='ice-storm'));
+ const next=skinArena('arctic','dryice');assert.equal(next.skinProgress?.hits,0);assert.equal(next.skinProgress?.triggers,0);
+});
+test('mercenary attacks and unrelated player weapons cannot charge an outfit',()=>{
+ const b=arena(undefined,{...defaultLoadout(),skin:'arc',mercenaries:['storm'],mercenaryLevels:{storm:5},crit:0});b.enemies=[enemy('walker',{hp:1000000,maxHp:1000000})];stepsNoChoice(b,900);
+ assert.ok(b.damageDone>0);assert.equal(b.skinProgress?.hits,0);assert.equal(b.skinProgress?.triggers,0);
+ const other=skinArena('ember','rifle');stepsNoChoice(other,1800);assert.ok(other.damageDone>0);assert.equal(other.skinProgress?.hits,0);
+ assert.equal(skinArena('ranger','electro').skinProgress,null);
+});
+test('outfit loadout is captured at battle start and invalid outfit identifiers are harmless',()=>{
+ const armory=new Armory({version:1,coins:2000},()=>true);assert.equal(armory.skin('arc'),true);
+ const b=new Battle(0,'campaign',3,armory.loadout());assert.equal(b.loadout.skin,'arc');assert.equal(armory.skin('ranger'),true);assert.equal(b.loadout.skin,'arc');
+ const bad=new Battle(0,'campaign',3,{...defaultLoadout(),skin:'constructor' as SkinId});assert.equal(bad.skinProgress,null);
 });
 test('lethal boss attacks end immediately without revival from repair or later kills',()=>{
  const b=arena('electro',{...defaultLoadout(),repair:100,mercenaries:['engineer']});b.hp=1;b.enemies=[enemy('mech',{y:FIELD.wall+39,warning:DT/2,hp:1})];b.step();assert.equal(b.phase,'lost');assert.equal(b.hp,0);assert.equal(b.kills,0);const tick=b.tick;steps(b,100);assert.equal(b.tick,tick);

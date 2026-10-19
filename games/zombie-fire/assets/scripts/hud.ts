@@ -1,7 +1,7 @@
 import {Graphics,UITransform} from 'cc';
 import {GameView,color} from 'db://assets/collection/runtime';
 import {Session} from './session';
-import {DAILY_RULES,ENEMIES,MAPS,SKILLS,STAGES,UPGRADES,skillById,upgradeById} from './content';
+import {DAILY_RULES,ENEMIES,MAPS,SKILLS,STAGES,UPGRADES,skinAbility,skillById,upgradeById} from './content';
 import {daySeed,GEM_TYPES,GRADES,MERCENARIES,QUESTS,SKINS,SLOTS,SLOT_NAMES,type Slot} from './profile';
 import type {Mode} from './core';
 import {skillIcon} from './icons';
@@ -51,6 +51,7 @@ export class BattlefieldUI {
   this.ui.panel('xp:bg',0,top-43,w,8,'#283f4b');this.ui.panel('xp:fill',-(1-b.xp/b.xpNeeded)*w/2,top-43,Math.max(1,w*b.xp/b.xpNeeded),8,blue);
   this.text('wall',`防线 ${Math.ceil(b.hp)} / ${b.maxHp}    ${b.reload>0?'装填中':`弹匣 ${b.ammo}`}`,0,bottom+28,13,paper,w);
   if(this.session.saveFailed)this.text('save:warning','奖励等待保存 · 暂停后可重试',0,bottom+6,12,orange,w);
+  else if(b.skinProgress){const s=b.skinProgress;this.text('skin:charge',`${s.name} ${s.hits}/${s.threshold} · 已触发 ${s.triggers} 次`,0,bottom+6,11,skillById[s.skill].color,w);}
   const learned=Object.entries(b.learned),skillX=Math.min(480,this.ui.width-84)/2+12,spacing=Math.min(67,(top-bottom-98)/Math.max(1,learned.length));
   learned.forEach(([id,rank],i)=>{const y=top-91-i*spacing,size=Math.min(42,spacing-17);this.icon('skill:icon'+i,id as SkillId,skillX,y,size);this.text('skill:'+i,'Lv.'+rank,skillX,y-size/2-8,10,skillById[id as SkillId].color,50);});
   if(b.time<12&&b.phase==='playing')this.text('aim:hint','自动射击 · 轻触敌人可优先集火',-24,top-66,12,paper,Math.min(350,w-60));
@@ -90,7 +91,7 @@ export class BattlefieldUI {
   const titles:Record<string,string>={gear:'战备装备',research:'技能研究',wall:'防线工程',merc:'佣兵营地',supply:'补给仓库',quests:'任务与成就',settings:'设置',skins:'时装',gems:'宝石工坊',codex:'战术图鉴'};
   u.panel('panel:shade',0,0,u.width,u.height,'#2c3a44f5');this.text('panel:title',titles[this.panel]??'',-w/2+90,top-9,22,paper,170,true);
   this.button('panel-close','返回',w/2-36,top-9,70,()=>{this.panel='';a.message='';});
-  if(this.panel==='codex')[['skills','武器'],['evolutions','进化组合'],['enemies','敌人与规则']].forEach(([id,title],i)=>this.button('codex:'+id,title,(i-1)*w/3,top-49,w/3-8,()=>{this.codexTab=id;this.page=0;},this.codexTab===id,34));
+  if(this.panel==='codex')[['skills','武器'],['evolutions','进化'],['enemies','敌人'],['outfits','时装']].forEach(([id,title],i)=>this.button('codex:'+id,title,(i-1.5)*w/4,top-49,w/4-8,()=>{this.codexTab=id;this.page=0;},this.codexTab===id,34));
   else this.text('panel:funds',`${p.coins} 金币   ${p.scrap} 零件   ${p.diamonds} 钻石`,0,top-49,13,orange,w);
   const rows:Row[]=[];
   if(this.panel==='gear'){
@@ -101,7 +102,7 @@ export class BattlefieldUI {
   if(this.panel==='research')for(const s of SKILLS){const level=p.research[s.id]??0;rows.push({id:s.id,title:`${s.name}  Lv.${level}`,detail:`每级增伤 4% · ${100+level*80} 金币 / ${5+level*2} 零件`,tint:s.color,actions:[{id:'research:'+s.id,label:level>=10?'已满级':'研究',disabled:level>=10,run:()=>{a.research(s.id)}}]});}
   if(this.panel==='wall')rows.push({id:'wall',title:`防线加固  Lv.${p.wall}`,detail:`每级增加 120 耐久；现有 ${a.loadout().health}。`,actions:[{id:'upgrade:wall',label:`${100+p.wall*65} 金币`,run:()=>{a.upgradeBase('wall')}}]},{id:'armor',title:'防护与维修',detail:`装备宝石提供减伤与持续维修。当前减伤 ${Math.round(a.loadout().armor*100)}%。`,actions:[{id:'wall:gems',label:'宝石',run:()=>this.open('gems')}]});
   if(this.panel==='merc')for(const m of MERCENARIES)rows.push({id:m.id,title:`${m.name} ${p.mercs[m.id]?'Lv.'+p.mercs[m.id]:'未招募'}`,detail:m.description+' 每级提高效果 18%。',actions:[{id:'merc:upgrade:'+m.id,label:p.mercs[m.id]?'升级':m.cost+'币',run:()=>{a.mercenary(m.id)}},{id:'merc:deploy:'+m.id,label:p.team.includes(m.id)?'撤下':'出战',run:()=>{a.mercenary(m.id,true)}}]});
-  if(this.panel==='skins')for(const s of SKINS)rows.push({id:s.id,title:s.name,detail:p.skin===s.id?'当前装备':p.owned.includes(s.id)?'已经拥有':`解锁需要 ${s.price} 金币。`,tint:s.accent,skin:s.id,actions:[{id:'skin:'+s.id,label:p.skin===s.id?'已装备':p.owned.includes(s.id)?'换装':'解锁',disabled:p.skin===s.id,run:()=>{a.skin(s.id)}}]});
+  if(this.panel==='skins')for(const s of SKINS){const ability=skinAbility(s.id);rows.push({id:s.id,title:s.name,detail:(ability?.name??'基础衣装')+' · '+(p.skin===s.id?'已装备':p.owned.includes(s.id)?'已拥有':s.price+'金币')+'\n效果详见图鉴 · 时装',tint:s.accent,skin:s.id,actions:[{id:'skin:'+s.id,label:p.skin===s.id?'已装备':p.owned.includes(s.id)?'换装':'解锁',disabled:p.skin===s.id,run:()=>{a.skin(s.id)}}]});}
   if(this.panel==='quests')for(const q of QUESTS){const value=(q.daily?p.daily:p.totals)[q.metric],claimed=(q.daily?p.claimed:p.achievements).includes(q.id);rows.push({id:q.id,title:(q.daily?'每日 · ':'成就 · ')+q.name,detail:`${Math.min(value,q.target)} / ${q.target} · 奖励 ${q.reward} 金币`,actions:[{id:'claim:'+q.id,label:claimed?'已领取':value<q.target?'未完成':'领取',disabled:claimed||value<q.target,run:()=>{a.claim(q.id)}}]});}
   if(this.panel==='supply')rows.push({id:'checkin',title:'每日签到',detail:'金币、零件与钻石，连续签到增加金币。',actions:[{id:'checkin',label:p.checkin>=a.currentDay()?'已签到':'签到',disabled:p.checkin>=a.currentDay(),run:()=>{a.checkin()}}]},{id:'free-chest',title:'每日补给',detail:'免费领取一颗宝石和 8 零件。',actions:[{id:'chest:free',label:p.freeChest>=a.currentDay()?'已领取':'领取',disabled:p.freeChest>=a.currentDay(),run:()=>{a.chest(true)}}]},{id:'chest',title:'装备补给箱',detail:'300 金币 · 普通 65%、精良 27%、稀有 8%。',actions:[{id:'chest:buy',label:'开启',run:()=>{a.chest()}}]},{id:'premium',title:'精密补给箱',detail:'40 钻石 · 稀有 90%、史诗 10%，附送 16 零件。',actions:[{id:'chest:premium',label:'开启',run:()=>{a.chest(false,true)}}]},{id:'gems',title:`宝石仓库 · ${p.gems.length} 颗`,detail:'装备同类同阶宝石，或将三颗合成高一阶。',actions:[{id:'supply:gems',label:'打开',run:()=>this.open('gems')}]});
   if(this.panel==='gems'){
@@ -112,6 +113,10 @@ export class BattlefieldUI {
   if(this.panel==='codex'){
    if(this.codexTab==='skills')for(const s of SKILLS)rows.push({id:s.id,title:s.name,detail:s.description,tint:s.color});
    if(this.codexTab==='evolutions')for(const u of UPGRADES.filter(u=>u.evolution))rows.push({id:u.id,title:'进化 · '+u.name,detail:'需要 '+u.requires.map(([id,rank])=>(upgradeById[id]?.name??skillById[id as SkillId]?.name??id)+' '+rank+'级').join(' + '),tint:skillById[u.skill].color});
+   if(this.codexTab==='outfits'){
+    for(const s of SKINS){const ability=skinAbility(s.id);rows.push({id:s.id,title:s.name+(ability?' · '+ability.name:''),detail:ability?.description??'基础衣装，无额外技能。其他衣装可在装备 → 专属时装中解锁。',tint:s.accent});}
+    rows.push({id:'outfit-rules',title:'命中与充能',detail:'仅自身对应武器的直接命中计数；佣兵、持续伤害和时装追加攻击不充能。每局重新计数。'});
+   }
    if(this.codexTab==='enemies'){
     rows.push({id:'endless-rule',title:'无尽狂潮',detail:'每八波更换地图。敌人持续强化；存活45秒后狂暴，挣脱控制并加速。',tint:orange});
     for(const e of ENEMIES)rows.push({id:e.id,title:e.name+(e.boss?' · 首领':''),detail:e.description+(e.boss?' 存活25秒后狂暴，挣脱控制并加速。':''),tint:e.color});

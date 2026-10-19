@@ -19,6 +19,16 @@ export const SKILLS:readonly Skill[]=[
  {id:'airdrop',name:'空投轰炸',element:'fire',attack:'airdrop',color:'#ddab69',damage:130,interval:7.8,radius:70,pierce:0,duration:0,description:'在尸群中标记区域，短暂延迟后实施空中轰炸。'},
 ];
 export const skillById=Object.fromEntries(SKILLS.map(s=>[s.id,s])) as Record<SkillId,Skill>;
+export type SkinId='ranger'|'ember'|'arctic'|'hazard'|'arc';
+/** Trigger counts and the plasma/blade damage ratios are stated on the official website.
+ * Our original outfits reuse those mechanics; storm tuning/volley geometry remain local. */
+export const SKIN_ABILITIES={
+ ember:{name:'温压序列',skill:'thermo',hits:12,description:'温压弹累计命中12次，追加一波并列温压弹。'},
+ arctic:{name:'零度风暴',skill:'dryice',hits:32,description:'干冰弹累计命中32次，在命中处释放冰风暴。'},
+ hazard:{name:'追加气刃',skill:'blade',hits:36,description:'气刃累计命中36次，追加三连气刃，每道造成80%伤害并重伤5秒。'},
+ arc:{name:'电磁引导',skill:'electro',hits:2,description:'电磁穿刺命中同一敌人2次，释放等离子场；扩散/收缩造成10%/5%电系伤害。'},
+} as const;
+export const skinAbility=(skin:SkinId)=>skin==='ranger'?null:SKIN_ABILITIES[skin];
 export type Modifier='damage'|'haste'|'count'|'radius'|'pierce'|'duration'|'burn'|'freeze'|'stun'|'bounce'|'crit'|'magazine'|'knock'|'vulnerability';
 export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean}
 const upgrade=(id:string,skill:SkillId,name:string,description:string,mods:Upgrade['mods'],requires:Upgrade['requires']=[],max=1,evolution=false):Upgrade=>({id,skill,name,description,mods,requires,max,evolution});

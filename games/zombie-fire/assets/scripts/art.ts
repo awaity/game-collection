@@ -60,6 +60,18 @@ export class BattlefieldArt {
   for(let n=0;n<8;n++){const x=-w/2+24+n*(w-48)/7;this.rect(x,wall.y-17,30,24,'#566674',3);this.ellipse(x,wall.y-17,4,4,'#26343f');}
   this.rect(0,wall.y-55,w,7,'#263541',2);const ratio=Math.max(0,b.hp/b.maxHp);this.rect(-(1-ratio)*w/2,wall.y-55,w*ratio,7,ratio>.4?'#8ebd8d':'#dd7b62',2);
   for(const f of b.fields){const p=this.point(f.x,f.y),radius=f.radius*this.width/360;const c=skillById[f.skill].color;
+   if(f.variant==='plasma'){
+    const progress=1-f.life/f.total,r=radius*(motion?(progress<.5?.25+progress*1.5:1-(progress-.5)*1.6):.85);
+    this.ellipse(p.x,p.y,r,r*.72,'#b3a0f42b');
+    for(let ring=0;ring<2;ring++){g.strokeColor=color(ring?'#f3d5ff':'#b0a0ef');g.lineWidth=ring?1.5:3;g.ellipse(p.x,p.y,r-ring*5,Math.max(2,r*.72-ring*4));g.stroke();}
+    for(let n=0;n<(quality==='low'?3:6);n++){const angle=n*Math.PI/3+(motion?b.time*2:0),x=Math.cos(angle)*r,y=Math.sin(angle)*r*.72;this.line([[p.x+x*.7,p.y+y*.7],[p.x+x*.87-3,p.y+y*.8+4],[p.x+x,p.y+y]],'#e8d6ff',1.5);}
+    continue;
+   }
+   if(f.variant==='ice-storm'){
+    this.ellipse(p.x,p.y,radius,radius*.7,'#71d6ec35');
+    for(let n=0;n<(quality==='low'?4:9);n++){const angle=n*2.4+(motion?b.time*3:0),r=radius*(.35+(n%3)*.22),x=p.x+Math.cos(angle)*r,y=p.y+Math.sin(angle)*r*.7;this.poly([[x-3,y],[x,y+9],[x+4,y],[x,y-5]],'#c9f6fa','#7fcfdf',1);}
+    g.strokeColor=color('#96e9f2');g.lineWidth=2;g.ellipse(p.x,p.y,radius*.9,radius*.63);g.stroke();continue;
+   }
    if(f.skill==='guided'){const origin=this.point(0,FIELD.wall);this.line([[origin.x,origin.y],[p.x,p.y]],c+'b0',3);this.ellipse(p.x,p.y,6,6,'#fff2c8');continue;}
    if(f.delay>0){g.strokeColor=color('#e8a45a');g.lineWidth=2;g.circle(p.x,p.y,radius);g.moveTo(p.x-10,p.y);g.lineTo(p.x+10,p.y);g.moveTo(p.x,p.y-10);g.lineTo(p.x,p.y+10);g.stroke();continue;}
    if(f.skill==='vehicle'){this.rect(p.x,p.y,48,62,'#526353',6);for(const side of [-1,1])this.rect(p.x+side*24,p.y,8,53,'#293a3e',3);this.rect(p.x,p.y+5,30,30,'#8e9b75',5);this.rect(p.x,p.y+29,8,38,'#364e48',2);}
