@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import ghpages from "gh-pages";
 import { root, siteDir } from "./site-config.mjs";
 import { verifySite } from "./verify-site.mjs";
+import {createGitHubPublisher} from './github-git.mjs';
 
 await verifySite();
 const git = (args) =>
@@ -18,7 +19,14 @@ if (
   "https://github.com/awaity/game-collection.git"
 )
   throw new Error("origin 与预期仓库不符。");
-await new Promise((resolve, reject) =>
+const apiTransport=process.argv.includes('--transport=api');
+if(process.argv.slice(2).some(arg=>arg!=='--transport=api'))throw new Error('Unknown publication argument');
+if(apiTransport){
+  const publisher=await createGitHubPublisher();
+  await publisher.publishMain(revision);
+  const published=await publisher.publishSite(siteDir,revision);
+  console.log('gh-pages 已核对：'+published.revision);
+}else await new Promise((resolve, reject) =>
   ghpages.publish(
     siteDir,
     {
