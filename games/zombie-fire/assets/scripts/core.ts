@@ -68,7 +68,7 @@ export class Battle {
  availableCards():Card[]{
   const available:Card[]=[];
   if(this.specialCount<4)for(const s of SKILLS)if(!this.learned[s.id])available.push({id:'learn:'+s.id,skill:s.id,name:s.name,description:s.description,kind:'learn',rank:1});
-  for(const base of UPGRADES){const u=upgradeForResearch(base,this.loadout.research[base.skill]);if(this.learned[u.skill]&&(this.upgrades[u.id]??0)<u.max&&u.requires.every(([id,n])=>this.rank(id)>=n)&&(!u.luck||this.orbLuck>=u.luck.min))available.push({id:u.id,skill:u.skill,name:u.name,description:describeUpgrade(u),kind:u.evolution?'evolution':'upgrade',rank:(this.upgrades[u.id]??0)+1});}
+  for(const base of UPGRADES){const research=this.loadout.research[base.skill]??0,u=upgradeForResearch(base,research);if(this.learned[u.skill]&&(this.upgrades[u.id]??0)<u.max&&research>=(u.researchMin??0)&&u.requires.every(([id,n])=>this.rank(id)>=n)&&(!u.luck||this.orbLuck>=u.luck.min))available.push({id:u.id,skill:u.skill,name:u.name,description:describeUpgrade(u),kind:u.evolution?'evolution':'upgrade',rank:(this.upgrades[u.id]??0)+1});}
   return available.length?available:[{id:'supply:repair',skill:'rifle',name:'战地维修',description:'修复 12% 防线耐久。',kind:'supply',rank:1},{id:'supply:power',skill:'rifle',name:'火力储备',description:'所有武器伤害增加 5%。',kind:'supply',rank:1},{id:'supply:reload',skill:'rifle',name:'紧急装填',description:'立即装满弹匣并重置武器冷却。',kind:'supply',rank:1}];
  }
  private offer(){

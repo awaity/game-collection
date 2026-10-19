@@ -65,6 +65,40 @@ test('sixth orb research replaces rise damage and the visible card without mutat
  }
  const base=arena('orb').availableCards().find(c=>c.id==='orb:rise')!;assert.equal(base.name,'升维');assert.match(base.description,/伤害降低10%/);
 });
+test('tide needs research ten and luck twenty-one, rejects stale offers and produces the extra volley',()=>{
+ const available=(level:number,luck:number)=>{const b=arena('orb',{...defaultLoadout(),crit:0,research:{orb:level}});b.orbLuck=luck;return b;};
+ const enabled=available(10,21),card=enabled.availableCards().find(c=>c.id==='orb:tide')!;assert.ok(card);
+ for(const [level,luck]of [[0,21],[9,21],[10,20]]){
+  const b=available(level,luck);assert.ok(!b.availableCards().some(c=>c.id===card.id));
+  b.phase='choice';b.cards=[{...card,luckChange:1,luckAfter:nextLuck(luck,1)}];const before=b.snapshot();
+  assert.equal(b.choose(card.id),false);assert.deepEqual(b.snapshot(),before,'an ineligible offer cannot partly apply');
+ }
+ const before=enabled.stats('orb');enabled.phase='choice';enabled.cards=[{...card,luckChange:1,luckAfter:1}];assert.equal(enabled.choose(card.id),true);
+ const after=enabled.stats('orb');assert.equal(after.count,before.count+1);assert.equal(after.repeat,before.repeat+1);assert.equal(after.bounce,before.bounce+2);
+ enabled.enemies=[enemy('brute',{hp:100000,maxHp:100000,y:400})];enabled.step();assert.equal(enabled.projectiles.length,2);assert.equal(enabled.snapshot().pendingVolleys,1);
+ stepsNoChoice(enabled,30);assert.equal(enabled.projectiles.length,4);assert.equal(enabled.snapshot().pendingVolleys,0);
+});
+test('both kinetic branches need wall fission before they can be offered or selected',()=>{
+ for(const [id,change]of [['orb:wall-blast',-9],['orb:split',6]] as const){
+  const b=arena('orb');b.orbLuck=21;assert.ok(!b.availableCards().some(c=>c.id===id));
+  const prerequisite=b.availableCards().find(c=>c.id==='orb:wall-split')!;b.phase='choice';b.cards=[{...prerequisite,luckChange:4,luckAfter:1}];assert.equal(b.choose(prerequisite.id),true);
+  assert.ok(!b.availableCards().some(c=>c.id===id),'the local luck gate still applies');b.orbLuck=10;
+  const card=b.availableCards().find(c=>c.id===id)!;assert.ok(card);b.phase='choice';b.cards=[{...card,luckChange:change,luckAfter:nextLuck(10,change)}];
+  delete b.upgrades['orb:wall-split'];const before=b.snapshot();assert.equal(b.choose(id),false);assert.deepEqual(b.snapshot(),before);
+  b.upgrades['orb:wall-split']=1;assert.equal(b.choose(id),true);assert.equal(b.upgrades[id],1);
+ }
+});
+test('ordinary orb rank limits stop further cards and reject a retained exhausted offer',()=>{
+ for(const [name,limit,change]of [['power',3,3],['bounce',2,3],['rise',2,8],['haste',2,3],['heavy',1,4],['salvo',1,4],['repeat',1,4],['high-bounce',1,4]] as const){
+  const b=arena('orb'),id='orb:'+name;let retained;
+  for(let rank=1;rank<=limit;rank++){
+   b.orbLuck=10;const card=b.availableCards().find(c=>c.id===id)!;assert.ok(card);assert.equal(card.rank,rank);
+   retained={...card,luckChange:change,luckAfter:10+change};b.phase='choice';b.cards=[retained];assert.equal(b.choose(id),true);assert.equal(b.upgrades[id],rank);
+  }
+  assert.ok(!b.availableCards().some(c=>c.id===id));b.orbLuck=10;b.phase='choice';b.cards=[retained!];const before=b.snapshot();
+  assert.equal(b.choose(id),false);assert.deepEqual(b.snapshot(),before,id+' must not exceed its limit');
+ }
+});
 test('airdrop direct explosions use physical resistance, independently of later burning upgrades',()=>{
  const hit=(kind:EnemyId)=>{const b=arena('airdrop',{...defaultLoadout(),crit:0});b.enemies=[enemy(kind,{hp:10000,maxHp:10000})];stepsNoChoice(b,75);return b.damageDone;};
  assert.equal(hit('walker'),130);assert.equal(hit('fireguard'),130);assert.ok(Math.abs(hit('armor')-130*.35)<1e-8);
@@ -272,8 +306,8 @@ test('lucky cards enforce gates, update only on selection, wrap above 21 and rep
 });
 test('offered lucky values are stable across reads and pauses, then applied without another random draw',()=>{
  const observed=new Map<string,Set<number>>();
- for(let seed=1;seed<=160;seed++)for(const luck of [0,13,21]){
-  const b=new Battle(0,'campaign',seed);b.learned={orb:1};b.orbLuck=luck;b.start();
+ for(let seed=1;seed<=160;seed++)for(const luck of [0,13,21])for(const fission of [false,true]){
+  const b=new Battle(0,'campaign',seed,{...defaultLoadout(),research:{orb:10}});b.learned={orb:1};b.orbLuck=luck;if(fission)b.upgrades['orb:wall-split']=1;b.start();
   const offered=b.cards.map(c=>({...c})),before=b.snapshot();b.availableCards();b.snapshot();b.pause();stepsNoChoice(b,120);b.resume();assert.deepEqual(b.snapshot(),before);
   for(const c of offered){
    if(c.luckChange===undefined){assert.equal(c.luckAfter,undefined);continue;}

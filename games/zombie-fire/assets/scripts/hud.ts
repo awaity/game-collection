@@ -114,7 +114,7 @@ export class BattlefieldUI {
    for(const s of SLOTS){const g=p.gear[s];rows.push({id:s,title:`${SLOT_NAMES[s]}  Lv.${g.level} · ${GRADES[g.tier]}`,detail:`强化 ${70+g.level*35} 金币 / ${2+Math.floor(g.level/3)} 零件 · 宝石 ${g.gems.filter(Boolean).length}/5`,actions:[{id:'gear:'+s,label:g.level>=30?'已满级':'强化',disabled:g.level>=30,run:()=>{a.upgradeGear(s)}},{id:'ascend:'+s,label:g.tier>=5?'已满阶':g.level<(g.tier+1)*5?'需Lv.'+(g.tier+1)*5:'升阶',disabled:g.tier>=5||g.level<(g.tier+1)*5,run:()=>{a.upgradeGear(s,true)}}]});}
    rows.push({id:'gems',title:'宝石工坊',detail:'镶嵌、卸下与三合一。',actions:[{id:'gems',label:'打开',run:()=>this.open('gems')}]},{id:'skins',title:'专属时装',detail:'选择你的防线装扮。',actions:[{id:'skins',label:'打开',run:()=>this.open('skins')}]});
   }
-  if(this.panel==='research')rows.push({id:'research-guide',title:'研究与技能分支',detail:'研究提升伤害。多维弹球达到6级后，升维由减伤10%变为增伤10%。'});
+  if(this.panel==='research')rows.push({id:'research-guide',title:'研究与技能分支',detail:'多维弹球研究6级强化升维；10级解锁弹球浪潮，仍需局内幸运21点。'});
   if(this.panel==='research')for(const s of SKILLS){const level=p.research[s.id]??0;rows.push({id:s.id,title:`${s.name}  Lv.${level}`,detail:`每级增伤 4% · ${100+level*80} 金币 / ${5+level*2} 零件`,tint:s.color,actions:[{id:'research:'+s.id,label:level>=10?'已满级':'研究',disabled:level>=10,run:()=>{a.research(s.id)}}]});}
   if(this.panel==='wall')rows.push({id:'wall',title:`防线加固  Lv.${p.wall}`,detail:`每级增加 120 耐久；现有 ${a.loadout().health}。`,actions:[{id:'upgrade:wall',label:`${100+p.wall*65} 金币`,run:()=>{a.upgradeBase('wall')}}]},{id:'armor',title:'防护与维修',detail:`装备宝石提供减伤与持续维修。当前减伤 ${Math.round(a.loadout().armor*100)}%。`,actions:[{id:'wall:gems',label:'宝石',run:()=>this.open('gems')}]});
   if(this.panel==='merc')for(const m of MERCENARIES)rows.push({id:m.id,title:`${m.name} ${p.mercs[m.id]?'Lv.'+p.mercs[m.id]:'未招募'}`,detail:m.description+' 每级提高效果 18%。',actions:[{id:'merc:upgrade:'+m.id,label:p.mercs[m.id]?'升级':m.cost+'币',run:()=>{a.mercenary(m.id)}},{id:'merc:deploy:'+m.id,label:p.team.includes(m.id)?'撤下':'出战',run:()=>{a.mercenary(m.id,true)}}]});
@@ -129,12 +129,13 @@ export class BattlefieldUI {
   if(this.panel==='codex'){
    if(this.codexTab==='skills'){
     for(const s of SKILLS)rows.push({id:s.id,title:s.name,detail:s.description+(s.id==='dragon'?' 普攻冷却2秒，坠击冷却6秒。':` 基础冷却 ${s.interval} 秒。`),tint:s.color});
-    rows.push({id:'orb-research',title:'升维研究',detail:'多维弹球研究6级后，升维强化为升维+，每次改为增伤10%；幸运增减和已选次数继续保留。',tint:skillById.orb.color});
+    rows.push({id:'orb-research',title:'弹球研究',detail:'研究6级将升维改为增伤10%的升维+；10级解锁弹球浪潮，再于局内达到幸运21点选择。',tint:skillById.orb.color});
+    rows.push({id:'orb-branches',title:'弹球分支',detail:'动能爆破、动能裂变都需先选弹射裂变；低维增伤最多3次，升维、低维弹射和急速弹射各2次，其他弹球词条各1次。',tint:skillById.orb.color});
     rows.push({id:'orb-luck',title:'弹球幸运值',detail:'卡牌显示本次幸运增减与选择后的点数。10点起出现高维词条，21点开启终极词条；超过21变为1，扣减最低到0。',tint:skillById.orb.color});
     rows.push({id:'orb-lucky',title:'幸运弹球',detail:'多维弹球每施放6次触发，额外连发和裂变不计数。准备后穿透敌人、撞墙反弹，飞行5秒；普通弹球强化不会全部传递给它。',tint:skillById.orb.color});
     rows.push({id:'orb-quality',title:'幸运弹球品质',detail:'辉银、耀紫、鎏金的基础权重为100:50:10。耀紫命中可衍生穿透光球，鎏金再追加爆炸；同一弹球的衍生效果间隔3秒。',tint:LUCKY_ORB.qualities[2].color});
    }
-   if(this.codexTab==='evolutions')for(const u of UPGRADES.filter(u=>u.evolution))rows.push({id:u.id,title:'进化 · '+u.name,detail:u.luck?`需要多维弹球幸运值 ${u.luck.min} 点。${describeUpgrade(u)}`:'需要 '+u.requires.map(([id,rank])=>(upgradeById[id]?.name??skillById[id as SkillId]?.name??id)+' '+rank+'级').join(' + '),tint:skillById[u.skill].color});
+   if(this.codexTab==='evolutions')for(const u of UPGRADES.filter(u=>u.evolution))rows.push({id:u.id,title:'进化 · '+u.name,detail:u.luck?(u.researchMin?`研究${u.researchMin}级，`:'')+`幸运${u.luck.min}点。${describeUpgrade(u)}`:'需要 '+u.requires.map(([id,rank])=>(upgradeById[id]?.name??skillById[id as SkillId]?.name??id)+' '+rank+'级').join(' + '),tint:skillById[u.skill].color});
    if(this.codexTab==='outfits'){
     for(const s of SKINS){const ability=skinAbility(s.id);rows.push({id:s.id,title:s.name+(ability?' · '+ability.name:''),detail:ability?.description??'基础衣装，无额外技能。其他衣装可在装备 → 专属时装中解锁。',tint:s.accent});}
     rows.push({id:'outfit-rules',title:'命中与充能',detail:'仅自身对应武器的直接命中计数；佣兵、持续伤害和时装追加攻击不充能。每局重新计数。'});
@@ -147,7 +148,7 @@ export class BattlefieldUI {
   if(this.panel==='settings')for(const [key,label]of [['sound','战斗音效'],['music','背景音乐'],['motion','画面动态'],['quality','画面品质'],['volume','总音量']] as const)rows.push({id:key,title:label,detail:key==='motion'?'关闭后减少装饰运动与镜头冲击。':key==='quality'?'流畅模式减少装饰特效。':'音量设置保存在本机。',actions:[{id:'setting:'+key,label:key==='volume'?Math.round(p.settings.volume*100)+'%':key==='quality'?p.settings.quality==='high'?'精细':'流畅':p.settings[key]?'开启':'关闭',run:()=>{a.setting(key)}}]});
   const perPage=Math.max(2,Math.floor((top-bottom-155)/86)),pages=Math.max(1,Math.ceil(rows.length/perPage));this.page=Math.min(this.page,pages-1);
   rows.slice(this.page*perPage,(this.page+1)*perPage).forEach((row,i)=>{
-   const y=top-112-i*86,actions=row.actions??[],actionW=actions.length>1?61:90,iconSpace=row.skin?57:0,textW=w-(actions.length>1?144:actions.length?106:24)-iconSpace,textX=-w/2+12+iconSpace+textW/2;
+   const y=top-112-i*86,actions=row.actions??[],actionW=actions.length>1?61:90,iconSpace=row.skin?57:0,actionSpace=actions.length?8+actions.length*actionW+(actions.length-1)*5+8:12,textW=w-12-actionSpace-iconSpace,textX=-w/2+12+iconSpace+textW/2;
    u.panel('row:'+i,0,y,w,77,'#3b4b55');this.text('row:title'+i,row.title,textX,y+18,15,row.tint??paper,textW,true);this.text('row:detail'+i,row.detail,textX,y-14,12,'#bbc9c7',textW,false,actions.length?33:43);
    if(row.skin){u.panel('skin:preview'+i,-w/2+35,y,58,75,'#00000000');const g=u.objects.get('panel:skin:preview'+i)!.getComponent(Graphics)!;g.clear();drawSoldier(g,row.skin,0,-2,.8);}
    actions.forEach((action,n)=>this.button(action.id,action.label,w/2-8-actionW/2-(actions.length-1-n)*(actionW+5),y,actionW,action.run,false,42,action.disabled));

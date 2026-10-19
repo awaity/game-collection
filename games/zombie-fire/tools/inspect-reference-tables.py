@@ -7,6 +7,7 @@ as decoded data. Original payloads and the generated report stay in artifacts/.
 from __future__ import annotations
 
 import argparse
+from collections import Counter, defaultdict
 import hashlib
 import json
 import math
@@ -249,7 +250,83 @@ def level_base_row(table: Table) -> dict:
     start = table.offset
     row = level_base_header(table)
     (body,) = table.unpack(">159s")
-    return {**row, "bodyHex": body.hex(), "recordBytes": table.offset - start}
+    return {**row, "bodyHex": body.hex(), "valueAtBody28": struct.unpack_from(">I", body, 28)[0],
+            "recordBytes": table.offset - start}
+
+
+def level_library_candidates(table: Table, libraries: list, groups: list,
+                             level_bases: list, texts: dict) -> dict:
+    """Cross-reference a candidate field without naming it as proven dispatch."""
+    pairs = [struct.unpack(">2I", raw) for raw in libraries]
+    require(len(set(pairs)) == len(pairs), "BuildLibraryConfig: duplicate library/group pair")
+    group_ids = {r["group"] for r in groups}
+    require(all(group in group_ids for _, group in pairs),
+            "BuildLibraryConfig: unresolved complete group reference")
+    by_library = defaultdict(list)
+    for library, group in pairs:
+        by_library[library].append(group)
+    counts = Counter(r["valueAtBody28"] for r in level_bases)
+
+    def describe(row: dict) -> dict:
+        references = row["textReferencesAtMiddle51And55"]
+        return {"id": row["id"], "valueAtBody28": row["valueAtBody28"],
+                "textReferences": references,
+                "texts": [texts.get(key, {}).get("text") for key in references]}
+
+    unresolved = [describe(r) for r in level_bases
+                  if r["valueAtBody28"] and r["valueAtBody28"] not in by_library]
+    # Fixed rows can straddle the final block. A complete first word is evidence
+    # about that word only; never treat it as a usable library/group pair.
+    first_incomplete = 20 + len(pairs) * 8
+    partial = None
+    if first_incomplete < table.size:
+        partial = {"offset": first_incomplete, "completeRowExcluded": True,
+                   "firstDecodedWord": struct.unpack_from(">I", table.data, first_incomplete)[0]
+                   if first_incomplete + 4 <= len(table.data) else None}
+    return {
+        "block": "final159", "offset": 28,
+        "completeLibraryGroupPairs": len(pairs), "uniqueLibraries": len(by_library),
+        "matchedGroupReferences": len(pairs),
+        "completeLevelRows": len(level_bases),
+        "matchedLevelRows": sum(counts[key] for key in by_library),
+        "zeroLevelRows": counts[0], "unresolvedNonzeroLevelRows": unresolved,
+        "body28ValueCounts": dict(sorted(counts.items())),
+        "selectedLevels": [describe(r) for r in level_bases
+                           if r["id"] in (1001, 2001, 3001, 4001, 5001, 6001,
+                                          7001, 8001, 10001, 91001)],
+        "selectedLibraryGroups": {key: by_library[key] for key in (1, 2, 3, 4, 5)},
+        "firstIncompleteLibraryRow": partial,
+        "limits": ["The offset is a strong static reference candidate, not a verified runtime field name.",
+                   "A library's linked groups do not prove how groups, conditions or weights are dispatched.",
+                   "Incomplete library and level rows never contribute to matching counts."],
+    }
+
+
+def orb_group_comparisons(groups: list) -> dict:
+    selected = (1015, 2001, 3001, 4001, 5001, 6001, 11000, 102001, 310000)
+    by_group = {key: {r["build"]: r for r in groups
+                      if r["group"] == key and 1501 <= r["build"] <= 1525}
+                for key in selected}
+    require(all(set(rows) == set(range(1501, 1526)) for rows in by_group.values()),
+            "BuildGroupConfig: expected complete orb comparison groups")
+    compared = ("values2To4", "tuples5To19", "tuples20To34", "remainingFields", "lastByte")
+    comparisons = []
+    for key, rows in by_group.items():
+        differences = []
+        for build, row in rows.items():
+            base = by_group[1015][build]
+            changed = {field: {"base": base[field], "compared": row[field]}
+                       for field in compared if base[field] != row[field]}
+            if changed:
+                differences.append({"build": build, "fields": changed})
+        comparisons.append({"group": key, "completeOrbRows": len(rows), "differences": differences})
+    return {"baseGroup": 1015, "comparisons": comparisons,
+            "ordinaryZeroWeightCandidates": [r["build"] for r in by_group[2001].values()
+                                               if r["values2To4"][:2] == [0, 0]],
+            "hiddenGroup2002": [r for r in groups if r["group"] == 2002],
+            "limits": ["Field 4 is a rank-cap candidate; its runtime interpretation remains unobserved.",
+                       "Groups agree on some conditions but differ on weights; no universal card pool is inferred.",
+                       "Research display text for levels 2/14 names a different card from the ordinary group's tuple."]}
 
 
 def chapter_level_links(table: Table, level_bases: list, texts: dict) -> dict:
@@ -376,6 +453,8 @@ def inspect(directory: Path) -> dict:
                 "LevelBaseConfig: duplicate ID in incomplete final record")
     require(level_end == level_table.size, "LevelBaseConfig: inferred final boundary differs from file size")
     chapter_links = chapter_level_links(tables["ChapterConfig"], level_bases, texts)
+    library_candidates = level_library_candidates(tables["BuildLibraryConfig"], libraries,
+                                                  groups, level_bases, texts)
     magic_ids = {r["id"] for r in magic}
     levels = read_magic_levels(tables["MagicSkillLevelConfig"], texts, builds)
     level_families = {key: sorted(r["level"] for r in levels if r["skill"] == key)
@@ -425,6 +504,8 @@ def inspect(directory: Path) -> dict:
         "selectedLevelBases": [r for r in level_bases
                                if r["id"] in (9997, 9998, 9999, 1001, 1002, 1003, 2001, 2002)],
         "chapterLevelLinks": chapter_links,
+        "levelLibraryCandidates": library_candidates,
+        "orbGroupComparisons": orb_group_comparisons(groups),
         "skillLevelBoundaries": {"recordBytes": 176, "completeRecords": len(levels),
                                  "familyLevels": level_families,
                                  "missingDisplayTexts": sorted({f["labelReference"] for r in levels
@@ -473,7 +554,7 @@ def inspect(directory: Path) -> dict:
         "limits": ["Partial block transform and checksum algorithm are unresolved.",
                    "Raw field offsets are not verified runtime field names.",
                    "Different selection groups are not mapped to modes or campaign stages.",
-                   "LevelBase record boundaries and scene references do not establish modes, wave dispatch or selection libraries.",
+                   "LevelBase body offset 28 matches library IDs structurally; runtime dispatch and modes remain unverified.",
                    "ChapterConfig's fifty pairs do not establish current campaign size or availability.",
                    "A text row or card definition does not prove it is selectable in normal play.",
                    "Skill-level display labels do not establish runtime stacking, upgrade costs or maximum attainable research.",

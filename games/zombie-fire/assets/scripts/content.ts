@@ -49,7 +49,7 @@ export const SKIN_ABILITIES={
 } as const;
 export const skinAbility=(skin:SkinId)=>skin==='ranger'?null:SKIN_ABILITIES[skin];
 export type Modifier='damage'|'haste'|'count'|'radius'|'pierce'|'duration'|'burn'|'freeze'|'stun'|'bounce'|'crit'|'magazine'|'knock'|'vulnerability'|'repeat'|'size'|'speed';
-export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean;luck?:{min:number;delta:readonly [number,number]};researchVariant?:{level:number;name:string;description:string;mods:Partial<Record<Modifier,number>>}}
+export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean;luck?:{min:number;delta:readonly [number,number]};researchMin?:number;researchVariant?:{level:number;name:string;description:string;mods:Partial<Record<Modifier,number>>}}
 const upgrade=(id:string,skill:SkillId,name:string,description:string,mods:Upgrade['mods'],requires:Upgrade['requires']=[],max=1,evolution=false):Upgrade=>({id,skill,name,description,mods,requires,max,evolution});
 const orbUpgrade=(id:string,name:string,description:string,mods:Upgrade['mods'],min:number,delta:readonly [number,number],max=1):Upgrade=>({...upgrade('orb:'+id,'orb',name,description,mods,[],max,min===21),luck:{min,delta}});
 export function upgradeForResearch(u:Upgrade,level=0):Upgrade{
@@ -135,25 +135,27 @@ export const UPGRADES:readonly Upgrade[]=[
  upgrade('pillar:more','pillar','增设电极','每次升起的电极柱增加1座。',{count:1},[],2),
  upgrade('pillar:wide','pillar','电弧扩展','连线宽度扩大，伤害增加25%。',{radius:5,damage:.25},[['pillar:power',1]],2),
  // Signed endpoints from the independently inspected BuildConfig 1502–1521.
- // Inclusive sampling, offer-time rolls, selection gates and rank caps are
- // explicit reconstruction choices; current client dispatch is not yet verified.
- {...orbUpgrade('rise','升维','伤害降低10%。',{damage:-.1},0,[8,10],3),researchVariant:{level:6,name:'升维+',description:'伤害提高10%。',mods:{damage:.1}}},
- orbUpgrade('heavy','弹球重击','体积增大，击退提高25%，伤害提高20%。',{size:.25,knock:2.5,damage:.2},0,[4,6],2),
+ // Caps and fission prerequisites follow the common fields of groups 1015/2001;
+ // the tide research gate also agrees with the level-10 display and group 2002.
+ // Inclusive sampling, offer-time rolls, luck gates and pool dispatch remain
+ // documented local choices, not observed original-client behavior.
+ {...orbUpgrade('rise','升维','伤害降低10%。',{damage:-.1},0,[8,10],2),researchVariant:{level:6,name:'升维+',description:'伤害提高10%。',mods:{damage:.1}}},
+ orbUpgrade('heavy','弹球重击','体积增大，击退提高25%，伤害提高20%。',{size:.25,knock:2.5,damage:.2},0,[4,6]),
  orbUpgrade('wall-split','弹射裂变','撞墙时分裂一枚无强化弹球。',{},0,[4,6]),
- orbUpgrade('salvo','弹球连发','释放个数+1，弹射次数-1。',{count:1,bounce:-1},0,[4,6],2),
- orbUpgrade('bounce','低维弹射','弹射次数+1。',{bounce:1},0,[3,5],3),
- orbUpgrade('repeat','低维连发','释放轮数+1。',{repeat:1},0,[4,6],2),
- orbUpgrade('power','低维增伤','伤害提高60%。',{damage:.6},0,[3,5],4),
- orbUpgrade('haste','急速弹射','冷却缩短10%，伤害提高30%。',{haste:.1,damage:.3},0,[3,5],3),
+ orbUpgrade('salvo','弹球连发','释放个数+1，弹射次数-1。',{count:1,bounce:-1},0,[4,6]),
+ orbUpgrade('bounce','低维弹射','弹射次数+1。',{bounce:1},0,[3,5],2),
+ orbUpgrade('repeat','低维连发','释放轮数+1。',{repeat:1},0,[4,6]),
+ orbUpgrade('power','低维增伤','伤害提高60%。',{damage:.6},0,[3,5],3),
+ orbUpgrade('haste','急速弹射','冷却缩短10%，伤害提高30%。',{haste:.1,damage:.3},0,[3,5],2),
  orbUpgrade('hinder','阻滞打击','命中削弱50%加速增益，持续1秒；狂暴免疫。',{},10,[-8,-6]),
  orbUpgrade('rain','弹珠雨','释放个数+2，体积减小25%。',{count:2,size:-.25},10,[4,8]),
- orbUpgrade('wall-blast','动能爆破','撞墙时产生80%伤害的爆炸。',{},10,[-12,-9]),
- orbUpgrade('split','动能裂变','每命中4个目标，分裂一枚无强化弹球。',{},10,[6,8]),
- orbUpgrade('high-bounce','高维弹射','弹射次数+2，体积增大25%。',{bounce:2,size:.25},10,[4,8],2),
+ {...orbUpgrade('wall-blast','动能爆破','撞墙时产生80%伤害的爆炸。',{},10,[-12,-9]),requires:[['orb:wall-split',1]]},
+ {...orbUpgrade('split','动能裂变','每命中4个目标，分裂一枚无强化弹球。',{},10,[6,8]),requires:[['orb:wall-split',1]]},
+ orbUpgrade('high-bounce','高维弹射','弹射次数+2，体积增大25%。',{bounce:2,size:.25},10,[4,8]),
  orbUpgrade('high-repeat','高维连发','释放轮数+2。',{repeat:2},10,[4,8]),
  orbUpgrade('armed','武装弹球','每枚强化弹球的前两次命中必定暴击。',{},10,[4,8]),
  orbUpgrade('cripple','致残撞击','命中减速90%，持续0.5秒。',{},10,[4,8]),
- orbUpgrade('tide','弹球浪潮','弹射次数+2，释放个数、轮数各+1；幸运弹球数量+1。',{bounce:2,count:1,repeat:1},21,[1,2]),
+ {...orbUpgrade('tide','弹球浪潮','弹射次数+2，释放个数、轮数各+1；幸运弹球数量+1。',{bounce:2,count:1,repeat:1},21,[1,2]),researchMin:10},
  orbUpgrade('destroy','毁灭猛击','大小弹球叠加3%易伤，持续3秒，最多20层；幸运弹球少施放1次触发。',{},21,[1,2]),
  orbUpgrade('cycle','终极循环','冷却-25%，速度+20%，伤害+120%；幸运弹球撞墙爆炸。',{haste:.25,speed:.2,damage:1.2},21,[1,2]),
  orbUpgrade('ultimate','终极破坏','伤害提高300%；幸运弹球体积+15%。',{damage:3},21,[1,2]),
