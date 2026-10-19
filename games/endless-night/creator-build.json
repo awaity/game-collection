@@ -2,8 +2,8 @@
   "engine": "Cocos Creator",
   "version": "3.8.8",
   "target": "web-mobile",
-  "sourceHash": "66632e2efce9399054e36b51e879a409187c7f513e2da95e47d710a25add7104",
-  "builtAt": "2026-10-19T01:58:37.167Z",
+  "sourceHash": "850f7157f812cc3b45b0b9731c9448ff147359d1e3c00b8a891404c6604c2615",
+  "builtAt": "2026-10-19T07:26:00.361Z",
   "cliExitCode": 36,
   "appIdConfigured": false,
   "files": {
@@ -29,7 +29,7 @@
     },
     "assets/main/import/84/84a06ce3-039f-56f1-af0c-f0c20d9f23eb.json": {
       "bytes": 795,
-      "sha256": "701d5eac10bd94c05c899e09c2a6f95120899aad3aa1f096535e70c89e0a5358"
+      "sha256": "36699f71a37642a1547eff615d38b092706ba15ec4fe80240929184645ea80a9"
     },
     "assets/main/import/ba/ba21476f-2866-4f81-9c4d-6e359316e448.json": {
       "bytes": 192,
@@ -40,8 +40,8 @@
       "sha256": "c2eee4552a460ed97591f527e127b95c811d5f796b9448f3f705974af9beba9d"
     },
     "assets/main/index.js": {
-      "bytes": 559232,
-      "sha256": "d26142c16f2949feedb0f9471a15f5e823c1d4252ff69f6cb3e9fdec78b7a549"
+      "bytes": 563806,
+      "sha256": "2dc495f6d8d11b06ed9ca60108861c4ec4d61c30c5c786e35f094f7054211f2b"
     },
     "assets/night-0/config.json": {
       "bytes": 600,
@@ -1204,12 +1204,12 @@
       "sha256": "039379db21a88f97335ea11bbeed5664d99211cb8c86b7981c9055f88ff1357a"
     },
     "favicon.svg": {
-      "bytes": 701,
-      "sha256": "8e1444eaad1088e76190b86f54f91623c7d91460343d14488538f3583eecbc9f"
+      "bytes": 327,
+      "sha256": "9565a0e36a72815bfcec1af6d7b9f6944586cfb66bb128f4f2351536e7db74d5"
     },
     "index.html": {
-      "bytes": 1781,
-      "sha256": "b1cf14272e822bc7e81def00fff1763cb45efe73200ca3f5327416e1aeeebe69"
+      "bytes": 9786,
+      "sha256": "82ca5318164ac1edd919dbe3cda559b45c502afdde02907473e69dff6f2ada28"
     },
     "index.js": {
       "bytes": 818,
@@ -1232,8 +1232,8 @@
       "sha256": "cb588d11797e0ca56123d979812db39c8b38dd01c5a6761b2aa5f79cb1d4c701"
     },
     "src/settings.json": {
-      "bytes": 21470,
-      "sha256": "84038730ef76cfcb9a63f7e055c4453d06e84f38c89639f86cef364fa5ee5f24"
+      "bytes": 2079,
+      "sha256": "4ebc2feeef0fdc6aca1ea9176c5749b7122897f2f169fc5283a2582ee8408304"
     },
     "src/system.bundle.js": {
       "bytes": 12259,

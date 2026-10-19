@@ -36,8 +36,67 @@
 
   <link rel="stylesheet" type="text/css" href="style.css"/>
 
-<meta name="description" content="雪原小营 · Cocos Creator 三端小游戏"><link rel="icon" href="favicon.svg"></head>
-<body>
+<meta name="description" content="雪原小营 · Cocos Creator 三端小游戏"><link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2096%2096%22%20fill%3D%22none%22%3E%3Crect%20width%3D%2296%22%20height%3D%2296%22%20rx%3D%2222%22%20fill%3D%22%236254c7%22%2F%3E%3Cpath%20class%3D%22gate-left%22%20d%3D%22M22%2022H45V33H33V74H22Z%22%20fill%3D%22white%22%2F%3E%3Cpath%20class%3D%22gate-right%22%20d%3D%22M53%2022H76V74H65V33H53Z%22%20fill%3D%22white%22%2F%3E%3Cpath%20class%3D%22gate-play%22%20d%3D%22M46%2044L63%2055L46%2066Z%22%20fill%3D%22%23ffb46b%22%2F%3E%3C%2Fsvg%3E%0A"><style>#collection-entrance{position:fixed;inset:0;z-index:2147483645;display:grid;place-items:center;background:#f5f5fb;color:#292943;font:14px/1.6 'PingFang SC','Microsoft YaHei',sans-serif;touch-action:manipulation;isolation:isolate}
+#collection-entrance .entrance-content{text-align:center;padding:24px;width:min(320px,85vw);position:relative;z-index:1}
+#collection-entrance svg{display:block;width:96px;height:96px;margin:0 auto 22px;overflow:visible}
+#collection-entrance .gate-left{animation:kaiju-left .7s cubic-bezier(.22,.8,.25,1) both}
+#collection-entrance .gate-right{animation:kaiju-right .7s cubic-bezier(.22,.8,.25,1) both}
+#collection-entrance .gate-play{animation:kaiju-play .7s ease both;transform-origin:54px 55px}
+#collection-entrance strong{font-size:27px;font-weight:850;letter-spacing:2px;display:block}
+#collection-entrance .entrance-title{color:#6254c7;margin:12px 0 0;font-size:16px;font-weight:600}
+#collection-entrance .entrance-status{color:#77748d;margin:8px 0 0;min-height:23px}
+#collection-entrance .entrance-track{height:3px;width:100px;margin:22px auto;background:#e7e3fa;overflow:hidden;border-radius:3px}
+#collection-entrance .entrance-track:after{content:'';display:block;width:40px;height:100%;background:#6254c7;animation:kaiju-load 1.2s ease-in-out infinite}
+#collection-entrance .entrance-actions{position:absolute;bottom:max(36px,env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:12px;padding:12px}
+#collection-entrance button,#collection-entrance a{font:inherit;font-size:13px;border:1px solid #d9d3ef;border-radius:24px;background:#fff;color:#6254c7;padding:12px 20px;min-height:44px;text-decoration:none;cursor:pointer}
+#collection-entrance button:disabled{color:#77748d;cursor:wait}
+#collection-entrance :focus-visible{outline:3px solid #6254c7;outline-offset:4px}
+#collection-entrance [hidden]{display:none!important}
+#collection-entrance[data-leaving]{background:transparent}
+#collection-entrance[data-leaving]:before,#collection-entrance[data-leaving]:after{content:'';position:absolute;top:0;bottom:0;width:50.1%;background:#f5f5fb;animation:kaiju-door .32s cubic-bezier(.4,0,.2,1) both}
+#collection-entrance[data-leaving]:before{left:0;--direction:-101%}#collection-entrance[data-leaving]:after{right:0;--direction:101%}
+#collection-entrance[data-leaving] .entrance-content,#collection-entrance[data-leaving] .entrance-actions{opacity:0;transition:opacity .12s}
+@keyframes kaiju-left{from{transform:translateX(8px);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes kaiju-right{from{transform:translateX(-8px);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes kaiju-play{0%,25%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}@keyframes kaiju-load{from{transform:translateX(-45px)}to{transform:translateX(105px)}}@keyframes kaiju-door{to{transform:translateX(var(--direction))}}
+@media(prefers-reduced-motion:reduce){#collection-entrance *,#collection-entrance:before,#collection-entrance:after{animation:none!important;transition:none!important}}
+</style></head>
+<body><section id="collection-entrance" role="dialog" aria-label="开局游戏入场" aria-modal="true" tabindex="-1"><div class="entrance-content"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none"><rect width="96" height="96" rx="22" fill="#6254c7"/><path class="gate-left" d="M22 22H45V33H33V74H22Z" fill="white"/><path class="gate-right" d="M53 22H76V74H65V33H53Z" fill="white"/><path class="gate-play" d="M46 44L63 55L46 66Z" fill="#ffb46b"/></svg>
+<strong>开局游戏</strong><p class="entrance-title">雪原小营</p><p class="entrance-status" role="status">正在准备游戏…</p><div class="entrance-track" aria-hidden="true"></div></div><div class="entrance-actions"><button data-skip disabled>跳过入场动画</button><button data-retry hidden>重新加载</button><a data-back hidden>返回大厅</a></div></section><script>(() => {
+  const layer=document.getElementById('collection-entrance');if(!layer)return;
+  const skip=layer.querySelector('[data-skip]'),status=layer.querySelector('.entrance-status'),retry=layer.querySelector('[data-retry]'),back=layer.querySelector('[data-back]');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,locked=new Map(),held=new Set();
+  let ready=false,leaving=false,timer,timeout;
+  function lock(){for(const el of document.body.children)if(el!==layer&&el.tagName!=='SCRIPT'&&!locked.has(el)){locked.set(el,el.inert);el.inert=true;}}
+  const children=new MutationObserver(lock);children.observe(document.body,{childList:true});lock();layer.focus({preventScroll:true});
+  const at=location.pathname.indexOf('/games/');
+  back.href=at>=0?location.pathname.slice(0,at+1):'../../';
+  function finish(){
+    if(!ready||leaving)return;leaving=true;clearTimeout(timer);clearTimeout(timeout);children.disconnect();observer.disconnect();document.removeEventListener('collection:statechange',check);
+    window.removeEventListener('error',failed);window.removeEventListener('unhandledrejection',failed);
+    layer.dataset.leaving='true';
+    setTimeout(()=>{for(const [el,inert] of locked)el.inert=inert;layer.remove();document.documentElement.dataset.collectionEntrance='done';document.querySelector('canvas')?.focus({preventScroll:true});if(!held.size)releaseKeys();},reduced?0:330);
+  }
+  function check(){if(ready||!['menu','playing','paused','result'].includes(document.documentElement.dataset.collectionState))return;ready=true;skip.disabled=false;skip.hidden=false;retry.hidden=back.hidden=true;status.textContent='准备好，开一局。';timer=setTimeout(finish,reduced?120:850);}
+  function failed(){if(leaving||ready)return;status.textContent='游戏准备遇到问题，请重试。';retry.hidden=false;back.hidden=false;skip.hidden=true;}
+  function releaseKeys(){document.removeEventListener('keydown',key,true);document.removeEventListener('keyup',keyUp,true);}
+  function key(e){
+    if(!layer.isConnected&&!held.has(e.code))return;
+    if(e.ctrlKey||e.metaKey||e.altKey||e.key==='F5')return;
+    if(e.key==='Tab'){
+      const buttons=[...layer.querySelectorAll('button:not(:disabled),a[href]')].filter(el=>!el.hidden);
+      e.preventDefault();e.stopImmediatePropagation();
+      if(!buttons.length)layer.focus();else {const i=buttons.indexOf(document.activeElement);buttons[(i+(e.shiftKey?-1:1)+buttons.length)%buttons.length].focus();}return;
+    }
+    if(!leaving&&(e.target===retry||e.target===back)&&['Enter',' '].includes(e.key))return;
+    held.add(e.code);e.preventDefault();e.stopImmediatePropagation();
+    if(ready&&['Enter',' ','Escape'].includes(e.key))finish();
+  }
+  function keyUp(e){if(!held.delete(e.code))return;e.preventDefault();e.stopImmediatePropagation();if(!layer.isConnected&&!held.size)releaseKeys();}
+  skip.addEventListener('click',finish);retry.addEventListener('click',()=>location.reload());document.addEventListener('keydown',key,true);document.addEventListener('keyup',keyUp,true);
+  document.addEventListener('collection:statechange',check);window.addEventListener('error',failed);window.addEventListener('unhandledrejection',failed);
+  const observer=new MutationObserver(check);observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-collection-state']});
+  timeout=setTimeout(()=>{if(!ready){status.textContent='准备时间较长，可以重试或返回大厅。';retry.hidden=false;back.hidden=false;}},15000);check();
+})();
+</script>
   <div id="GameDiv" cc_exact_fit_screen="true">
       <div id="Cocos3dGameContainer">
         <canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99"></canvas>

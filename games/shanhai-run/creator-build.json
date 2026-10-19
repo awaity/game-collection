@@ -2,8 +2,8 @@
   "engine": "Cocos Creator",
   "version": "3.8.8",
   "target": "web-mobile",
-  "sourceHash": "d1b4f2226f3e71b0935add4f7bf2aa41af65273332b0baa09a9056cc04be7e62",
-  "builtAt": "2026-10-19T05:54:14.231Z",
+  "sourceHash": "141c3cc839df91768458c3889c31bba78fe46c34026432453d375208cc60f8f0",
+  "builtAt": "2026-10-19T07:23:24.380Z",
   "cliExitCode": 36,
   "appIdConfigured": false,
   "files": {
@@ -29,7 +29,7 @@
     },
     "assets/main/import/5e/5e4e4a84-14a8-529e-a129-aa2ca3714c76.json": {
       "bytes": 795,
-      "sha256": "cc767abf29ee5ecfa1f94304dd32abb8c9b049d83d82021eae23777478918be6"
+      "sha256": "2175bbb9fb116237fe3c0d00bb1a23e82d7c7c49c65a943dd7e6c7b5072a43b2"
     },
     "assets/main/import/ba/ba21476f-2866-4f81-9c4d-6e359316e448.json": {
       "bytes": 192,
@@ -40,8 +40,8 @@
       "sha256": "c2eee4552a460ed97591f527e127b95c811d5f796b9448f3f705974af9beba9d"
     },
     "assets/main/index.js": {
-      "bytes": 101956,
-      "sha256": "db5d55d52bd229b263893a5adbfbcdbe9cf0f4df3fec2fb080879d0d56cfc062"
+      "bytes": 116173,
+      "sha256": "9ce467dceb82e822b3596889446e044b12eca6a40d55b7eafb2042123507d3a5"
     },
     "assets/resources/config.json": {
       "bytes": 940,
@@ -56,8 +56,8 @@
       "sha256": "91c8ac3c8bb883afdf8b60b1b6f08fa0ac03903b1e1af8c5869e34057721c779"
     },
     "assets/resources/import/37/3701e45f-4a45-56dd-92f9-2eb41779424e.json": {
-      "bytes": 8613,
-      "sha256": "5884ad337ff7035cc27591be1d19072edfe16dc546e128a8cc568ef02e59bf52"
+      "bytes": 9146,
+      "sha256": "66628edacda773aff15dc34f54e05aefda2f15f36b1f2ad0f6929f6d50c1f00e"
     },
     "assets/resources/import/3c/3cd52ede-7214-57b3-bfbb-828800ed6e28.json": {
       "bytes": 116,
@@ -152,12 +152,12 @@
       "sha256": "039379db21a88f97335ea11bbeed5664d99211cb8c86b7981c9055f88ff1357a"
     },
     "favicon.svg": {
-      "bytes": 701,
-      "sha256": "8e1444eaad1088e76190b86f54f91623c7d91460343d14488538f3583eecbc9f"
+      "bytes": 327,
+      "sha256": "9565a0e36a72815bfcec1af6d7b9f6944586cfb66bb128f4f2351536e7db74d5"
     },
     "index.html": {
-      "bytes": 1781,
-      "sha256": "9084f54db5780529898b74bb498e18b1c3c68fba623f101aa33fcdfac272606f"
+      "bytes": 9786,
+      "sha256": "3500f49750d18be81eb73cba2a21a1b2374c20811d4130f2d22c1e12a10ce664"
     },
     "index.js": {
       "bytes": 818,
@@ -180,8 +180,8 @@
       "sha256": "cb588d11797e0ca56123d979812db39c8b38dd01c5a6761b2aa5f79cb1d4c701"
     },
     "src/settings.json": {
-      "bytes": 21381,
-      "sha256": "c1e2b044ad45fa8f54af080142372c267cfe8f54b3b9c9156fd2de86de6d851f"
+      "bytes": 1990,
+      "sha256": "c746acb717e8373d3bed4ac0bff59a263f926aa6bbb18f7b600e9c4545ef26b0"
     },
     "src/system.bundle.js": {
       "bytes": 12259,
