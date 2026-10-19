@@ -7,7 +7,7 @@ import type {Mode} from './core';
 import {skillIcon} from './icons';
 import type {SkillId} from './content';
 import {drawCamp,drawSoldier} from './illustration';
-const ink='#293943',paper='#e8dec4',orange='#efaa4f',blue='#77cadc';
+const ink='#172029',paper='#e9dfc6',orange='#f39626',blue='#49b7ef';
 interface Row {id:string;title:string;detail:string;actions?:{id:string;label:string;run:()=>void;disabled?:boolean}[];tint?:string;skin?:string}
 export class BattlefieldUI {
  panel='';page=0;stage=0;gemSlot:Slot='weapon';socket=0;earned=0;codexTab='skills';
@@ -16,7 +16,7 @@ export class BattlefieldUI {
  private get bottom(){return -this.ui.height/2+this.ui.insets.bottom+18;}
  private button(id:string,label:string,x:number,y:number,width:number,action:()=>void,accent=false,height=44,disabled=false){const node=this.ui.button(id,label,x,y,width,disabled?()=>{}:action,accent,height),g=node.getComponent(Graphics)!;g.clear();g.fillColor=color(disabled?'#39464d':accent?orange:'#455560');g.strokeColor=color(disabled?'#536069':accent?'#f6d698':'#84938f');g.lineWidth=1.5;g.roundRect(-width/2,-height/2,width,height,6);g.fill();g.stroke();this.ui.buttons.get(id)!.label.color=color(disabled?'#899995':accent?ink:paper);return node;}
  private text(id:string,value:string,x:number,y:number,size=15,tint=paper,width=300,bold=false,height=size*2.6){const label=this.ui.text(id,value,x,y,size,tint,width);label.isBold=bold;label.node.getComponent(UITransform)!.setContentSize(width,height);return label;}
- private icon(id:string,skill:SkillId,x:number,y:number,size:number){this.ui.panel(id,x,y,size,size,'#33464e');skillIcon(this.ui.objects.get('panel:'+id)!.getComponent(Graphics)!,skill,size);}
+ private icon(id:string,skill:SkillId,x:number,y:number,size:number,seal=false){this.ui.panel(id,x,y,size,size,'#33464e');skillIcon(this.ui.objects.get('panel:'+id)!.getComponent(Graphics)!,skill,size,seal);}
  open(panel:string){this.panel=panel;this.page=0;this.session.armory.message='';}
  draw(){
   const b=this.session.battle,a=this.session.armory,p=a.data,w=Math.min(720,this.ui.width-24),top=this.top,bottom=this.bottom;
@@ -53,8 +53,8 @@ export class BattlefieldUI {
   if(this.session.saveFailed)this.text('save:warning','奖励等待保存 · 暂停后可重试',0,bottom+6,12,orange,w);
   else if(b.skinProgress){const s=b.skinProgress;this.text('skin:charge',`${s.name} ${s.hits}/${s.threshold} · 已触发 ${s.triggers} 次`,0,bottom+6,11,skillById[s.skill].color,w);}
   const learned=Object.entries(b.learned),skillX=Math.min(480,this.ui.width-84)/2+12,spacing=Math.min(67,(top-bottom-98)/Math.max(1,learned.length));
-  learned.forEach(([id,rank],i)=>{const y=top-91-i*spacing,size=Math.min(42,spacing-17);this.icon('skill:icon'+i,id as SkillId,skillX,y,size);this.text('skill:'+i,'Lv.'+rank,skillX,y-size/2-8,10,skillById[id as SkillId].color,50);});
-  if(b.time<12&&b.phase==='playing')this.text('aim:hint','自动射击 · 轻触敌人可优先集火',-24,top-66,12,paper,Math.min(350,w-60));
+  learned.forEach(([id,rank],i)=>{const y=top-91-i*spacing,size=Math.min(42,spacing-17);this.icon('skill:icon'+i,id as SkillId,skillX,y,size);this.text('skill:'+i,'Lv.'+rank,skillX,y-size/2-8,10,skillById[id as SkillId].color,50);if(id==='dragon'&&b.dragon)this.text('dragon:charge',`${Math.floor(b.dragon.energy)}/${b.dragon.maxEnergy}`,skillX,y-size/2-21,9,'#a7e3ed',58);});
+  if(b.time<12&&b.phase==='playing')this.text('aim:hint','自动射击 · 轻触敌人可优先集火',0,bottom+55,11,paper,Math.min(350,w-24));
   if(b.phase==='choice')this.choices();
   if(b.phase==='paused'){
    this.ui.panel('pause:shade',0,0,this.ui.width,this.ui.height,'#24333de9');this.text('pause:title','战线暂歇',0,105,30,paper,w,true);this.text('pause:detail','返回后可继续当前战斗',0,65,14,'#bdc9c4',w);
@@ -77,11 +77,19 @@ export class BattlefieldUI {
   b.cards.forEach((card,i)=>{
    const x=(i-1)*(cardWidth+7);const node=this.button('choose:'+i,'选择 '+card.name,x,center,cardWidth,()=>{if(b.choose(card.id))this.session.armory.completeTutorial();},false,height);this.ui.buttons.get('choose:'+i)!.label.node.active=false;
    const g=node.getComponent(Graphics)!;g.clear();g.fillColor=color(paper);g.strokeColor=color(card.kind==='evolution'?orange:'#b5b2a1');g.lineWidth=card.kind==='evolution'?3:1.5;g.rect(-cardWidth/2,-height/2,cardWidth,height);g.fill();g.stroke();
-   this.ui.panel('choice:header'+i,x,center+height/2-24,cardWidth-4,43,'#53605d');
+   // Original archive paper: faint drafting grid, perforation and folded corner.
+   g.strokeColor=color('#958d7440');g.lineWidth=.5;
+   const gridTop=height/2-48,gridBottom=-height*.05;
+   for(let xx=-cardWidth/2+7;xx<cardWidth/2-5;xx+=12){g.moveTo(xx,gridBottom);g.lineTo(xx,gridTop);}
+   for(let yy=gridBottom;yy<gridTop;yy+=12){g.moveTo(-cardWidth/2+5,yy);g.lineTo(cardWidth/2-5,yy);}g.stroke();
+   g.strokeColor=color('#857c64');g.lineWidth=1;for(let xx=-cardWidth/2+9;xx<cardWidth/2-8;xx+=5){g.moveTo(xx,gridBottom-3);g.lineTo(xx+2,gridBottom-3);}g.stroke();
+   g.fillColor=color('#baad90');g.moveTo(cardWidth/2-13,-height/2);g.lineTo(cardWidth/2,-height/2+13);g.lineTo(cardWidth/2-1,-height/2);g.close();g.fill();
+   this.ui.panel('choice:header'+i,x,center+height/2-24,cardWidth-4,43,'#514b3c');
+   const header=this.ui.objects.get('panel:choice:header'+i)!.getComponent(Graphics)!;header.clear();header.fillColor=color('#514b3c');header.rect(-(cardWidth-4)/2,-21.5,cardWidth-4,43);header.fill();header.fillColor=color('#9a9077');for(const side of [-1,1]){header.circle(side*(cardWidth/2-7),0,1.5);header.fill();}
    this.text('choice:name'+i,card.name,x,center+height/2-24,13,paper,cardWidth-8,true);
-   this.icon('choice:icon'+i,card.skill,x,center+height*.16,Math.min(52,height*.18));
-   this.text('choice:description'+i,card.description,x,center-height*.16,13,ink,cardWidth-15,false,height*.35);
-   this.text('choice:key'+i,String(i+1),x,center-height/2+19,12,'#756d5b',40);
+   this.icon('choice:icon'+i,card.skill,x,center+height*.16,Math.min(64,height*.24),true);
+   this.text('choice:description'+i,card.description,x,center-height*.18,cardWidth<110?12:13,ink,cardWidth-15,false,height*.40);
+   this.text('choice:key'+i,`${card.kind==='learn'?'新技能':card.kind==='evolution'?'进化':'Lv.'+card.rank}  ${i+1}`,x,center-height/2+18,11,card.kind==='evolution'?'#9b581d':'#756d5b',cardWidth-8,true);
   });
   this.button('reroll',`刷新选项（${b.rerolls}）`,0,center-height/2-40,210,()=>b.reroll(),false,40,b.rerolls<=0);
   this.button('choice:pause','暂停',-w/2+32,this.bottom+21,60,()=>this.session.pause(),false,40);

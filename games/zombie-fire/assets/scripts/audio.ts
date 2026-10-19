@@ -1,6 +1,7 @@
 import {AudioClip,AudioSource,Node,resources} from 'cc';
 import type {Fx,Phase} from './core';
 import type {Profile} from './profile';
+import {skillById} from './content';
 
 export class BattleAudio {
  readonly ready:Promise<void>;
@@ -25,7 +26,10 @@ export class BattleAudio {
   const names=new Set<string>();
   for(const event of events){
    if(event.type==='shot'&&event.skill==='rifle'&&this.shotClock<=0){names.add('shot');this.shotClock=.12;}
-   if(event.type==='burst')names.add(event.skill==='frost'?'ice':event.skill==='fuel'?'':event.skill==='electro'?'electric':'blast');
+   if(event.type==='burst'&&event.skill!=='fuel'&&event.skill!=='matrix'){
+    const element=event.skill?skillById[event.skill].element:'fire';
+    names.add(element==='ice'?'ice':element==='electric'?'electric':'blast');
+   }
    if(event.type==='beam'||event.type==='chain')names.add('electric');
    if(['level','win','lose','wall','reload'].includes(event.type))names.add(event.type);
   }

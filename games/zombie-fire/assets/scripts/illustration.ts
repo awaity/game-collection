@@ -62,3 +62,41 @@ export function drawCamp(g:Graphics,width:number,height:number,skin:string,mapCo
  for(const x of [-68,54]){rect(x,-26,11,27,'#3d525c');ellipse(x,-11,3,3,'#d7d491');}
  drawSoldier(g,skin,11*scale,-47*scale,scale*1.25);
 }
+
+export function drawDrone(g:Graphics,x:number,y:number,size:number,time:number){
+ const {poly,line,ellipse}=painter(g,x,y,size/18);
+ ellipse(0,-9,14,4,'#17202933');
+ for(const side of [-1,1]){
+  line([[side*3,2],[side*12,10]],'#1f303b',4);
+  ellipse(side*12,10,8,3,'#c9d7cd66');
+  const spin=Math.sin(time*30)*2;
+  line([[side*12-6,10+spin],[side*12+6,10-spin]],'#a7c2c8',1.4);
+  ellipse(side*12,10,2.2,2.2,'#304d5a');
+ }
+ poly([[-6,8],[0,14],[6,8],[7,-7],[0,-11],[-7,-7]],'#d8ded0');
+ poly([[-4,7],[0,11],[4,7],[3,-2],[-3,-2]],'#546f7a');
+ line([[-3,-5],[3,-5]],'#efae5d',2);ellipse(0,2,1.6,1.6,'#a8edf1');
+}
+
+export function drawDragon(g:Graphics,x:number,y:number,scale:number,time:number,attacking:boolean){
+ const {poly,line,ellipse}=painter(g,x,y,scale),claw=attacking?5:0;
+ ellipse(0,-17,31,9,'#17202944');
+ poly([[-5,-7],[-17,-15],[-23,-10],[-26,-15],[-17,-24],[5,-14]],'#597b88');
+ for(const side of [-1,1]){
+  poly([[side*7,6],[side*17,20],[side*33,11],[side*22,4],[side*26,-4],[side*11,-3]],'#7fa7b5');
+  poly([[side*15,12],[side*29,11],[side*20,6]],'#c0e4e7');
+  poly([[side*8,-4],[side*18,-7],[side*21,-15+claw],[side*11,-16+claw],[side*9,-10]],'#a4c6ce');
+  for(let n=0;n<3;n++)line([[side*(12+n*3),-13+claw],[side*(13+n*3),-19+claw]],'#e2f6ed',1.8);
+ }
+ poly([[-10,10],[-7,-13],[0,-18],[9,-11],[11,11],[0,20]],'#54808f');
+ poly([[-6,10],[-4,-8],[0,-13],[5,-8],[7,11],[0,15]],'#b5dce0');
+ for(let n=0;n<3;n++)line([[-4,7-n*6],[5,7-n*6]],'#5b8a9d',1.4);
+ for(const side of [-1,1])poly([[side*6,17],[side*16,30],[side*11,31],[side*4,24]],'#d1edf0');
+ poly([[-10,22],[-12,13],[-7,6],[0,3],[9,7],[12,16],[8,24],[0,28]],'#86b9c9');
+ poly([[-8,20],[0,24],[8,20],[5,14],[-5,14]],'#c8edf0');
+ poly([[-10,17],[-3,15],[-4,12],[-9,13]],'#223f57');poly([[10,17],[3,15],[4,12],[9,13]],'#223f57');
+ line([[-8,15],[-4,14]],'#72e6fa',1.5);line([[4,14],[8,15]],'#72e6fa',1.5);
+ poly([[-7,8],[0,4],[7,8],[5,1],[-4,1]],'#5c8b9e');line([[-4,4],[4,4]],'#e6f5e6');
+ if(attacking)for(const side of [-1,1])for(let n=0;n<3;n++)line([[side*(15+n*4),13],[side*(18+n*4),5],[side*(16+n*4),-4]],'#b5eff4',1.8);
+ else ellipse(0,-6,2.5,3,'#71dbe9');
+}
