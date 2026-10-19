@@ -33,7 +33,10 @@ export class BattlefieldArt {
   if(b.priority===e.id){this.g.strokeColor=color('#f4e0a2');this.g.lineWidth=2;this.g.circle(p.x,p.y,22*scale);this.g.stroke();}
  }
  draw(b:Battle,delta:number,skinId:string,motion:boolean,events:Fx[]=[],quality='high'){
-  this.ui.resize();this.clip.setSiblingIndex(0);const g=this.g;g.clear();this.width=Math.min(480,this.ui.width-84);this.height=Math.max(150,this.ui.height-182-this.ui.insets.top-this.ui.insets.bottom);this.bottom=-this.ui.height/2+88+this.ui.insets.bottom;
+  this.ui.resize();this.clip.setSiblingIndex(0);const g=this.g;g.clear();
+  const availableHeight=this.ui.height-this.ui.insets.top-this.ui.insets.bottom;
+  const footer=this.ui.width<this.ui.height&&availableHeight<650?120:88;
+  this.width=Math.min(480,this.ui.width-84);this.height=Math.max(150,availableHeight-94-footer);this.bottom=-this.ui.height/2+footer+this.ui.insets.bottom;
   const clipY=this.bottom+this.height/2-16;this.clip.setPosition(this.offset,clipY);this.clip.getComponent(UITransform)!.setContentSize(this.width+24,this.height+50);this.node.setPosition(0,-clipY);
   const w=this.width,h=this.height,bottom=this.bottom,map=b.map,center=bottom+h/2;
   this.rect(0,center,w+22,h+18,map.edge,8);this.rect(0,center,w,h,map.ground);
