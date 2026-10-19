@@ -31,30 +31,42 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  }
  async function advancedBattle(skill){
   let observed=false;
-  const luckGain={'orb:rise':11,'orb:heavy':5,'orb:wall-split':6,'orb:salvo':8,'orb:bounce':4,'orb:repeat':7,'orb:power':5,'orb:haste':5};
   const ultimate=['orb:tide','orb:destroy','orb:cycle','orb:ultimate'];
   for(let attempt=0;attempt<(skill==='orb'?8:4)&&!observed;attempt++){
    await click('endless');let s=await state(),evolvedAt21=false,capturedLuck=false;
    for(let n=0;n<(skill==='orb'?750:450);n++){
+    let selectedLuck;
     if(s.battlePhase==='choice'){
+     if(skill==='orb')for(const [i,c]of s.cards.entries())if(c.id.startsWith('orb:')){
+      assert.ok(Number.isInteger(c.luckChange)&&Number.isInteger(c.luckAfter),'visible orb cards resolve luck before input');
+      const label=`幸运 ${c.luckChange>=0?'+':''}${c.luckChange} → ${c.luckAfter}`;
+      assert.ok(s.labels.includes(label),'the rendered card shows its exact lucky outcome');
+      assert.ok(s.controls.find(b=>b.id==='choose:'+i).label.includes(label),'accessible card label includes the same outcome');
+      if(s.orbLuck+c.luckChange>21)assert.ok(s.controls.find(b=>b.id==='choose:'+i).label.includes('溢出归1'));
+     }
      if(!s.learned[skill]&&!s.cards.some(c=>c.id==='learn:'+skill)&&s.rerolls>0){await click('reroll');s=await fresh();continue;}
+     if(skill==='orb'&&s.orbLuck===21&&!s.cards.some(c=>ultimate.includes(c.id))&&s.rerolls>0){await click('reroll');s=await fresh();continue;}
      const score=c=>{
       if(c.id==='learn:'+skill)return 4000;
       if(skill==='orb'&&c.skill==='orb'){
        if(ultimate.includes(c.id))return 3000;
-       const gain=luckGain[c.id],next=s.orbLuck+gain;
-       if(gain&&next<=21)return 2000+(next===21?500:0)+(c.id==='orb:rise'?50:0)+next;
-       return gain?100:600;
+       if(s.orbLuck===21)return 0;
+       if(c.luckAfter===21)return 2500;
+       if(c.luckAfter>s.orbLuck&&s.orbLuck+c.luckChange<=21)return 2000+c.luckAfter;
+       return c.luckChange<0&&s.orbLuck>=16?1200+c.luckAfter:100;
       }
       return c.skill===skill?800:c.kind!=='learn'?500:0;
      };
      if(skill==='orb'&&s.orbLuck===21&&!capturedLuck){await fits();await capture('advanced-orb-lucky-choice');capturedLuck=true;}
-     const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0];await click('choose:'+s.cards.findIndex(c=>c.id===card.id));
+     const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0];
+     if(card.luckChange!==undefined)selectedLuck={before:s.orbLuck,change:card.luckChange,after:card.luckAfter,overflow:s.orbLuck+card.luckChange>21};
+     await click('choose:'+s.cards.findIndex(c=>c.id===card.id));
     }else if(s.battlePhase==='playing'){
      const count=s.learned[skill]?24:180;
      if(native)await p.evaluate(count=>call({type:'advance',count}),count);else await p.evaluate(count=>__collectionAdvance(count),count);
     }else break;
     s=await fresh();
+    if(selectedLuck){assert.equal(s.orbLuck,selectedLuck.after);assert.deepEqual(s.lastLuck,selectedLuck,'selecting a card must apply the displayed outcome');}
     if(skill==='orb'&&ultimate.some(id=>s.upgrades[id])&&s.lastLuck?.before===21&&s.lastLuck.overflow)evolvedAt21=true;
     if(!s.learned[skill]&&Object.keys(s.learned).length>=5)break;
     assert.ok(Number.isInteger(s.orbLuck)&&s.orbLuck>=0&&s.orbLuck<=21,'lucky values stay finite in actual exports');
@@ -111,5 +123,5 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  else{await p.reload();await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await p.waitForFunction(()=>!document.querySelector('#collection-entrance'));}
  for(let n=0;n<150;n++){if((await fresh())?.phase==='menu')break;await p.waitForTimeout(50);}
  const restored=await state();assert.equal(restored.coins,saved.coins);assert.equal(restored.skin,'arc');assert.deepEqual(restored.profile.gear,saved.profile.gear);assert.deepEqual(restored.profile.mercs,saved.profile.mercs);assert.deepEqual(restored.profile.settings,saved.profile.settings);assert.equal(restored.profile.tutorial,true);
- return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
+ return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-fixed-luck-preview-and-selection','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
 }

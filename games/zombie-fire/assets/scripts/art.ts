@@ -23,6 +23,7 @@ export class BattlefieldArt {
   if(e.bind>0){const strength=Math.min(1,e.bind);for(const side of [-1,1])this.line([pt(side*16,-21),pt(side*11,-15),pt(side*17,-8),pt(side*10,-4+strength*8)],e.root>0?'#c8e58c':'#8eae66',1.8*scale);}
   if(e.slow>0)this.line([pt(-17,-18),pt(-4,-22),pt(8,-21),pt(17,-17)],'#b9d4df',1.5*scale);
   if(e.orbSlow>0)this.line([pt(-17,-12),pt(-12,-18),pt(9,-18),pt(17,-12)],'#e2b6e6',2*scale);
+  if(e.hinder>0)for(const side of [-1,1])this.line([pt(side*22,-3),pt(side*17,-8),pt(side*22,-13)],'#c8b6f0',2*scale);
   if(e.fractures>0)this.line([pt(-6,12),pt(1,3),pt(-3,-2),pt(7,-10)],'#f4bdce',1.8*scale);
   if(e.hp<e.maxHp||def.boss){this.rect(p.x,p.y+33*scale,30*scale,3*scale,'#343c3c');this.rect(p.x-(1-e.hp/e.maxHp)*15*scale,p.y+33*scale,30*scale*Math.max(0,e.hp/e.maxHp),3*scale,'#bc6557');}
   if(e.freeze>0){poly([[-16,-15],[-19,15],[-10,30],[12,26],[19,7],[13,-17]],'#a3e9fa77');this.line([pt(-15,5),pt(-4,18),pt(1,2),pt(13,12)],'#d6faff',scale);}

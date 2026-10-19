@@ -1,7 +1,7 @@
 import {Graphics,UITransform} from 'cc';
 import {GameView,color} from 'db://assets/collection/runtime';
 import {Session} from './session';
-import {DAILY_RULES,ENEMIES,MAPS,SKILLS,STAGES,UPGRADES,skinAbility,skillById,upgradeById} from './content';
+import {DAILY_RULES,ENEMIES,MAPS,SKILLS,STAGES,UPGRADES,describeUpgrade,signedLuck,skinAbility,skillById,upgradeById} from './content';
 import {daySeed,GEM_TYPES,GRADES,MERCENARIES,QUESTS,SKINS,SLOTS,SLOT_NAMES,type Slot} from './profile';
 import type {Mode} from './core';
 import {skillIcon} from './icons';
@@ -75,7 +75,8 @@ export class BattlefieldUI {
   this.ui.panel('choice:shade',0,0,this.ui.width,this.ui.height,'#1e2c3ee9');this.text('choice:title',this.session.armory.data.tutorial?'选择技能':'选择第一项技能',0,center+height/2+47,27,orange,w,true);
   this.text('choice:hint',b.learned.orb?`幸运 ${b.orbLuck}/21 · ${b.orbLuck===21?'终极词条已开启':'超过21点重置为1'}`:b.dailyRule&&b.time===0?b.dailyRule.description:'战斗已暂停 · 选择后自动射击',0,center+height/2+21,12,paper,w);
   b.cards.forEach((card,i)=>{
-   const x=(i-1)*(cardWidth+7);const node=this.button('choose:'+i,'选择 '+card.name,x,center,cardWidth,()=>{if(b.choose(card.id))this.session.armory.completeTutorial();},false,height);this.ui.buttons.get('choose:'+i)!.label.node.active=false;
+   const hasLuck=card.luckChange!==undefined,luck=hasLuck?`幸运 ${signedLuck(card.luckChange!)} → ${card.luckAfter}`:'',overflow=hasLuck&&b.orbLuck+card.luckChange!>21;
+   const x=(i-1)*(cardWidth+7);const node=this.button('choose:'+i,'选择 '+card.name+(hasLuck?`，${luck}${overflow?'，溢出归1':''}`:''),x,center,cardWidth,()=>{if(b.choose(card.id))this.session.armory.completeTutorial();},false,height);this.ui.buttons.get('choose:'+i)!.label.node.active=false;
    const g=node.getComponent(Graphics)!;g.clear();g.fillColor=color(paper);g.strokeColor=color(card.kind==='evolution'?orange:'#b5b2a1');g.lineWidth=card.kind==='evolution'?3:1.5;g.rect(-cardWidth/2,-height/2,cardWidth,height);g.fill();g.stroke();
    // Original archive paper: faint drafting grid, perforation and folded corner.
    g.strokeColor=color('#958d7440');g.lineWidth=.5;
@@ -88,8 +89,10 @@ export class BattlefieldUI {
    const header=this.ui.objects.get('panel:choice:header'+i)!.getComponent(Graphics)!;header.clear();header.fillColor=color('#514b3c');header.rect(-(cardWidth-4)/2,-21.5,cardWidth-4,43);header.fill();header.fillColor=color('#9a9077');for(const side of [-1,1]){header.circle(side*(cardWidth/2-7),0,1.5);header.fill();}
    this.text('choice:name'+i,card.name,x,center+height/2-24,13,paper,cardWidth-8,true);
    this.icon('choice:icon'+i,card.skill,x,center+height*.16,Math.min(64,height*.24),true);
-   this.text('choice:description'+i,card.description,x,center-height*.18,cardWidth<110?12:13,ink,cardWidth-15,false,height*.40);
-   this.text('choice:key'+i,`${card.kind==='learn'?'新技能':card.kind==='evolution'?'进化':'Lv.'+card.rank}  ${i+1}`,x,center-height/2+18,11,card.kind==='evolution'?'#9b581d':'#756d5b',cardWidth-8,true);
+   const descriptionTop=height*.01,descriptionBottom=-height/2+(hasLuck?54:33);
+   this.text('choice:description'+i,card.description,x,center+(descriptionTop+descriptionBottom)/2,cardWidth<110?12:13,ink,cardWidth-15,false,descriptionTop-descriptionBottom);
+   if(hasLuck)this.text('choice:luck'+i,luck,x,center-height/2+41,cardWidth<110?11:13,overflow?'#a04424':card.luckAfter===21?'#735113':'#51406a',cardWidth-8,true,22);
+   this.text('choice:key'+i,`${overflow?'溢出归1':card.kind==='learn'?'新技能':card.kind==='evolution'?'进化':'Lv.'+card.rank}  ${i+1}`,x,center-height/2+18,11,card.kind==='evolution'?'#9b581d':'#756d5b',cardWidth-8,true);
   });
   this.button('reroll',`刷新选项（${b.rerolls}）`,0,center-height/2-40,210,()=>b.reroll(),false,40,b.rerolls<=0);
   this.button('choice:pause','暂停',-w/2+32,this.bottom+21,60,()=>this.session.pause(),false,40);
@@ -121,9 +124,9 @@ export class BattlefieldUI {
   if(this.panel==='codex'){
    if(this.codexTab==='skills'){
     for(const s of SKILLS)rows.push({id:s.id,title:s.name,detail:s.description,tint:s.color});
-    rows.push({id:'orb-luck',title:'弹球幸运值',detail:'只在选择弹球词条后变化。10点起出现高维词条，21点开启终极词条；超过21变为1，扣减最低到0。',tint:skillById.orb.color});
+    rows.push({id:'orb-luck',title:'弹球幸运值',detail:'卡牌显示本次幸运增减与选择后的点数。10点起出现高维词条，21点开启终极词条；超过21变为1，扣减最低到0。',tint:skillById.orb.color});
    }
-   if(this.codexTab==='evolutions')for(const u of UPGRADES.filter(u=>u.evolution))rows.push({id:u.id,title:'进化 · '+u.name,detail:u.luck?`需要多维弹球幸运值 ${u.luck.min} 点。${u.description}`:'需要 '+u.requires.map(([id,rank])=>(upgradeById[id]?.name??skillById[id as SkillId]?.name??id)+' '+rank+'级').join(' + '),tint:skillById[u.skill].color});
+   if(this.codexTab==='evolutions')for(const u of UPGRADES.filter(u=>u.evolution))rows.push({id:u.id,title:'进化 · '+u.name,detail:u.luck?`需要多维弹球幸运值 ${u.luck.min} 点。${describeUpgrade(u)}`:'需要 '+u.requires.map(([id,rank])=>(upgradeById[id]?.name??skillById[id as SkillId]?.name??id)+' '+rank+'级').join(' + '),tint:skillById[u.skill].color});
    if(this.codexTab==='outfits'){
     for(const s of SKINS){const ability=skinAbility(s.id);rows.push({id:s.id,title:s.name+(ability?' · '+ability.name:''),detail:ability?.description??'基础衣装，无额外技能。其他衣装可在装备 → 专属时装中解锁。',tint:s.accent});}
     rows.push({id:'outfit-rules',title:'命中与充能',detail:'仅自身对应武器的直接命中计数；佣兵、持续伤害和时装追加攻击不充能。每局重新计数。'});

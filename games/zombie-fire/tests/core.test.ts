@@ -7,7 +7,7 @@ import {Session} from '../assets/scripts/session';
 
 function enemy(kind:EnemyId='walker',patch:Partial<Enemy>={}):Enemy {
  const def=enemyById[kind];
- return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child:false,...patch};
+ return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,haste:0,hinder:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child:false,...patch};
 }
 // Isolated fixtures exercise collision and status rules. Full victories below use only public inputs.
 function arena(skill?:SkillId,loadout:Loadout=defaultLoadout()) {
@@ -235,14 +235,59 @@ test('lucky cards enforce gates, update only on selection, wrap above 21 and rep
  const a=arena('orb'),b=arena('orb');
  for(const run of [a,b]){
   assert.ok(!run.availableCards().some(c=>c.id==='orb:ultimate'||c.id==='orb:rain'));
-  const select=(id:string)=>{const c=run.availableCards().find(c=>c.id===id);assert.ok(c);run.phase='choice';run.cards=[c];assert.equal(run.choose(id),true);};
-  select('orb:rise');assert.equal(run.orbLuck,11);assert.ok(run.availableCards().some(c=>c.id==='orb:rain'));assert.ok(!run.availableCards().some(c=>c.kind==='evolution'));
-  select('orb:power');select('orb:power');assert.equal(run.orbLuck,21);assert.ok(run.availableCards().some(c=>c.id==='orb:ultimate'));
-  select('orb:ultimate');assert.equal(run.orbLuck,1);assert.ok(run.lastLuck!.overflow);assert.equal(run.lastLuck!.before,21);assert.ok(run.lastLuck!.change>=3&&run.lastLuck!.change<=5);
+  const select=(id:string,luckChange:number)=>{const c=run.availableCards().find(c=>c.id===id);assert.ok(c);run.phase='choice';run.cards=[{...c,luckChange,luckAfter:nextLuck(run.orbLuck,luckChange)}];assert.equal(run.choose(id),true);};
+  select('orb:rise',9);assert.equal(run.orbLuck,9);assert.ok(!run.availableCards().some(c=>c.id==='orb:rain'));
+  select('orb:power',4);assert.equal(run.orbLuck,13);assert.ok(run.availableCards().some(c=>c.id==='orb:rain'));assert.ok(!run.availableCards().some(c=>c.kind==='evolution'));
+  select('orb:power',4);select('orb:bounce',4);assert.equal(run.orbLuck,21);assert.ok(run.availableCards().some(c=>c.id==='orb:ultimate'));
+  select('orb:ultimate',2);assert.equal(run.orbLuck,1);assert.ok(run.lastLuck!.overflow);assert.equal(run.lastLuck!.before,21);assert.equal(run.lastLuck!.change,2);
   const prior=run.snapshot();assert.equal(run.choose('orb:rain'),false);assert.deepEqual(run.snapshot(),prior);
  }
  assert.deepEqual(a.snapshot(),b.snapshot());assert.equal(nextLuck(10,-13),0);assert.equal(nextLuck(17,4),21);assert.equal(nextLuck(20,4),1);
  const copy=a.snapshot();copy.lastLuck!.after=999;assert.equal(a.lastLuck!.after,1);assert.equal(new Battle().orbLuck,0);
+});
+test('offered lucky values are stable across reads and pauses, then applied without another random draw',()=>{
+ const observed=new Map<string,Set<number>>();
+ for(let seed=1;seed<=160;seed++)for(const luck of [0,13,21]){
+  const b=new Battle(0,'campaign',seed);b.learned={orb:1};b.orbLuck=luck;b.start();
+  const offered=b.cards.map(c=>({...c})),before=b.snapshot();b.availableCards();b.snapshot();b.pause();stepsNoChoice(b,120);b.resume();assert.deepEqual(b.snapshot(),before);
+  for(const c of offered){
+   if(c.luckChange===undefined){assert.equal(c.luckAfter,undefined);continue;}
+   assert.equal(c.skill,'orb');assert.ok(Number.isInteger(c.luckChange));assert.equal(c.luckAfter,nextLuck(luck,c.luckChange));
+   const values=observed.get(c.id)??new Set();values.add(c.luckChange);observed.set(c.id,values);
+  }
+  const lucky=offered.find(c=>c.luckChange!==undefined);if(!lucky)continue;
+  const copy=b.snapshot();copy.cards.find(c=>c.id===lucky.id)!.luckChange=999;assert.deepEqual(b.cards,offered);
+  assert.ok(b.choose(lucky.id));assert.equal(b.orbLuck,lucky.luckAfter);assert.equal(b.lastLuck!.change,lucky.luckChange);assert.equal(b.snapshot().randomState,before.randomState);
+ }
+ for(const [id,lo,hi]of [['rise',8,10],['power',3,5],['wall-split',4,6],['split',6,8],['rain',4,8],['hinder',-8,-6],['wall-blast',-12,-9],['tide',1,2]] as const){
+  const values=observed.get('orb:'+id);assert.ok(values?.has(lo)&&values.has(hi),id+' reaches both signed endpoints');assert.ok([...values].every(n=>n>=lo&&n<=hi),id+' stays within its configured endpoints');
+ }
+ const b=new Battle(0,'campaign',312);b.learned={orb:1};b.orbLuck=13;b.start();const before=b.snapshot();assert.equal(b.reroll(),true);assert.equal(b.rerolls,before.rerolls-1);assert.equal(b.orbLuck,13);assert.equal(b.lastLuck,null);assert.notEqual(b.snapshot().randomState,before.randomState);
+});
+test('invalid lucky outcomes cannot partly apply a card or consume the offer',()=>{
+ for(const patch of [{luckChange:undefined},{luckChange:NaN},{luckChange:Infinity},{luckChange:3},{luckChange:3.5},{luckChange:12},{luckAfter:21},{luckAfter:NaN}]){
+  const b=arena('orb'),card=b.availableCards().find(c=>c.id==='orb:rise')!;b.phase='choice';b.cards=[{...card,luckChange:9,luckAfter:9,...patch}];
+  const before=b.snapshot();assert.equal(b.choose(card.id),false);assert.deepEqual(b.snapshot(),before);
+ }
+});
+test('tidal orb makes two additional real contacts before expiring',()=>{
+ const contacts=(tide:boolean)=>{const b=arena();if(tide)b.upgrades['orb:tide']=1;
+  b.enemies=[enemy('walker',{x:-60,y:300,hp:10000,maxHp:10000}),enemy('walker',{id:2,x:80,y:320,hp:10000,maxHp:10000})];
+  const p=orb(b,{x:-95,px:-95,mods:{...b.stats('orb'),crit:0,knock:0}});b.projectiles=[p];until(b,()=>b.projectiles.length===0,900);
+  assert.equal(b.damageDone,p.hits.length*38);assert.ok(p.hits.every((id,i)=>id===i%2+1),'contacts alternate between living enemies');return p.hits.length;};
+ assert.equal(contacts(false),5);assert.equal(contacts(true),7);
+});
+test('hinder halves only haste, expires independently of cripple, freezes while paused and ignores rage',()=>{
+ const hit=(haste:number,cripple=false,rage=false)=>{const b=arena();b.upgrades['orb:hinder']=1;if(cripple)b.upgrades['orb:cripple']=1;
+  b.enemies=[enemy(rage?'butcher':'walker',{y:300,hp:100000,maxHp:100000,speed:60,haste,age:rage?26:0})];
+  b.projectiles=[orb(b,{x:-20,px:-20,remaining:0,mods:{...b.stats('orb'),knock:0,crit:0}})];b.step();return b;};
+ const movement=(b:Battle)=>{const y=b.enemies[0].y;b.step();return y-b.enemies[0].y;};
+ const close=(actual:number,expected:number)=>assert.ok(Math.abs(actual-expected)<1e-8,`${actual} != ${expected}`);
+ const ordinary=hit(0),fast=hit(.3);assert.equal(ordinary.enemies[0].hinder,1);close(movement(ordinary),1);close(movement(fast),1.15);
+ fast.pause();const paused=fast.snapshot();stepsNoChoice(fast,120);assert.deepEqual(fast.snapshot(),paused);fast.resume();stepsNoChoice(fast,61);assert.equal(fast.enemies[0].hinder,0);close(movement(fast),1.3);
+ const combined=hit(.3,true);close(movement(combined),.115);stepsNoChoice(combined,31);assert.equal(combined.enemies[0].orbSlow,0);assert.ok(combined.enemies[0].hinder>0);close(movement(combined),1.15);
+ const rage=hit(.3,true,true);assert.equal(rage.enemies[0].hinder,0);assert.equal(rage.enemies[0].orbSlow,0);close(movement(rage),2.34);
+ const enraging=hit(.3);enraging.enemies[0].kind='butcher';enraging.enemies[0].age=26;close(movement(enraging),2.34);assert.equal(enraging.enemies[0].hinder,0);
 });
 test('balls travel between living targets, deal physical damage and have finite rebounds',()=>{
  const b=arena();b.enemies=[enemy('walker',{x:0,y:300,hp:10000,maxHp:10000}),enemy('armor',{id:2,x:100,y:330,hp:10000,maxHp:10000})];
