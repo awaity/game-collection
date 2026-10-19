@@ -1,7 +1,7 @@
 /** Mechanisms are reconstructed from public observations; tuning is explicit local data. */
-export type Element='physical'|'fire'|'ice'|'electric'|'energy'|'wind';
-export type SkillId='rifle'|'thermo'|'dryice'|'electro'|'guided'|'ray'|'frost'|'cyclone'|'fuel'|'electron'|'blade'|'vehicle'|'airdrop';
-export type Attack='bullet'|'shell'|'beam'|'guided'|'ray'|'field'|'tornado'|'chain'|'blade'|'vehicle'|'airdrop';
+export type Element='physical'|'fire'|'ice'|'electric'|'energy'|'wind'|'poison';
+export type SkillId='rifle'|'thermo'|'dryice'|'electro'|'guided'|'ray'|'frost'|'cyclone'|'fuel'|'electron'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon';
+export type Attack='bullet'|'shell'|'beam'|'guided'|'ray'|'field'|'tornado'|'chain'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon';
 export interface Skill {id:SkillId;name:string;element:Element;attack:Attack;color:string;damage:number;interval:number;radius:number;pierce:number;duration:number;description:string}
 export const SKILLS:readonly Skill[]=[
  {id:'rifle',name:'突击步枪',element:'physical',attack:'bullet',color:'#e3b76c',damage:28,interval:.27,radius:3,pierce:0,duration:0,description:'自动锁定靠近防线的敌人。弹匣耗尽后重新装填。'},
@@ -17,6 +17,10 @@ export const SKILLS:readonly Skill[]=[
  {id:'blade',name:'压缩气刃',element:'wind',attack:'blade',color:'#bdddb7',damage:64,interval:3.8,radius:20,pierce:8,duration:0,description:'气刃穿过多个目标，并降低敌人的受治疗量。'},
  {id:'vehicle',name:'装甲车',element:'physical',attack:'vehicle',color:'#bdb79a',damage:55,interval:7,radius:38,pierce:99,duration:4,description:'装甲车从防线出击，沿途碾压并推开敌人。'},
  {id:'airdrop',name:'空投轰炸',element:'fire',attack:'airdrop',color:'#ddab69',damage:130,interval:7.8,radius:70,pierce:0,duration:0,description:'在尸群中标记区域，短暂延迟后实施空中轰炸。'},
+ {id:'drone',name:'无人机',element:'physical',attack:'drone',color:'#d5d9c4',damage:42,interval:5.6,radius:15,pierce:99,duration:9,description:'无人机在战场内穿行，碰到边界反弹，可反复撞击沿途敌人。'},
+ {id:'rift',name:'时空裂隙',element:'energy',attack:'rift',color:'#ae97e8',damage:22,interval:5.5,radius:66,pierce:0,duration:2.5,description:'生成菱形裂隙，每0.4秒造成伤害；区域内施加的负面状态延长20%。'},
+ {id:'matrix',name:'生化矩阵',element:'poison',attack:'matrix',color:'#b0d56b',damage:19,interval:5.2,radius:43,pierce:0,duration:2.5,description:'布下多个毒系矩阵，相邻矩阵合并；持续伤害并逐步禁锢区域内的敌人。'},
+ {id:'dragon',name:'冰筑龙体',element:'ice',attack:'dragon',color:'#7cd6e9',damage:62,interval:2,radius:52,pierce:0,duration:0,description:'召唤机械冰龙，以利爪攻击；能量蓄满后释放冰狱坠击。'},
 ];
 export const skillById=Object.fromEntries(SKILLS.map(s=>[s.id,s])) as Record<SkillId,Skill>;
 export type SkinId='ranger'|'ember'|'arctic'|'hazard'|'arc';
@@ -43,6 +47,7 @@ export const UPGRADES:readonly Upgrade[]=[
  upgrade('rifle:crit','rifle','弱点瞄准','暴击率增加 10%。',{crit:.1},[],3),
  upgrade('rifle:explosive','rifle','爆炸子弹','步枪命中产生小范围火焰爆炸。',{radius:22,burn:8},[['thermo',1],['rifle:power',2]],1,true),
  upgrade('rifle:frost','rifle','急冻子弹','步枪命中使目标短暂冻结。',{freeze:.45},[['dryice',1],['rifle:pierce',1]],1,true),
+ upgrade('rifle:ricochet','rifle','弹射子弹','枪械命中后向附近另一个目标弹射。',{bounce:1},[['drone',1]],2),
  upgrade('thermo:salvo','thermo','温压弹连发','额外发射 1 枚温压弹。',{count:1},[],2),
  upgrade('thermo:heat','thermo','热能爆发','温压爆炸伤害提高 40%，范围扩大。',{damage:.4,radius:15},[['thermo:power',1]]),
  upgrade('thermo:ignite','thermo','爆炸引燃','爆炸命中的敌人持续烧灼。',{burn:18},[['thermo:power',1]]),
@@ -85,6 +90,22 @@ export const UPGRADES:readonly Upgrade[]=[
  upgrade('airdrop:precise','airdrop','精准打击','提高轰炸伤害与覆盖范围。',{damage:.4,radius:14},[],2),
  upgrade('airdrop:repeat','airdrop','连续轰炸','多标记一个轰炸区域。',{count:1},[],2),
  upgrade('airdrop:nuke','airdrop','战术核弹','更大范围的爆炸留下燃烧地带。',{damage:.8,radius:42,burn:30},[['airdrop:precise',2],['thermo',1]],1,true),
+ upgrade('drone:slow','drone','迟滞旋翼','无人机命中使目标减速0.5秒。',{},[['drone:power',1]]),
+ upgrade('drone:rebound','drone','反弹增幅','每次撞墙提高伤害10%，单架最多提高100%。',{},[['drone:power',1]]),
+ upgrade('drone:wing','drone','编队飞行','每次多派出一架无人机。',{count:1},[],2),
+ upgrade('drone:falcon','drone','猎隼编队','无人机持续时间增加4秒，机体扩大，伤害提升。',{duration:4,radius:6,damage:.4},[['drone:wing',1],['drone:rebound',1]],1,true),
+ upgrade('rift:future','rift','未来虫洞','裂隙内烧灼伤害频率提升15%。',{},[['rift:power',1]]),
+ upgrade('rift:lasting','rift','时序延展','裂隙持续时间增加1秒，范围扩大。',{duration:1,radius:10},[],2),
+ upgrade('rift:fall','rift','无序陷落','裂隙结束时将范围内最多3名普通敌人传送到战场上方。',{},[['rift:future',1],['rift:lasting',1]],1,true),
+ upgrade('rift:quantum','rift','量子纠缠','虫洞连接3名敌人，持续10秒；其中一名倒下时，另外两名承受其在连接期间受到的生命伤害。',{},[['rift:future',1],['rift:power',2]],1,true),
+ upgrade('matrix:area','matrix','矩阵扩散','矩阵覆盖范围增加12。',{radius:12},[],2),
+ upgrade('matrix:more','matrix','同源重组','每次多生成一个可合并的矩阵。',{count:1},[],2),
+ upgrade('matrix:pulse','matrix','矩阵脉冲','伤害间隔缩短，禁锢积累更快。',{},[['matrix:power',1]]),
+ upgrade('matrix:core','matrix','中心力场','合并后的矩阵将周围敌人向中心牵引。',{damage:.35},[['matrix:area',1],['matrix:more',1]],1,true),
+ upgrade('dragon:heart','dragon','巨龙之心','每消灭一名敌人积攒一层龙心，每层提高龙体伤害3%，最多9层。',{},[['dragon:power',1]]),
+ upgrade('dragon:energy','dragon','能量回收','提高龙体的能量恢复和击杀能量收益。',{},[],2),
+ upgrade('dragon:claw','dragon','极寒利爪','龙体的利爪范围扩大，附带短暂冻结。',{radius:14,freeze:.35},[],2),
+ upgrade('dragon:awaken','dragon','机械蜕变','冰狱坠击范围和伤害提升，能量上限提高到140。',{damage:.3,radius:16},[['dragon:heart',1],['dragon:energy',1]],1,true),
 ];
 export const upgradeById=Object.fromEntries(UPGRADES.map(u=>[u.id,u])) as Record<string,Upgrade>;
 
@@ -111,7 +132,7 @@ export const ENEMIES:readonly EnemyDefinition[]=[
 ];
 export const enemyById=Object.fromEntries(ENEMIES.map(e=>[e.id,e])) as Record<EnemyId,EnemyDefinition>;
 export const MAPS=[
- {id:'street',name:'废弃街区',ground:'#82817a',edge:'#494e50',accent:'#c5b58b',enemies:['walker','runner','brute','bomber'],boss:'butcher'},
+ {id:'street',name:'废弃街区',ground:'#81858c',edge:'#48525d',accent:'#c8b78e',enemies:['walker','runner','brute','bomber'],boss:'butcher'},
  {id:'factory',name:'锈铁工厂',ground:'#6e7777',edge:'#3f4b50',accent:'#ca974b',enemies:['armor','walker','spitter','shield'],boss:'mech'},
  {id:'hospital',name:'隔离医院',ground:'#8c9690',edge:'#505e5d',accent:'#b3c7c2',enemies:['healer','splitter','runner','spitter'],boss:'queen'},
  {id:'frozen',name:'极寒站台',ground:'#92abb7',edge:'#4c6273',accent:'#c9e4eb',enemies:['frostguard','brute','bat','runner'],boss:'mech'},

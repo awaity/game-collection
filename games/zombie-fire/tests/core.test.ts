@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Battle,DT,FIELD,LIMITS,defaultLoadout,segmentDistance,type Enemy,type Loadout} from '../assets/scripts/core';
+import {Battle,DT,FIELD,LIMITS,defaultLoadout,segmentDistance,inRift,type Enemy,type Field,type Projectile,type Loadout} from '../assets/scripts/core';
 import {ENEMIES,SKILLS,STAGES,UPGRADES,enemyById,type EnemyId,type SkillId,type SkinId} from '../assets/scripts/content';
 import {Armory} from '../assets/scripts/profile';
 import {Session} from '../assets/scripts/session';
 
 function enemy(kind:EnemyId='walker',patch:Partial<Enemy>={}):Enemy {
  const def=enemyById[kind];
- return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,stun:0,wound:0,vulnerable:0,age:0,child:false,...patch};
+ return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,age:0,child:false,...patch};
 }
 // Isolated fixtures exercise collision and status rules. Full victories below use only public inputs.
 function arena(skill?:SkillId,loadout:Loadout=defaultLoadout()) {
@@ -140,5 +140,81 @@ test('daily variants change combat rules and the same seed repeats the same chal
  for(const b of [rush,heavy]){b.start();b.choose(b.cards[0].id);steps(b,20);assert.equal(b.maxWaves,10);assert.ok(b.enemies.length>0);}
  assert.ok(rush.enemies[0].speed>enemyById[rush.enemies[0].kind].speed);assert.ok(heavy.enemies[0].maxHp>enemyById[heavy.enemies[0].kind].hp);
  const a=legalSession(6,'daily'),b=legalSession(6,'daily');a.play(3000);b.play(3000);assert.deepEqual(a.battle.snapshot(),b.battle.snapshot());
+});
+
+function field(b:Battle,skill:SkillId,patch:Partial<Field>={}):Field {
+ const mods=b.stats(skill),life=mods.duration||2.5;
+ return {id:100,skill,x:0,y:300,radius:mods.radius,life,total:life,tick:0,vy:0,delay:0,damage:mods.damage,mods:{...mods,crit:0},...patch};
+}
+function drone(b:Battle,patch:Partial<Projectile>={}):Projectile {
+ const mods=b.stats('drone');return {id:200,skill:'drone',x:0,y:300,px:0,py:300,vx:220,vy:0,radius:mods.radius,splash:0,damage:mods.damage,remaining:99,hits:[],life:mods.duration,mods:{...mods,crit:0},rebounds:0,hitTimes:{},...patch};
+}
+test('drones reflect, can hit the same enemy again, slow it, and expire without unbounded amplification',()=>{
+ const b=arena();b.upgrades['drone:slow']=1;b.upgrades['drone:rebound']=1;b.enemies=[enemy('walker',{y:300,hp:10000,maxHp:10000})];
+ const p=drone(b);b.projectiles=[p];b.step();assert.equal(b.damageDone,42);assert.equal(b.enemies[0].slow,.5);
+ stepsNoChoice(b,20);assert.equal(b.damageDone,42,'continuous contact does not deal damage every frame');
+ until(b,()=>b.damageDone>42,180);assert.ok(p.rebounds!>=1);assert.ok(p.vx<0);assert.equal(p.hits.length,0);assert.equal(Object.keys(p.hitTimes!).length,1);
+ const capped=arena();capped.upgrades['drone:rebound']=1;capped.enemies=[enemy('walker',{y:300,hp:1000,maxHp:1000})];capped.projectiles=[drone(capped,{rebounds:100})];capped.step();assert.equal(capped.damageDone,84,'wall boost caps at +100%');
+ b.enemies[0].hp=0;b.step();assert.deepEqual(p.hitTimes,{});stepsNoChoice(b,600);assert.equal(b.projectiles.length,0);
+});
+test('rifle ricochet flies toward a new enemy and never re-hits its original target',()=>{
+ const b=arena('rifle',{...defaultLoadout(),crit:0});b.upgrades['rifle:ricochet']=2;
+ b.enemies=[enemy('walker',{x:0,y:220,hp:1000,maxHp:1000}),enemy('walker',{id:2,x:110,y:240,hp:1000,maxHp:1000}),enemy('walker',{id:3,x:100,y:320,hp:1000,maxHp:1000})];
+ b.step();b.learned={};const p=b.projectiles[0];until(b,()=>p.hits.length===1);assert.ok(p.vx>0);assert.equal(b.enemies[1].hp,1000,'bounce is not instant damage');
+ until(b,()=>b.projectiles.length===0,180);assert.deepEqual(p.hits,[1,2,3]);assert.equal(p.rebounds,2);assert.ok(b.enemies.every(e=>e.hp===972));
+});
+test('rift damage follows a diamond, ticks every 0.4s and expires at 2.5s',()=>{
+ const b=arena(),f=field(b,'rift');b.fields=[f];b.enemies=[enemy('walker',{y:300,radius:1,hp:1000,maxHp:1000}),enemy('walker',{id:2,x:48,y:330,radius:1,hp:1000,maxHp:1000})];
+ assert.equal(inRift(b.enemies[0],f),true);assert.equal(inRift(b.enemies[1],f),false);
+ b.step();assert.equal(b.enemies[0].hp,978);assert.equal(b.enemies[1].hp,1000);
+ stepsNoChoice(b,23);assert.equal(b.enemies[0].hp,978);b.step();assert.equal(b.enemies[0].hp,956);
+ stepsNoChoice(b,125);assert.equal(b.fields.length,0);assert.equal(b.enemies[0].hp,846);assert.equal(b.enemies[1].hp,1000);
+});
+test('rifts extend new debuffs and future wormholes accelerate burn only inside their area',()=>{
+ const b=arena();b.fields=[field(b,'rift',{damage:0}),field(b,'frost',{id:101,damage:1})];b.enemies=[enemy('walker',{y:300,hp:1000,maxHp:1000})];b.step();assert.ok(Math.abs(b.enemies[0].freeze-.84)<1e-8);
+ const run=(future:boolean,x:number)=>{const a=arena();a.fields=[field(a,'rift',{damage:0})];if(future)a.upgrades['rift:future']=1;a.enemies=[enemy('walker',{x,y:300,hp:1000,maxHp:1000,burn:2,burnPower:100})];stepsNoChoice(a,60);return a.damageDone;};
+ assert.ok(Math.abs(run(true,0)-115)<1e-6);assert.ok(Math.abs(run(false,0)-100)<1e-6);assert.ok(Math.abs(run(true,140)-100)<1e-6);
+});
+test('rift collapse teleports at most three ordinary enemies and leaves bosses in place',()=>{
+ const b=arena();b.upgrades['rift:fall']=1;b.fields=[field(b,'rift',{damage:0,life:DT,total:DT})];
+ b.enemies=[...Array.from({length:5},(_,i)=>enemy('walker',{id:i+1,x:i*2,y:300})),enemy('butcher',{id:6,y:300})];b.step();
+ assert.equal(b.enemies.filter(e=>e.y>=FIELD.height-40).length,3);assert.equal(b.enemies.find(e=>e.kind==='butcher')!.y,300);assert.equal(b.fields.length,0);
+});
+test('quantum links transfer only health damage since linking, once, and expire after ten seconds',()=>{
+ const b=arena();b.upgrades['rift:quantum']=1;b.fields=[field(b,'rift')];
+ b.enemies=[enemy('walker',{y:300,hp:250,maxHp:1000,shield:100}),enemy('walker',{id:2,x:145,y:500,hp:1000,maxHp:1000}),enemy('walker',{id:3,x:-145,y:500,hp:200,maxHp:1000})];
+ b.step();assert.equal(b.links.length,1);assert.equal(b.links[0].damage[1],0,'shield loss is not health damage');
+ b.enemies[0].burn=2;b.enemies[0].burnPower=800;until(b,()=>b.kills>=2,90);
+ assert.equal(b.enemies.length,1);assert.equal(b.enemies[0].hp,750,'pre-link missing health and second linked death do not amplify the transfer');assert.equal(b.links.length,0);
+ const a=arena();a.upgrades['rift:quantum']=1;a.fields=[field(a,'rift',{damage:0,life:.1,total:.1})];a.enemies=[enemy('walker',{y:300}),enemy('walker',{id:2,x:145,y:500}),enemy('walker',{id:3,x:-145,y:500})];a.step();assert.equal(a.links.length,1);
+ const snap=a.snapshot();snap.links[0].ids[0]=999;snap.links[0].damage[1]=999;assert.notEqual(a.links[0].ids[0],999);assert.notEqual(a.links[0].damage[1],999);
+ stepsNoChoice(a,599);assert.equal(a.links.length,1);a.step();assert.equal(a.links.length,0);assert.equal(a.damageDone,0);
+});
+test('matrix fields merge and bind gradually; leaving releases roots and enraged enemies resist control',()=>{
+ const b=arena('matrix',{...defaultLoadout(),crit:0});b.enemies=[enemy('walker',{y:300,hp:10000,maxHp:10000,speed:10})];b.step();b.learned={};
+ assert.ok(b.fields.length<3);assert.equal(b.fields.reduce((sum,f)=>sum+(f.merged??1),0),3);assert.ok(b.fields.some(f=>f.radius>43));
+ assert.equal(b.enemies[0].root,0);stepsNoChoice(b,65);assert.ok(b.enemies[0].root>0);const y=b.enemies[0].y;stepsNoChoice(b,10);assert.equal(b.enemies[0].y,y);assert.ok(b.damageDone>0);
+ b.fields=[];stepsNoChoice(b,60);assert.equal(b.enemies[0].root,0);assert.equal(b.enemies[0].bind,0);assert.ok(b.enemies[0].y<y);
+ const a=arena();a.fields=[field(a,'matrix',{radius:140})];a.enemies=[enemy('butcher',{age:26,y:300,hp:10000,maxHp:10000,speed:10,slow:10,root:10,bind:1.5})];stepsNoChoice(a,80);
+ assert.equal(a.enemies[0].root,0);assert.equal(a.enemies[0].slow,0);assert.equal(a.enemies[0].bind,0);assert.ok(a.enemies[0].y<280);assert.ok(a.damageDone>0);
+});
+test('merged matrix attracts enemies only with its center-field branch',()=>{
+ const run=(core:boolean)=>{const b=arena();b.fields=[field(b,'matrix',{radius:100,merged:2,damage:0})];b.enemies=[enemy('walker',{x:70,y:300})];if(core)b.upgrades['matrix:core']=1;stepsNoChoice(b,60);return b.enemies[0].x;};
+ assert.equal(run(false),70);assert.ok(run(true)<55);
+});
+test('the ice dragon pursues targets, claws, waits for energy, warns, then lands two damaging pulses',()=>{
+ const b=arena('dragon',{...defaultLoadout(),crit:0});b.enemies=[enemy('walker',{y:300,hp:10000,maxHp:10000})];b.step();assert.ok(b.dragon);assert.ok(b.dragon.y>FIELD.wall+85);assert.equal(b.damageDone,0);assert.equal(b.fields.length,0);
+ until(b,()=>b.damageDone>0,180);assert.equal(b.damageDone,62);assert.equal(b.dragon.slams,0);
+ until(b,()=>b.dragon!.slams===1,2500);assert.ok(b.time>=100/3,'passive regeneration must fill the entire energy bar');assert.ok(b.dragon.energy<1);const slam=b.fields.find(f=>f.variant==='dragon-slam')!;assert.ok(slam.delay>0);
+ const prior={...b.dragon},snapshot=b.snapshot();b.pause();stepsNoChoice(b,120);assert.deepEqual(b.dragon,prior);assert.equal(slam.pulse,0);b.resume();
+ b.learned={};const damage=b.damageDone;stepsNoChoice(b,30);assert.equal(b.damageDone,damage);stepsNoChoice(b,8);assert.ok(b.damageDone>damage);assert.equal(slam.pulse,1);assert.ok(b.enemies[0].freeze>0);
+ stepsNoChoice(b,18);assert.equal(slam.pulse,2);assert.ok(Math.abs(b.damageDone-damage-62*2.2*1.45)<1e-6);snapshot.dragon!.energy=999;assert.notEqual(b.dragon.energy,999);
+});
+test('dragon kills charge energy and hearts; cooldown and caps prevent repeated instant slams',()=>{
+ const b=arena('dragon',{...defaultLoadout(),crit:0});b.upgrades['dragon:heart']=1;b.upgrades['dragon:energy']=2;
+ b.enemies=Array.from({length:12},(_,i)=>enemy('walker',{id:i+1,y:180,hp:1,maxHp:1}));until(b,()=>b.kills===12,120);
+ assert.equal(b.dragon!.hearts,9);assert.equal(b.dragon!.maxEnergy,100);assert.ok(b.dragon!.energy<=100);assert.equal(b.dragon!.slams,1);
+ const count=b.dragon!.slams;b.enemies=[enemy('brute',{id:50,y:300,hp:100000,maxHp:100000}),...Array.from({length:12},(_,i)=>enemy('walker',{id:51+i,y:180,hp:1,maxHp:1}))];steps(b,300);assert.equal(b.dragon!.slams,count);assert.equal(b.dragon!.energy,100,'a full bar still respects the skill cooldown');
+ steps(b,80);assert.ok(b.dragon!.slams>count);b.upgrades['dragon:awaken']=1;b.step();assert.equal(b.dragon!.maxEnergy,140);
 });
 
