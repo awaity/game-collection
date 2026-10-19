@@ -16,6 +16,13 @@ await once(server, "listening");
 const origin = `http://127.0.0.1:${server.address().port}`;
 let browser;
 const selectors = {
+  "shanhai-run": {
+    start: 'button[aria-label="开始逃亡"]',
+    pause: 'button[aria-label="Ⅱ"]',
+    resume: 'button[aria-label="继续逃亡"]',
+    home: 'button[aria-label="返回山门"]',
+    surface: "#GameCanvas",
+  },
   "surge-squad": {
     start: 'button[aria-label="开始行动      →"]',
     pause: 'button[aria-label="Ⅱ"]',
@@ -201,6 +208,14 @@ try {
         await page.screenshot({
           path: path.join(artifacts, `${game.slug}-${size.width}-menu.png`),
         });
+        if (game.slug === 'shanhai-run') {
+          await press(page.getByRole('button',{name:'领取每日灵玉',exact:true}));
+          await page.locator('.collection-return').waitFor({state:'visible'});
+          await press(page.getByRole('button',{name:'行装法宝',exact:true}));
+          await page.locator('.collection-return').waitFor({state:'hidden'});
+          await press(page.getByRole('button',{name:'返回',exact:true}));
+          await page.locator('.collection-return').waitFor({state:'visible'});
+        }
         if (game.slug === 'garden-guard') {
           const returnFits = async () => {
             await page.locator('.collection-return').waitFor({state:'visible'});

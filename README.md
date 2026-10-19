@@ -6,6 +6,7 @@
 
 | 游戏 | 在线入口 | 共用技术 | 构建目标 |
 | --- | --- | --- | --- |
+| 山海逃亡 | [逃亡](https://awaity.github.io/game-collection/games/shanhai-run/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
 | 无尽长夜 | [提灯](https://awaity.github.io/game-collection/games/endless-night/) | Cocos Creator 3.8.8 + TypeScript + Rapier | Web / 微信 / 抖音 |
 | 雪原小营 | [经营](https://awaity.github.io/game-collection/games/frost-trail/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
 | 电涌小队 | [蓄能](https://awaity.github.io/game-collection/games/surge-squad/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
@@ -15,7 +16,7 @@
 | 尸潮防线 | [守线](https://awaity.github.io/game-collection/games/zombie-lane/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
 | 弹幕小队 | [出击](https://awaity.github.io/game-collection/games/volley-run/) | JavaScript + Three.js r140 | Web / 微信 / 抖音 |
 
-八款游戏均提供独立原生小游戏 `game.js` 工程。平台包纳入构建和无 DOM 模拟宿主验证；四款复杂游戏由官方 Cocos Creator 导出，弹幕小队使用实际 WebGL 和本地 GLB 模型。**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
+九款游戏均提供独立原生小游戏 `game.js` 工程。平台包纳入构建和无 DOM 模拟宿主验证；五款复杂游戏由官方 Cocos Creator 导出，弹幕小队使用实际 WebGL 和本地 GLB 模型。**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
 
 五款游戏新增独立金币、签到、每日任务、成就、五套皮肤和三项永久强化。无尽模式提供双倍击破金币与波次奖金。具体内容与存档规则见 [本轮扩展说明](docs/EXPANSION-2026-10.md)。
 
@@ -23,6 +24,7 @@
 
 ```text
 apps/portal/                  Vue 3 + Vite + TS 大厅
+games/shanhai-run/             山海跑酷，四区域、八试炼与无尽逃亡
 games/endless-night/           无尽长夜，四角色、五烽火与守夜人试炼
 games/frost-trail/             雪原小营，采集生产、扩张与四种终局
 games/surge-squad/             电涌小队，六地图、充能激光与无尽接战
@@ -96,6 +98,7 @@ pnpm run deploy
 
 ## 文档
 
+- [山海逃亡说明](games/shanhai-run/README.md) · [跑酷验收范围](docs/SHANHAI-RUN-PLAN.md)
 - [无尽长夜说明](games/endless-night/README.md) · [雪原小营说明](games/frost-trail/README.md)
 - [电涌小队说明](games/surge-squad/README.md) · [最后一道门说明](games/final-door/README.md)
 - [官方 Cocos 工具链](docs/COCOS.md) · [参考画面对照](design-qa.md)

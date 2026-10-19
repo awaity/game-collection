@@ -62,7 +62,12 @@ function placeMenuLink() {
 function update() {
   // The full-screen career menu has its own Back button. Return to the game's
   // menu first, so the portal link never covers purchases or map selection.
-  const careerOpen = [...document.querySelectorAll('[data-action="career:close"],.cocos-control[aria-label="每日签到"],.cocos-control[aria-label="今日已签到"]')].some(el=>!el.hidden&&el.getClientRects().length>0);
+  const slug = document.documentElement.dataset.collectionGame
+    ?? location.pathname.match(/\/games\/([a-z0-9-]+)(?:\/|$)/)?.[1];
+  const cocosCareer = ['surge-squad','final-door'].includes(slug)
+    ? ',.cocos-control[aria-label="每日签到"],.cocos-control[aria-label="今日已签到"]' : '';
+  const shanhaiSheet = slug === 'shanhai-run' ? ',.cocos-control[aria-label="返回"]' : '';
+  const careerOpen = [...document.querySelectorAll('[data-action="career:close"]'+cocosCareer+shanhaiSheet)].some(el=>!el.hidden&&el.getClientRects().length>0);
   const hidden =
     careerOpen || activePointers.size > 0 ||
     !["menu", "paused", "result"].includes(

@@ -100,5 +100,19 @@
       "weixin",
       "douyin"
     ]
+  },
+  "shanhai-run": {
+    "workspace": "shanhai-run",
+    "engine": "cocos",
+    "webDir": "games/shanhai-run/dist/web",
+    "requiredAssets": [
+      "favicon.svg",
+      "cocos-js/cc.js",
+      "creator-build.json"
+    ],
+    "miniTargets": [
+      "weixin",
+      "douyin"
+    ]
   }
 }
