@@ -1,13 +1,24 @@
 {
-  "verifiedAt": "2026-10-19T15:16:17.640Z",
-  "milestone": "three-quality-lucky-orbs-and-ultimate-interactions-not-full-reference-parity",
+  "verifiedAt": "2026-10-19T15:34:43.003Z",
+  "milestone": "ordinary-orb-and-fission-timing-corrected-not-full-reference-parity",
   "creator": "3.8.8",
-  "unitTests": 66,
+  "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
+  "rulesAndCampaignRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
+  "unitTests": 68,
+  "ruleLog": "artifacts/zombie-fire-orb-timing-rules.log",
   "localCampaign": {
     "configuredStages": 36,
     "successfulClears": 36,
     "maps": 6,
-    "verifiedAt": "2026-10-19T14:31:33.554Z"
+    "verifiedAt": "2026-10-19T15:23:45.180Z",
+    "log": "artifacts/zombie-fire-orb-timing-campaign.log"
+  },
+  "localContent": {
+    "weapons": 19,
+    "upgrades": 124,
+    "evolutions": 28,
+    "enemies": 17,
+    "maps": 6
   },
   "outfitAbilities": [
     "thermo-volley-after-12-hits",
@@ -15,32 +26,66 @@
     "triple-blade-after-36-hits",
     "plasma-after-2-hits-on-same-target"
   ],
+  "additionalMechanisms": [
+    "drone-reflection-repeat-hits-and-rifle-ricochet",
+    "diamond-rift-status-extension-teleport-and-quantum-link",
+    "merging-poison-matrix-progressive-root-and-attraction",
+    "mechanical-dragon-claws-full-energy-slam-and-hearts",
+    "electrode-segment-collision",
+    "physical-orb-bounces-splits-delayed-volleys-and-lucky-21-evolutions",
+    "three-quality-lucky-orbs-with-preparation-piercing-reflection-light-and-explosion",
+    "four-ultimate-cards-target-lucky-mechanics-separately"
+  ],
+  "ordinaryOrbTiming": {
+    "primaryLife": 8,
+    "fissionLife": 3.5,
+    "volleyInterval": 0.5,
+    "perTargetHitInterval": 0.5,
+    "simulationHz": 60,
+    "reference": "LUCKY-ORB-REFERENCE.md",
+    "originalClientObserved": false,
+    "remainingDifferences": [
+      "wall-and-target-reflection-budgets",
+      "coordinate-speed-and-damage-mapping",
+      "hidden-21-point-dispatch",
+      "card-pool-and-research-eligibility"
+    ]
+  },
+  "sourceFiles": {
+    "assets/scripts/core.ts": "9ae61d2739f2ae0d0068d2ee40af7f03df40af34f269645212234133e43f04c7",
+    "assets/scripts/content.ts": "690b257d1b7d1a5abfad2899a8581f777bd68603296f6a1f5a65e8eb2907a9b5",
+    "assets/scripts/profile.ts": "b9a361d69840ba0af5e2bab2c29833e36dba942c351c69e7a84cbbcb684c2c8b",
+    "assets/scripts/session.ts": "6b752e283a19a7291cde8326a5d2c87ac76b62bec31b689909e590edb115b86f",
+    "assets/scripts/art.ts": "12535f0a17a39e7e0a7c93a8010eceb437d3c68c19644b81e8eddd9caa808aee",
+    "tests/core.test.ts": "9b1cb87c81f76c6fc92c0e8f4ad14be3a2f606114e014df96b781d95fdbdc019",
+    "tests/flows.mjs": "d73a7202b8bf7b0dfbb50550c6a334731e0bae5cb431f5d8bf8138e4b65cfb1b"
+  },
   "exports": {
     "web": {
       "target": "web-mobile",
-      "sourceHash": "248d79aa3cecfcd5c1900acadd95ad8d361276116e42c7ef21a639c29895775d",
-      "builtAt": "2026-10-19T15:12:29.731Z",
+      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
+      "builtAt": "2026-10-19T15:24:17.894Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "weixin": {
       "target": "wechatgame",
-      "sourceHash": "11d291de1c6fb2dd4b2918c52d7aa40c3371f039075d086112853382b8c2e54b",
-      "builtAt": "2026-10-19T15:13:12.078Z",
+      "sourceHash": "dfcd6439a5c497d7bd80f14c2ec1211b9ec0d44116a0eb87ed5f08cf550b147e",
+      "builtAt": "2026-10-19T15:25:13.289Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "douyin": {
       "target": "bytedance-mini-game",
-      "sourceHash": "0fc275ceffb5b64fed6be17e11b2dd0d9218c38d3eefcbd5435e9ed94614dc34",
-      "builtAt": "2026-10-19T15:14:07.248Z",
+      "sourceHash": "e3cd5e85184e7669ddf82d6ae2567e2f7f7bdfa57e894804d66dd2678d0018c0",
+      "builtAt": "2026-10-19T15:26:15.155Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     }
   },
   "web": [
     {
-      "verifiedAt": "2026-10-19T15:06:15.081Z",
+      "verifiedAt": "2026-10-19T15:27:02.645Z",
       "target": "web",
       "viewport": {
         "width": 390,
@@ -78,11 +123,12 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "0eb7e7e16d5d287f7bd9a71c16b8c83402f318c242a90b15b707fb955f432045",
-      "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
+      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
+      "log": "artifacts/zombie-fire-orb-timing-web-390.log"
     },
     {
-      "verifiedAt": "2026-10-19T15:07:38.214Z",
+      "verifiedAt": "2026-10-19T15:30:21.756Z",
       "target": "web",
       "viewport": {
         "width": 1440,
@@ -118,11 +164,12 @@
       ],
       "errors": [],
       "diagnostics": [],
-      "sourceHash": "0eb7e7e16d5d287f7bd9a71c16b8c83402f318c242a90b15b707fb955f432045",
-      "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
+      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
+      "log": "artifacts/zombie-fire-orb-timing-web-1440.log"
     },
     {
-      "verifiedAt": "2026-10-19T15:02:17.020Z",
+      "verifiedAt": "2026-10-19T15:32:28.513Z",
       "target": "web",
       "viewport": {
         "width": 844,
@@ -160,11 +207,12 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "0eb7e7e16d5d287f7bd9a71c16b8c83402f318c242a90b15b707fb955f432045",
-      "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
+      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
+      "log": "artifacts/zombie-fire-orb-timing-web-844.log"
     },
     {
-      "verifiedAt": "2026-10-19T15:15:56.827Z",
+      "verifiedAt": "2026-10-19T15:34:21.275Z",
       "target": "web",
       "viewport": {
         "width": 320,
@@ -202,13 +250,14 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "248d79aa3cecfcd5c1900acadd95ad8d361276116e42c7ef21a639c29895775d",
-      "testedImplementationRevision": "af625089d3d266508fc27d4d4b2f1bf6a0ed184c"
+      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
+      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
+      "log": "artifacts/zombie-fire-orb-timing-web-320.log"
     }
   ],
   "native": [
     {
-      "verifiedAt": "2026-10-19T15:03:22.452Z",
+      "verifiedAt": "2026-10-19T15:31:00.448Z",
       "target": "weixin",
       "viewport": {
         "width": 390,
@@ -251,16 +300,17 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 524,
+        "colors": 530,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
-      "sourceHash": "3ce7dc7be60395888c169564f7c4456fae7a991e5cbb6a8bbcd80dfbb9afc1f7",
-      "audioBeforeRestart": 7,
-      "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+      "sourceHash": "dfcd6439a5c497d7bd80f14c2ec1211b9ec0d44116a0eb87ed5f08cf550b147e",
+      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
+      "log": "artifacts/zombie-fire-orb-timing-weixin-390.log",
+      "audioBeforeRestart": 7
     },
     {
-      "verifiedAt": "2026-10-19T15:03:33.292Z",
+      "verifiedAt": "2026-10-19T15:34:16.769Z",
       "target": "douyin",
       "viewport": {
         "width": 390,
@@ -303,324 +353,228 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 529,
+        "colors": 530,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
-      "sourceHash": "9718946466d623b857d081aaf710153a2757176d18516bc40374e4f6e483abe2",
-      "audioBeforeRestart": 3,
-      "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+      "sourceHash": "e3cd5e85184e7669ddf82d6ae2567e2f7f7bdfa57e894804d66dd2678d0018c0",
+      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
+      "log": "artifacts/zombie-fire-orb-timing-douyin-390.log",
+      "audioBeforeRestart": 3
     }
   ],
-  "officialDeveloperTools": false,
-  "realDevices": false,
-  "catalogIntegrated": false,
-  "newGamePublished": false,
-  "testedImplementationRevision": "af625089d3d266508fc27d4d4b2f1bf6a0ed184c",
-  "flowSourceHash": "d73a7202b8bf7b0dfbb50550c6a334731e0bae5cb431f5d8bf8138e4b65cfb1b",
-  "localContent": {
-    "weapons": 19,
-    "upgrades": 124,
-    "evolutions": 28,
-    "enemies": 17,
-    "maps": 6
-  },
-  "additionalMechanisms": [
-    "drone-reflection-repeat-hits-and-rifle-ricochet",
-    "diamond-rift-status-extension-teleport-and-quantum-link",
-    "merging-poison-matrix-progressive-root-and-attraction",
-    "mechanical-dragon-claws-full-energy-slam-and-hearts",
-    "electrode-segment-collision",
-    "physical-orb-bounces-splits-delayed-volleys-and-lucky-21-evolutions",
-    "three-quality-lucky-orbs-with-preparation-piercing-reflection-light-and-explosion",
-    "four-ultimate-cards-target-lucky-mechanics-separately"
-  ],
-  "visualEvidence": {
-    "actualCombat": "artifacts/cocos/zombie-fire/*-advanced-{drone,rift,matrix,dragon,pillar,orb}.png",
-    "originalEnemyGallery": "artifacts/cocos/zombie-fire/original-enemy-gallery.png",
-    "galleryScope": "authored-art inspection only; not combat or clear evidence",
-    "orbLuckyChoice": "artifacts/cocos/zombie-fire/*-advanced-orb-lucky-choice.png",
-    "luckyEffects": "artifacts/cocos/zombie-fire/*-lucky-{low,mid,high}-{prepare,combat}.png",
-    "luckyDerivatives": "artifacts/cocos/zombie-fire/*-lucky-{light-hit,high-burst}.png",
-    "landscapeFooter": {
-      "before": "artifacts/cocos/zombie-fire/pre-footer-fix/web-844-lucky-mid-combat.png",
-      "after": "artifacts/cocos/zombie-fire/web-844-lucky-mid-combat.png"
-    },
-    "shortPortraitFooter": {
-      "before": "artifacts/cocos/zombie-fire/before-compact-footer/web-320-lucky-high-burst.png",
-      "after": "artifacts/cocos/zombie-fire/web-320-lucky-high-burst.png"
-    }
-  },
-  "webExecution": {
-    "mode": "four-separate-viewport-commands",
-    "exitCodes": [
-      0,
-      0,
-      0,
-      0
-    ],
-    "logs": [
-      "artifacts/zombie-fire-lucky-web-390.log",
-      "artifacts/zombie-fire-lucky-web-1440.log",
-      "artifacts/zombie-fire-lucky-web-844.log",
-      "artifacts/zombie-fire-lucky-compact-web-320.log"
-    ],
-    "interruptedAttempts": [
-      {
-        "width": 320,
-        "exitCode": 143,
-        "cause": "Unidentified process termination; no assertion failure logged. Rerun with fewer concurrent browsers.",
-        "evidence": "artifacts/zombie-fire-lucky-final-320-interruption.json",
-        "log": "artifacts/zombie-fire-lucky-initial/final-web-320-interrupted.log"
-      }
-    ]
-  },
-  "luckCorrections": {
-    "reference": "BuildConfig 1502–1521; see REFERENCE-TABLE-SCHEMA.md",
-    "facts": [
-      "signed-luck-endpoints",
-      "tide-two-extra-rebounds",
-      "hinder-suppresses-acceleration"
-    ],
-    "localChoices": [
-      "inclusive-integer-ranges",
-      "roll-on-visible-offer",
-      "retained-10-and-21-selection-gates",
-      "hinder-one-second",
-      "child-speed-bonus-classified-as-haste"
-    ],
-    "pending": [
-      "mode-card-pools",
-      "research-conditions",
-      "hidden-21-point-dispatch",
-      "original-random-timing",
-      "ordinary-orb-timing-and-reflection-composition"
-    ]
-  },
-  "nativeExecution": {
-    "mode": "two-separate-target-commands",
-    "exitCodes": [
-      0,
-      0
-    ],
-    "logs": [
-      "artifacts/zombie-fire-lucky-weixin.log",
-      "artifacts/zombie-fire-lucky-douyin.log"
-    ]
-  },
-  "rulesAndCampaignRevision": "097567f994c3fc400930f8517b699c3b9be75a1f",
   "luckyOrbs": {
     "reference": "LUCKY-ORB-REFERENCE.md",
     "cases": [
       {
         "target": "web",
         "width": 390,
-        "verifiedAt": "2026-10-19T15:06:11.027Z",
+        "verifiedAt": "2026-10-19T15:26:59.173Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 24,
-            "triggers": 4,
+            "quality": "mid",
+            "casts": 12,
+            "triggers": 2,
             "hits": 1,
-            "tick": 63411
+            "tick": 57614
           },
           {
             "attempt": 1,
-            "quality": "mid",
-            "casts": 55,
-            "triggers": 9,
+            "quality": "low",
+            "casts": 49,
+            "triggers": 8,
             "hits": 1,
-            "tick": 74590
+            "tick": 70023
           },
           {
-            "attempt": 5,
+            "attempt": 2,
             "quality": "high",
-            "casts": 79,
-            "triggers": 13,
+            "casts": 102,
+            "triggers": 17,
             "hits": 1,
-            "tick": 25818
+            "tick": 46048
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
       },
       {
         "target": "web",
         "width": 1440,
-        "verifiedAt": "2026-10-19T15:07:32.097Z",
+        "verifiedAt": "2026-10-19T15:30:16.426Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 24,
-            "triggers": 4,
+            "quality": "mid",
+            "casts": 12,
+            "triggers": 2,
             "hits": 1,
-            "tick": 63411
+            "tick": 57614
           },
           {
             "attempt": 1,
-            "quality": "mid",
-            "casts": 55,
-            "triggers": 9,
+            "quality": "low",
+            "casts": 49,
+            "triggers": 8,
             "hits": 1,
-            "tick": 74590
+            "tick": 70023
           },
           {
-            "attempt": 5,
+            "attempt": 2,
             "quality": "high",
-            "casts": 79,
-            "triggers": 13,
+            "casts": 102,
+            "triggers": 17,
             "hits": 1,
-            "tick": 25818
+            "tick": 46048
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
       },
       {
         "target": "web",
         "width": 844,
-        "verifiedAt": "2026-10-19T15:02:12.418Z",
+        "verifiedAt": "2026-10-19T15:32:24.271Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 24,
-            "triggers": 4,
+            "quality": "mid",
+            "casts": 12,
+            "triggers": 2,
             "hits": 1,
-            "tick": 63411
+            "tick": 57614
           },
           {
             "attempt": 1,
-            "quality": "mid",
-            "casts": 55,
-            "triggers": 9,
+            "quality": "low",
+            "casts": 49,
+            "triggers": 8,
             "hits": 1,
-            "tick": 74590
+            "tick": 70023
           },
           {
-            "attempt": 5,
+            "attempt": 2,
             "quality": "high",
-            "casts": 79,
-            "triggers": 13,
+            "casts": 102,
+            "triggers": 17,
             "hits": 1,
-            "tick": 25818
+            "tick": 46048
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
       },
       {
         "target": "web",
         "width": 320,
-        "verifiedAt": "2026-10-19T15:15:53.746Z",
+        "verifiedAt": "2026-10-19T15:34:18.220Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 24,
-            "triggers": 4,
+            "quality": "mid",
+            "casts": 12,
+            "triggers": 2,
             "hits": 1,
-            "tick": 63411
+            "tick": 57614
           },
           {
             "attempt": 1,
-            "quality": "mid",
-            "casts": 55,
-            "triggers": 9,
+            "quality": "low",
+            "casts": 49,
+            "triggers": 8,
             "hits": 1,
-            "tick": 74590
+            "tick": 70023
           },
           {
-            "attempt": 5,
+            "attempt": 2,
             "quality": "high",
-            "casts": 79,
-            "triggers": 13,
+            "casts": 102,
+            "triggers": 17,
             "hits": 1,
-            "tick": 25818
+            "tick": 46048
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "af625089d3d266508fc27d4d4b2f1bf6a0ed184c"
+        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
       },
       {
         "target": "weixin",
         "width": 390,
-        "verifiedAt": "2026-10-19T15:03:16.231Z",
+        "verifiedAt": "2026-10-19T15:30:55.202Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 24,
-            "triggers": 4,
+            "quality": "mid",
+            "casts": 12,
+            "triggers": 2,
             "hits": 1,
-            "tick": 63407
+            "tick": 57617
           },
           {
             "attempt": 1,
-            "quality": "mid",
-            "casts": 55,
-            "triggers": 9,
+            "quality": "low",
+            "casts": 49,
+            "triggers": 8,
             "hits": 1,
-            "tick": 74587
+            "tick": 70023
           },
           {
-            "attempt": 5,
+            "attempt": 2,
             "quality": "high",
-            "casts": 79,
-            "triggers": 13,
+            "casts": 102,
+            "triggers": 17,
             "hits": 1,
-            "tick": 25820
+            "tick": 46049
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
       },
       {
         "target": "douyin",
         "width": 390,
-        "verifiedAt": "2026-10-19T15:03:25.599Z",
+        "verifiedAt": "2026-10-19T15:34:12.158Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 24,
-            "triggers": 4,
+            "quality": "mid",
+            "casts": 12,
+            "triggers": 2,
             "hits": 1,
-            "tick": 63407
+            "tick": 57616
           },
           {
             "attempt": 1,
-            "quality": "mid",
-            "casts": 55,
-            "triggers": 9,
+            "quality": "low",
+            "casts": 49,
+            "triggers": 8,
             "hits": 1,
-            "tick": 74587
+            "tick": 70024
           },
           {
-            "attempt": 5,
+            "attempt": 2,
             "quality": "high",
-            "casts": 79,
-            "triggers": 13,
+            "casts": 102,
+            "triggers": 17,
             "hits": 1,
-            "tick": 25820
+            "tick": 46050
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
+        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
       }
     ],
     "localChoices": [
@@ -631,294 +585,42 @@
     ],
     "originalClientObserved": false
   },
+  "officialDeveloperTools": false,
+  "realDevices": false,
+  "catalogIntegrated": false,
+  "newGamePublished": false,
+  "flowSourceHash": "d73a7202b8bf7b0dfbb50550c6a334731e0bae5cb431f5d8bf8138e4b65cfb1b",
   "referenceEvidence": {
-    "tables": 12,
     "serializedBehaviorIdentities": 2804,
-    "selectedBehaviors": 10,
-    "hiddenGroup": 2002,
+    "selectedBehaviors": 13,
     "clientExecution": false,
-    "logs": [
-      "artifacts/zombie-fire-lucky-reference.log",
-      "artifacts/zombie-fire-lucky-reference-followup.log"
-    ]
-  },
-  "exportRecovery": {
-    "initialMiniBuildExitCode": 1,
-    "reason": "Douyin Creator asset database stopped after UNKNOWN opening a generated library JSON; only the owned build process was terminated.",
-    "action": "Preserved failure log; removed this game staging library/temp; repeated Douyin export. After the main Creator process exited, stopped its orphan renderer holding the WSL pipe; the original CLI then returned 36. Both native packages verified.",
-    "logs": [
-      "artifacts/zombie-fire-lucky-mini-build.log",
-      "artifacts/zombie-fire-lucky-douyin-creator-failed.log",
-      "artifacts/zombie-fire-lucky-douyin-build-retry.log",
-      "artifacts/zombie-fire-lucky-mini-verify.log"
-    ]
+    "log": "artifacts/zombie-fire-orb-timing-reference.log",
+    "retainedOwnBuffGates": true
   },
   "finalBuildLogs": [
-    "artifacts/zombie-fire-lucky-compact-web-build.log",
-    "artifacts/zombie-fire-lucky-compact-mini-build.log",
-    "artifacts/zombie-fire-lucky-compact-mini-verify.log"
+    "artifacts/zombie-fire-orb-timing-web-build.log",
+    "artifacts/zombie-fire-orb-timing-mini-build.log",
+    "artifacts/zombie-fire-orb-timing-mini-verify.log"
   ],
-  "initialRuns": {
-    "implementationRevision": "097567f994c3fc400930f8517b699c3b9be75a1f",
-    "web390ExitCode": 0,
-    "web1440ExitCode": 0,
-    "web844ExitCode": 143,
-    "weixinExitCode": 1,
-    "reason": "The landscape screenshot exposed charge text overlapping the defender. Fixed the footer; stopped the remaining older native run. All final cases rerun after fresh exports.",
-    "evidence": "artifacts/cocos/zombie-fire/pre-footer-fix",
-    "logs": "artifacts/zombie-fire-lucky-initial"
+  "visualEvidence": {
+    "actualCombat": "artifacts/cocos/zombie-fire/*-advanced-orb.png",
+    "luckyEffects": "artifacts/cocos/zombie-fire/*-lucky-{low,mid,high}-{prepare,combat}.png",
+    "luckyDerivatives": "artifacts/cocos/zombie-fire/*-lucky-{light-hit,high-burst}.png"
   },
-  "layoutCorrections": [
-    "landscape-charge-and-wall-status-share-a-row-below-defender",
-    "landscape-aim-hint-below-xp-bar",
-    "short-portrait-reserves-120px-before-bottom-safe-area-for-status-instead-of-88px"
-  ],
-  "verificationRendering": "The lucky flow uses existing QA rule steps and their scene snapshots between observations; actual rendering and GPU checks remain enabled for evidence captures. Real choices, retries and all damage/pause assertions retained.",
-  "fullFlowImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb",
-  "fullFlowExports": {
-    "web": {
-      "target": "web-mobile",
-      "sourceHash": "0eb7e7e16d5d287f7bd9a71c16b8c83402f318c242a90b15b707fb955f432045",
-      "builtAt": "2026-10-19T14:57:50.455Z",
-      "cliExitCode": 36,
-      "appIdConfigured": false
-    },
-    "weixin": {
-      "target": "wechatgame",
-      "sourceHash": "3ce7dc7be60395888c169564f7c4456fae7a991e5cbb6a8bbcd80dfbb9afc1f7",
-      "builtAt": "2026-10-19T14:55:35.351Z",
-      "cliExitCode": 36,
-      "appIdConfigured": false
-    },
-    "douyin": {
-      "target": "bytedance-mini-game",
-      "sourceHash": "9718946466d623b857d081aaf710153a2757176d18516bc40374e4f6e483abe2",
-      "builtAt": "2026-10-19T14:56:25.811Z",
-      "cliExitCode": 36,
-      "appIdConfigured": false
-    }
+  "verificationScope": "All six complete gameplay flows rerun after official exports of ffebc58. No card-choice, RNG, health, currency or victory fixtures in runtime acceptance; QA advances real fixed-step rules.",
+  "browserRecovery": {
+    "initialExitCode": 1,
+    "cause": "Chromium could not load libnspr4.so before any game was started.",
+    "action": "Reran using the existing local browser dependency cache through LD_LIBRARY_PATH.",
+    "log": "artifacts/zombie-fire-orb-timing-web-390-launch-failed.log"
   },
-  "priorCompactFullFlow": {
-    "verifiedAt": "2026-10-19T15:09:04.423Z",
-    "target": "web",
-    "viewport": {
-      "width": 320,
-      "height": 568
-    },
-    "flows": [
-      "legal-first-clear",
-      "three-choice-and-reroll",
-      "priority-aim-and-touch-cancel",
-      "pause-freezes-rules",
-      "endless-waves",
-      "checkin-and-free-supply",
-      "actual-weapon-and-wall-upgrades",
-      "research",
-      "mercenary-upgrade",
-      "five-skins",
-      "four-hit-triggered-outfits",
-      "drone-wall-rebound",
-      "diamond-rift",
-      "merging-matrix",
-      "energy-gated-dragon-slam",
-      "electrode-wire-hits",
-      "orb-lucky-21-evolution-and-rebounds",
-      "orb-fixed-luck-preview-and-selection",
-      "lucky-three-qualities-piercing-lights-and-blasts",
-      "lucky-preparation-pause",
-      "gem-equip",
-      "idempotent-rewards",
-      "codex-with-outfit-rules",
-      "sound-motion-quality-volume",
-      "daily-seed",
-      "persistent-restart"
-    ],
-    "errors": [],
-    "diagnostics": [
-      "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
-    ],
-    "sourceHash": "0eb7e7e16d5d287f7bd9a71c16b8c83402f318c242a90b15b707fb955f432045",
-    "testedImplementationRevision": "fa0bb675a4135698fc568580a793f2d480b836fb"
-  },
-  "finalExportSmoke": {
-    "verifiedAt": "2026-10-19T15:15:14.244Z",
-    "scope": "Final-export smoke at unaffected sizes; not a replacement for full gameplay flows.",
-    "cases": [
-      {
-        "target": "web",
-        "viewport": {
-          "width": 390,
-          "height": 844
-        },
-        "verifiedAt": "2026-10-19T15:14:58.361Z",
-        "sourceHash": "248d79aa3cecfcd5c1900acadd95ad8d361276116e42c7ef21a639c29895775d",
-        "builtAt": "2026-10-19T15:12:29.731Z",
-        "flows": [
-          "final-export-entrance",
-          "legal-first-choice-and-combat",
-          "controls-fit",
-          "pause-freezes-tick",
-          "restart-menu"
-        ],
-        "combat": {
-          "tick": 3612,
-          "seconds": 60.199999999997864,
-          "kills": 60,
-          "field": {
-            "width": 306,
-            "height": 662,
-            "bottom": -334,
-            "offset": -24
-          }
-        },
-        "errors": []
-      },
-      {
-        "target": "web",
-        "viewport": {
-          "width": 1440,
-          "height": 900
-        },
-        "verifiedAt": "2026-10-19T15:15:01.655Z",
-        "sourceHash": "248d79aa3cecfcd5c1900acadd95ad8d361276116e42c7ef21a639c29895775d",
-        "builtAt": "2026-10-19T15:12:29.731Z",
-        "flows": [
-          "final-export-entrance",
-          "legal-first-choice-and-combat",
-          "controls-fit",
-          "pause-freezes-tick",
-          "restart-menu"
-        ],
-        "combat": {
-          "tick": 3612,
-          "seconds": 60.199999999997864,
-          "kills": 60,
-          "field": {
-            "width": 480,
-            "height": 718,
-            "bottom": -362,
-            "offset": -24
-          }
-        },
-        "errors": []
-      },
-      {
-        "target": "web",
-        "viewport": {
-          "width": 844,
-          "height": 390
-        },
-        "verifiedAt": "2026-10-19T15:15:04.195Z",
-        "sourceHash": "248d79aa3cecfcd5c1900acadd95ad8d361276116e42c7ef21a639c29895775d",
-        "builtAt": "2026-10-19T15:12:29.731Z",
-        "flows": [
-          "final-export-entrance",
-          "legal-first-choice-and-combat",
-          "controls-fit",
-          "pause-freezes-tick",
-          "restart-menu"
-        ],
-        "combat": {
-          "tick": 3612,
-          "seconds": 60.199999999997864,
-          "kills": 60,
-          "field": {
-            "width": 480,
-            "height": 208,
-            "bottom": -107,
-            "offset": -24
-          }
-        },
-        "errors": []
-      },
-      {
-        "target": "weixin",
-        "viewport": {
-          "width": 390,
-          "height": 844
-        },
-        "verifiedAt": "2026-10-19T15:15:09.248Z",
-        "sourceHash": "11d291de1c6fb2dd4b2918c52d7aa40c3371f039075d086112853382b8c2e54b",
-        "builtAt": "2026-10-19T15:13:12.078Z",
-        "flows": [
-          "final-export-entrance",
-          "legal-first-choice-and-combat",
-          "controls-fit",
-          "pause-freezes-tick",
-          "restart-menu"
-        ],
-        "combat": {
-          "tick": 3614,
-          "seconds": 60.233333333331196,
-          "kills": 60,
-          "field": {
-            "width": 306,
-            "height": 584,
-            "bottom": -300,
-            "offset": -24
-          }
-        },
-        "errors": [],
-        "environment": {
-          "documentAbsent": true,
-          "windowAbsent": true,
-          "worker": true
-        },
-        "graphics": {
-          "error": 0,
-          "colors": 429,
-          "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
-        },
-        "sounds": 3
-      },
-      {
-        "target": "douyin",
-        "viewport": {
-          "width": 390,
-          "height": 844
-        },
-        "verifiedAt": "2026-10-19T15:15:14.236Z",
-        "sourceHash": "0fc275ceffb5b64fed6be17e11b2dd0d9218c38d3eefcbd5435e9ed94614dc34",
-        "builtAt": "2026-10-19T15:14:07.248Z",
-        "flows": [
-          "final-export-entrance",
-          "legal-first-choice-and-combat",
-          "controls-fit",
-          "pause-freezes-tick",
-          "restart-menu"
-        ],
-        "combat": {
-          "tick": 3614,
-          "seconds": 60.233333333331196,
-          "kills": 60,
-          "field": {
-            "width": 306,
-            "height": 584,
-            "bottom": -300,
-            "offset": -24
-          }
-        },
-        "errors": [],
-        "environment": {
-          "documentAbsent": true,
-          "windowAbsent": true,
-          "worker": true
-        },
-        "graphics": {
-          "error": 0,
-          "colors": 416,
-          "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
-        },
-        "sounds": 2
-      }
-    ]
-  },
-  "verificationScope": "Full six-case gameplay suite on fa0bb67. The subsequent art-only short-portrait spacing fix is verified by a full 320px flow and final-export smoke at the other five sizes/targets. Core, content, profile, session and flow script did not change.",
   "localServices": {
-    "checkedAt": "2026-10-19T15:16:17.743368+00:00",
+    "checkedAt": "2026-10-19T15:34:35.010966+00:00",
     "ownVerificationProcesses": 0,
     "ownCreatorBuildProcesses": 0,
     "preservedExistingServices": true,
-    "evidence": "artifacts/zombie-fire-lucky-services-closed.json"
+    "listeners": "State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                  \nLISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*                                            \nLISTEN 0      511        127.0.0.1:41095      0.0.0.0:*    users:((\"MainThread\",pid=1247,fd=41))   \nLISTEN 0      511          0.0.0.0:5173       0.0.0.0:*    users:((\"node\",pid=197353,fd=34))       \nLISTEN 0      511        127.0.0.1:36871      0.0.0.0:*    users:((\"MainThread\",pid=3040365,fd=36))\nLISTEN 0      128        127.0.0.1:37663      0.0.0.0:*    users:((\"codex\",pid=68733,fd=39))       \nLISTEN 0      511        127.0.0.1:37487      0.0.0.0:*    users:((\"MainThread\",pid=976,fd=22))    \nLISTEN 0      128        127.0.0.1:38323      0.0.0.0:*    users:((\"codex\",pid=4367,fd=39))        \nLISTEN 0      4096      127.0.0.54:53         0.0.0.0:*                                            \n",
+    "creatorProcessCount": 0,
+    "evidence": "artifacts/zombie-fire-orb-timing-services-closed.json"
   }
 }
