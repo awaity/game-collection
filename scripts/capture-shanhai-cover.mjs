@@ -10,7 +10,7 @@ try{
  await p.goto(`http://127.0.0.1:${server.address().port}/game-collection/games/shanhai-run/dist/web/`);
  await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await presentCocos(p);
  await p.getByRole('button',{name:'开始逃亡',exact:true}).click();await presentCocos(p);
- await p.evaluate(()=>__shanhai.play(460));
+ await p.evaluate(()=>__shanhai.play(540));
  // Photograph the actual running world, with only the HUD hidden for the cover.
  await p.evaluate(async()=>{const {director}=await System.import('cc');director.getScene().getChildByName('HUD').active=false;});await presentCocos(p);
  const source=await p.screenshot();
