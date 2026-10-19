@@ -30,6 +30,7 @@ FINGERPRINTS = {
     "MagicSkillLevelConfig": "d348f5fea6211c06e6b617798bd94ec925a910bad32bd858a4b5b3bcbaa1a22a",
     "SkillBaseConfg": "051c0e6e78db28d0ced63ca276cd3852ac26bc79235f5273d2f42a0fe6bb5651",
     "LevelBaseConfig": "9ce6ca6e917c13cf855522eb104a894775592abc450762792eae09f51f79269b",
+    "ChapterConfig": "9c5dba0a9d52998459ef5095a86dfd4530348ef564017af996bb8a3a44ecc98f",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
     "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
@@ -240,7 +241,8 @@ def level_base_header(table: Table) -> dict:
     return {"id": struct.unpack_from(">I", middle59, 9)[0],
             "prefixHex": prefix.hex(), "firstString": first_string,
             "valueAfterFirstString": middle4, "secondString": second_string,
-            "middle59Hex": middle59.hex(), "sceneReference": scene}
+            "middle59Hex": middle59.hex(), "sceneReference": scene,
+            "textReferencesAtMiddle51And55": list(struct.unpack_from(">2I", middle59, 51))}
 
 
 def level_base_row(table: Table) -> dict:
@@ -248,6 +250,24 @@ def level_base_row(table: Table) -> dict:
     row = level_base_header(table)
     (body,) = table.unpack(">159s")
     return {**row, "bodyHex": body.hex(), "recordBytes": table.offset - start}
+
+
+def chapter_level_links(table: Table, level_bases: list, texts: dict) -> dict:
+    levels = {r["id"]: r for r in level_bases}
+    records = [struct.unpack(">3I", raw) for raw in read_fixed(table, 12)]
+    require(len({r[0] for r in records}) == len(records), "ChapterConfig: duplicate ID")
+    linked = []
+    for key, first, second in records:
+        require(first in levels and second in levels, "ChapterConfig: unresolved complete level record")
+        references = [levels[n]["textReferencesAtMiddle51And55"] for n in (first, second)]
+        require(all(t in texts for pair in references for t in pair), "ChapterConfig: unresolved level text")
+        linked.append({"id": key, "levelReferences": [first, second], "textReferences": references,
+                       "texts": [[texts[t]["text"] for t in pair] for pair in references],
+                       "sceneReferences": [levels[n]["sceneReference"] for n in (first, second)]})
+    return {"recordBytes": 12, "completeRecords": len(records), "matchedLevelReferences": len(records) * 2,
+            "matchingDisplayPairs": sum(r["texts"][0] == r["texts"][1] for r in linked),
+            "matchingScenePairs": sum(r["sceneReferences"][0] == r["sceneReferences"][1] for r in linked),
+            "selected": linked[:3]}
 
 
 def buff_row(table: Table) -> dict:
@@ -355,6 +375,7 @@ def inspect(directory: Path) -> dict:
         require(partial_level_id not in {r["id"] for r in level_bases},
                 "LevelBaseConfig: duplicate ID in incomplete final record")
     require(level_end == level_table.size, "LevelBaseConfig: inferred final boundary differs from file size")
+    chapter_links = chapter_level_links(tables["ChapterConfig"], level_bases, texts)
     magic_ids = {r["id"] for r in magic}
     levels = read_magic_levels(tables["MagicSkillLevelConfig"], texts, builds)
     level_families = {key: sorted(r["level"] for r in levels if r["skill"] == key)
@@ -403,6 +424,7 @@ def inspect(directory: Path) -> dict:
                                 "incompleteBodyExcluded": partial_level is not None},
         "selectedLevelBases": [r for r in level_bases
                                if r["id"] in (9997, 9998, 9999, 1001, 1002, 1003, 2001, 2002)],
+        "chapterLevelLinks": chapter_links,
         "skillLevelBoundaries": {"recordBytes": 176, "completeRecords": len(levels),
                                  "familyLevels": level_families,
                                  "missingDisplayTexts": sorted({f["labelReference"] for r in levels
@@ -452,6 +474,7 @@ def inspect(directory: Path) -> dict:
                    "Raw field offsets are not verified runtime field names.",
                    "Different selection groups are not mapped to modes or campaign stages.",
                    "LevelBase record boundaries and scene references do not establish modes, wave dispatch or selection libraries.",
+                   "ChapterConfig's fifty pairs do not establish current campaign size or availability.",
                    "A text row or card definition does not prove it is selectable in normal play.",
                    "Skill-level display labels do not establish runtime stacking, upgrade costs or maximum attainable research.",
                    "Lucky-roll timing, weight dispatch and inclusive range semantics need client evidence."],
