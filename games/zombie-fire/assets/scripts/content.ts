@@ -22,9 +22,11 @@ export const SKILLS:readonly Skill[]=[
  {id:'matrix',name:'生化矩阵',element:'poison',attack:'matrix',color:'#b0d56b',damage:19,interval:5.2,radius:43,pierce:0,duration:2.5,description:'布下多个毒系矩阵，相邻矩阵合并；持续伤害并逐步禁锢区域内的敌人。'},
  {id:'dragon',name:'冰筑龙体',element:'ice',attack:'dragon',color:'#7cd6e9',damage:62,interval:2,radius:52,pierce:0,duration:0,description:'召唤机械冰龙，以利爪攻击；能量蓄满后释放冰狱坠击。'},
  {id:'pillar',name:'电极柱',element:'electric',attack:'pillar',color:'#79d5f4',damage:29,interval:5.8,radius:9,pierce:0,duration:3.5,description:'地面升起数座电极柱，依次连接；触碰电流连线的敌人持续受到电系伤害。'},
- {id:'orb',name:'多维弹球',element:'physical',attack:'orb',color:'#e0a9dd',damage:38,interval:4.8,radius:10,pierce:0,duration:12,description:'弹球在目标与墙壁间反弹；每施放6次召唤幸运弹球。选词条积攒幸运，超过21重置为1。'},
+ {id:'orb',name:'多维弹球',element:'physical',attack:'orb',color:'#e0a9dd',damage:38,interval:4.8,radius:10,pierce:0,duration:8,description:'弹球在目标与墙壁间反弹；每施放6次召唤幸运弹球。选词条积攒幸运，超过21重置为1。'},
 ];
 export const skillById=Object.fromEntries(SKILLS.map(s=>[s.id,s])) as Record<SkillId,Skill>;
+/** Ordinary and fission timing from the serialized reference; quantized to 60Hz in core. */
+export const ORB_TIMING={volleyInterval:.5,hitInterval:.5,childLife:3.5};
 export type OrbQuality='low'|'mid'|'high';
 /** Cast gate, weights, delay, flight and derivative timing follow serialized reference settings.
  * World-to-screen units, lifetime start and damage composition are documented local choices. */

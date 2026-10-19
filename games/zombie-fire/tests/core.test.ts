@@ -310,7 +310,24 @@ test('wall impacts cause optional blasts and unenhanced children cannot recursiv
 test('orb volley rounds are delayed, freeze on pause, and snapshot their cast stats',()=>{
  const b=arena('orb',{...defaultLoadout(),crit:0});b.upgrades['orb:repeat']=1;b.upgrades['orb:salvo']=1;b.enemies=[enemy('walker',{y:500,hp:100000,maxHp:100000})];b.step();b.learned={};assert.equal(b.shots,2);assert.equal(b.snapshot().pendingVolleys,1);
  b.pause();const snap=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),snap);b.resume();b.upgrades['orb:ultimate']=1;
- stepsNoChoice(b,12);assert.equal(b.shots,2);stepsNoChoice(b,2);assert.equal(b.shots,4);assert.equal(b.snapshot().pendingVolleys,0);assert.ok(b.projectiles.every(p=>p.damage===38),'a queued volley keeps its original stats');
+ stepsNoChoice(b,29);assert.equal(b.shots,2);stepsNoChoice(b,1);assert.equal(b.shots,4);assert.equal(b.snapshot().pendingVolleys,0);assert.ok(b.projectiles.every(p=>p.damage===38),'a queued volley keeps its original stats');
+});
+test('ordinary balls expire at eight seconds and fission children at three and a half, excluding pauses',()=>{
+ const b=arena('orb');b.enemies=[enemy('walker',{y:500,hp:10000,maxHp:10000})];b.step();b.learned={};b.enemies=[];
+ const p=b.projectiles[0];assert.equal(p.source,'weapon');p.vx=p.vy=0;stepsNoChoice(b,478);assert.ok(b.projectiles.includes(p));assert.ok(p.life>0&&p.life<.017);
+ b.pause();const paused=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),paused);b.resume();b.step();assert.equal(p.life,0);assert.equal(b.projectiles.length,0);
+ const f=arena();f.upgrades['orb:wall-split']=1;f.projectiles=[orb(f,{x:159,px:159,remaining:0})];f.step();
+ const child=f.projectiles[0];assert.equal(child.source,'secondary');assert.equal(child.life,3.5);child.x=child.px=0;child.vx=child.vy=0;
+ stepsNoChoice(f,209);assert.ok(f.projectiles.includes(child));f.phase='choice';const choice=f.snapshot();stepsNoChoice(f,60);assert.deepEqual(f.snapshot(),choice);f.phase='playing';f.step();assert.equal(child.life,0);assert.equal(f.projectiles.length,0);
+});
+test('ordinary ball repeat hits wait half a second per target without locking other targets',()=>{
+ for(const source of ['weapon','secondary'] as const){
+  const b=arena();b.enemies=[enemy('walker',{y:300,hp:10000,maxHp:10000}),enemy('walker',{id:2,y:300,hp:10000,maxHp:10000})];
+  const p=orb(b,{source,vx:0,vy:0,remaining:10,mods:{...b.stats('orb'),crit:0,knock:0}});b.projectiles=[p];
+  b.step();assert.deepEqual(p.hits,[1]);b.step();assert.deepEqual(p.hits,[1,2]);stepsNoChoice(b,28);assert.deepEqual(p.hits,[1,2]);
+  b.pause();const paused=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),paused);b.resume();
+  b.step();assert.deepEqual(p.hits,[1,2,1]);b.step();assert.deepEqual(p.hits,[1,2,1,2]);assert.equal(b.damageDone,152);assert.equal(p.remaining,6);
+ }
 });
 test('kinetic fission occurs on the fourth real contact and small balls can apply destruction stacks',()=>{
  const b=arena();b.upgrades['orb:split']=1;b.upgrades['orb:destroy']=1;b.enemies=[enemy('walker',{x:-70,y:300,hp:100000,maxHp:100000}),enemy('walker',{id:2,x:80,y:320,hp:100000,maxHp:100000})];

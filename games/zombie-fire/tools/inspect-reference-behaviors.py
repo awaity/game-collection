@@ -15,7 +15,7 @@ import UnityPy
 ROOT = Path(__file__).resolve().parents[3]
 RESEARCH = ROOT / "artifacts/research/zombie-fire"
 BUNDLE_SHA256 = "2049e3dcf0ddfcb5cda86a09f9a37ace40c8d11f275fb7deb8d74f050b3e8a04"
-SELECTED = {15001, 15011, 15201, 15601, 15611, 15621, 15622, 15631, 15632, 15633}
+SELECTED = {15001, 15011, 15061, 15111, 15201, 15221, 15601, 15611, 15621, 15622, 15631, 15632, 15633}
 
 
 def require(ok: bool, message: str) -> None:
@@ -42,7 +42,8 @@ def common(element: dict) -> dict:
     return {**pick(element, "m_ElemDesc m_triggerType m_triggleStart m_triggleStop"),
             "repeat": pick(element["m_triggleRepeat"],
                            "m_eventType m_shootId m_triggerSelfId m_playSkillEventParam "
-                           "m_bulletTriigleInterval m_targetHaveBufIdTrigger m_targetHaveBuffIdNoTrigger")}
+                           "m_bulletTriigleInterval m_targetHaveBufIdTrigger m_targetHaveBuffIdNoTrigger "
+                           "m_ownBufIdTrigger m_ownAndBufIdTrigger m_ownBufIdNotTrigger")}
 
 
 def bullet(element: dict) -> dict:

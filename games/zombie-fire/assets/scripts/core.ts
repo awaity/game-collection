@@ -1,4 +1,4 @@
-import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,type Element,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId} from './content';
+import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,ORB_TIMING,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,type Element,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId} from './content';
 export const DT=1/60,FIELD={halfWidth:170,height:640,wall:60},LIMITS={enemies:180,projectiles:320,fields:64,events:320,links:12,volleys:32};
 export type Mode='campaign'|'endless'|'daily';
 export type Phase='ready'|'playing'|'choice'|'paused'|'won'|'lost';
@@ -241,7 +241,7 @@ export class Battle {
  private addOrb(x:number,y:number,angle:number,mods:Stats,small:boolean){
   if(this.projectiles.length>=LIMITS.projectiles)return;
   const radius=small?skillById.orb.radius*.65:mods.radius,speed=320*mods.speed;
-  this.projectiles.push({id:++this.serial,skill:'orb',x,y,px:x,py:y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,radius,splash:0,damage:mods.damage,remaining:mods.bounce,hits:[],life:small?6:mods.duration,mods:{...mods},source:small?'secondary':'weapon',rebounds:0,hitTimes:{}});
+  this.projectiles.push({id:++this.serial,skill:'orb',x,y,px:x,py:y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,radius,splash:0,damage:mods.damage,remaining:mods.bounce,hits:[],life:small?ORB_TIMING.childLife:mods.duration,mods:{...mods},source:small?'secondary':'weapon',rebounds:0,hitTimes:{}});
  }
  private splitOrb(p:Projectile){
   // Unenhanced children retain the captured loadout, but never recursively split.
@@ -249,7 +249,7 @@ export class Battle {
   this.addOrb(p.x,p.y,Math.atan2(p.vy,p.vx)+Math.PI*.37,mods,true);
  }
  private stepOrb(p:Projectile){
-  p.life-=DT;if(p.life<=0)return;
+  p.life-=DT;if(p.life<=1e-8){p.life=0;return;}
   p.px=p.x;p.py=p.y;p.x+=p.vx*DT;p.y+=p.vy*DT;
   const side=FIELD.halfWidth-p.radius,top=FIELD.height-p.radius,bottom=FIELD.wall+p.radius;let wall=false;
   if(p.x>side&&p.vx>0||p.x<-side&&p.vx<0){p.x=2*(p.x>0?side:-side)-p.x;p.vx=-p.vx;wall=true;}
@@ -262,7 +262,8 @@ export class Battle {
    }
    if(p.remaining--<=0){p.life=0;return;}
   }
-  const e=this.enemies.filter(e=>e.hp>0&&this.tick-(p.hitTimes?.[e.id]??-1000)>=12&&segmentDistance(e.x,e.y,p.px,p.py,p.x,p.y)<=e.radius+p.radius)
+  const interval=Math.round(ORB_TIMING.hitInterval/DT);
+  const e=this.enemies.filter(e=>e.hp>0&&this.tick-(p.hitTimes?.[e.id]??-1000)>=interval&&segmentDistance(e.x,e.y,p.px,p.py,p.x,p.y)<=e.radius+p.radius)
    .sort((a,b)=>Math.hypot(a.x-p.px,a.y-p.py)-Math.hypot(b.x-p.px,b.y-p.py)||a.id-b.id)[0];
   if(!e)return;
   p.x=e.x;p.y=e.y;(p.hitTimes??={})[e.id]=this.tick;p.hits.push(e.id);
@@ -338,7 +339,7 @@ export class Battle {
   const def=skillById[id],base=this.stats(id),mods={...base,damage:base.damage*power,count:count??base.count},used:number[]=[];
   if(id==='orb'){
    if(this.launchOrbs(mods)>0){this.orbCasts++;this.luckyCharge=Math.min(this.luckyProgress.required,this.luckyCharge+1);}
-   for(let n=0;n<mods.repeat&&this.orbVolleys.length<LIMITS.volleys;n++)this.orbVolleys.push({delay:(n+1)*.22,mods:{...mods}});
+   for(let n=0;n<mods.repeat&&this.orbVolleys.length<LIMITS.volleys;n++)this.orbVolleys.push({delay:(n+1)*ORB_TIMING.volleyInterval,mods:{...mods}});
    return;
   }
   if(id==='pillar'){
