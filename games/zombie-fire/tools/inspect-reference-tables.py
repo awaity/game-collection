@@ -27,6 +27,7 @@ FINGERPRINTS = {
     "BuildReplaceConfig": "8e7ef1e379ea9dffb775513190e3df2cd71df717bc1ebfdaecf7bcae93593632",
     "SubSkillConfg": "fd0f349dc6df06171dcb95fa6aa3396592e5017e881a01eecf746d0b333c4ffc",
     "MagicSkillConfig": "81209cf4d89d688cbfda8f8af6d7614a17f5e6ebe8c5b08bbb3555af10fddcc6",
+    "SkillBaseConfg": "051c0e6e78db28d0ced63ca276cd3852ac26bc79235f5273d2f42a0fe6bb5651",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
     "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
@@ -211,6 +212,20 @@ def magic_row(table: Table) -> dict:
             "tail": list(table.unpack(">5I"))}
 
 
+def skill_base_row(table: Table) -> dict:
+    (prefix,) = table.unpack(">26s")
+    key, title, description = struct.unpack_from(">3I", prefix)
+    icon = table.string()
+    (body,) = table.unpack(">356s")
+    values = [struct.unpack_from(">f", body, offset)[0] for offset in (17, 21)]
+    require(all(math.isfinite(v) for v in values), "SkillBaseConfg: nonfinite selected fields")
+    # Byte offsets are known; attribute and cooldown semantics are not yet proven.
+    return {"id": key, "title": title, "description": description,
+            "byteAtPrefix12": prefix[12], "iconReference": icon,
+            "valueAtBody5": struct.unpack_from(">I", body, 5)[0],
+            "floatAtBody17": values[0], "floatAtBody21": values[1]}
+
+
 def buff_row(table: Table) -> dict:
     (key,) = table.unpack(">I")
     name, icon = table.string(), table.string()
@@ -261,6 +276,13 @@ def inspect(directory: Path) -> dict:
     replacements = read_fixed(tables["BuildReplaceConfig"], 28)
     subskills = read_variable(tables["SubSkillConfg"], subskill_row, lambda r: r["id"])
     magic = read_variable(tables["MagicSkillConfig"], magic_row, lambda r: r["id"])
+    skill_bases = read_variable(tables["SkillBaseConfg"], skill_base_row, lambda r: r["id"])
+    base_table = tables["SkillBaseConfg"]
+    partial_base = base_table.partial_record_offset
+    base_end = (partial_base + 386 + struct.unpack_from(">I", base_table.data, partial_base + 26)[0]
+                if partial_base is not None else base_table.offset)
+    require(base_end == base_table.size, "SkillBaseConfg: inferred final boundary differs from file size")
+    magic_ids = {r["id"] for r in magic}
     buffs = read_variable(tables["BuffConfig"], buff_row, lambda r: r["id"])
     buff_attrs = read_variable(tables["BuffAttrConfig"], buff_attr_row, lambda r: (r["id"], r["rank"]))
     skill_attrs = read_skill_attributes(tables["BuffFuncSkillAttrConfig"])
@@ -277,6 +299,13 @@ def inspect(directory: Path) -> dict:
         "scope": "offline configuration evidence; not client execution or a complete decryption",
         "tables": {name: table.summary() for name, table in tables.items()},
         "selectedBuilds": selected,
+        "selectedSkillBases": {r["id"]: {**r, "name": texts.get(r["title"], {}).get("text"),
+                                          "descriptionText": texts.get(r["description"], {}).get("text")}
+                               for r in skill_bases if r["id"] in magic_ids},
+        "skillBaseBoundaries": {"prefixBytes": 26, "stringLengthBytes": 4, "bodyBytes": 356,
+                                "predictedFinalRecordEnd": base_end,
+                                "incompleteBodyExcluded": partial_base is not None,
+                                "missingMagicSkillBases": sorted(magic_ids - {r["id"] for r in skill_bases})},
         "selectedGroups": [g for g in groups if g["group"] in (1014, 1015, 2002)],
         "selectedWeights": [list(struct.unpack(">21I", raw)) for raw in weights
                             if struct.unpack_from(">I", raw)[0] == 2002],
