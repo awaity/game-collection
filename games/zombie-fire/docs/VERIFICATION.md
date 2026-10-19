@@ -1,30 +1,26 @@
 # 独立工程阶段验证
 
-2026-10-20（北京时间）。本轮实现提交为 `3fdefdb`，接入双表支持的基础冷却、研究6级升维强化及空投物理元素，并统一新建/重启存档的零级研究结构；离线读取器另对应 `14eafbe`。完整复刻仍未完成；当前规则边界见 [冷却与研究应用](RESEARCH-COOLDOWN.md)，整体差异见 [REFERENCE.md](REFERENCE.md)，逐项证据见 [VERIFICATION.json](VERIFICATION.json)。
+2026-10-20（北京时间）。实现与离线读取器对应提交 `6e76464`。本轮修正弹球的两项裂变前置、八项重复选取上限及研究10级浪潮门槛，并调整小屏成长页文字与按钮间距。完整复刻仍未完成；静态证据、本地解释和未知条件见 [选卡条件](CARD-CONDITIONS.md)，整体差异见 [REFERENCE.md](REFERENCE.md)，逐项数据见 [VERIFICATION.json](VERIFICATION.json)。
 
 | 检查 | 已执行结果 | 本地证据 |
 | --- | --- | --- |
-| 类型、规则与存档 | 76项通过；实际施放周期、暂停、研究卡片/真实伤害、保存回滚和物理抗性 | artifacts/zombie-fire-research-cooldown-rules-final.log |
-| 主线合法成长 | 空存档开始，正常签到、选卡、购买，通过36关及六地图 | games/zombie-fire/artifacts/campaign-audit.json、artifacts/zombie-fire-research-cooldown-campaign.log |
-| Web实际运行 | 390×844、1440×900、844×390、320×568，四组各28项流程通过 | artifacts/zombie-fire-research-cooldown-web-{390,1440,844,320}.log |
-| 微信、抖音导出运行 | 两个官方工程在无DOM宿主各完成28项流程、实际WebGL及音频调用检查 | artifacts/zombie-fire-research-cooldown-{weixin,douyin}-390.log |
-| 官方导出与包体 | Creator 3.8.8三目标导出，双原生来源与预算通过 | artifacts/zombie-fire-research-cooldown-{web-build,mini-build,mini-verify}.log |
-| 静态引用 | 十六表、828条完整技能等级记录、13,013条完整关卡基础记录和50组章节引用、17项基础冷却对照、18条升维分组和九条替换行 | artifacts/zombie-fire-level-base-reference.log |
+| 类型、规则与存档 | 79项通过，含条件边界、过期选项拒绝、实际额外弹道/轮数及保存重载 | artifacts/zombie-fire-card-conditions-rules.log |
+| 主线合法成长 | 空存档正常签到、选卡、购买，36关及六地图均首尝试通关 | games/zombie-fire/artifacts/campaign-audit.json |
+| Web实际运行 | 390×844、1440×900、844×390、320×568，四组各30项流程 | artifacts/zombie-fire-card-conditions-web-{390,1440,844,320}.log |
+| 微信、抖音导出运行 | 两个官方工程在无DOM宿主各完成30项流程、实际WebGL及音频调用检查 | artifacts/zombie-fire-card-conditions-{weixin,douyin}-390.log |
+| 官方导出与包体 | Creator 3.8.8三目标导出，双原生来源与预算通过 | artifacts/zombie-fire-card-conditions-{web-build,mini-build,mini-verify}.log |
+| 静态引用 | 十六表、231条完整库/组引用、13,006项关卡/库候选匹配、九组弹球条件对比 | artifacts/zombie-fire-card-conditions-reference.log |
 
-原有27项流程全部保留：真实首关胜利、暂停/选卡冻结、手动集火、正常无尽失败、奖励幂等、成长购买、四时装触发、六类进阶技能、幸运值预览和21点进化、撞墙不耗敌人转向预算、三品质幸运球、衍生光球命中、高品质爆炸、准备阶段暂停、图鉴/设置及存档重启。
+此前28项流程全部保留，包括真实首关胜利、暂停/选卡冻结、手动集火、正常无尽失败、奖励幂等、成长购买、四时装触发、六类进阶技能、幸运值预览和21点进化、撞墙次数保持、三品质幸运球和衍生效果，以及正常购买研究6级、选取升维+与真实弹道命中。
 
-新增流程通过实际奖励支付六次弹球研究，正常抽取并选择“升维+”，确认伤害变为增加，并观察与新伤害数值一致的普通弹球真正命中敌人。研究面板、选卡和命中均保存截图，JSON记录研究等级、选择前后伤害、弹球ID、实际命中数与规则帧。没有授予生命、货币、技能或胜利，未改写随机状态。重启后另核对完整研究存档。
+新增流程通过实际对局奖励支付研究7–10级，在正常升级选项中达到幸运21点并选择弹球浪潮，核对数量+1、轮数+1、敌人转向+2，并观察多枚普通球及真实重复命中。每次读取实际选项时检查重复次数、裂变前置与研究门槛；重启后完整研究结构及10级研究继续保留。未授予生命、货币或技能，未改写随机状态或直接胜利。
 
-六组运行报告和新增截图均晚于各自官方导出，关联同一实现版本与构建指纹。执行清单见 artifacts/zombie-fire-research-cooldown-{web,native}-commands.json。另已人工查看六组视口/宿主的研究说明、选卡及战斗截图；逐图文件指纹与观察结果见 artifacts/zombie-fire-research-cooldown-visual-review.json。上一轮证据保留在 artifacts/zombie-fire-research-cooldown-baseline 和 Git 历史。
+六组完整报告、浪潮选择/攻击/研究截图和JSON均晚于各自官方导出及成功用例开始时间。逐项命令见 artifacts/zombie-fire-card-conditions-{web,native}-commands.json。人工视觉复核见 artifacts/zombie-fire-card-conditions-visual-review.json。上一轮记录和运行截图保留于 artifacts/zombie-fire-card-conditions-baseline 与Git历史。
 
-规则测试初次有一项使用旧4.8秒冷却的等待上限而失败；更新为8秒对应的第1921帧第五次施放、第2401帧触发幸运球，并增加提前一帧不得触发的检查后，76项全通过。原始失败日志保留于 artifacts/zombie-fire-research-cooldown-rules.log。
+关卡尾块偏移28与库ID的匹配只是静态候选，不证明派发顺序或最终抽卡概率。首条不完整库记录的第一字段虽为31，完整组引用仍排除。普通组选卡零权重、研究2/14/31的说明冲突、21点隐藏授予和模式例外仍保留，未猜测实现。
 
-第一次Web390完整流程的最终重启检查发现新存档省略零级研究项、读档补齐该项，导致严格比较失败。现已从新存档起完整初始化十九个研究项，并保留深度相等检查；修复后重新导出三端，六组完整流程通过。首轮原生进程另以143退出，原因未知，确认其进程与端口已关闭后才重跑。失败截图、JSON、日志及中断记录保留于 artifacts/zombie-fire-research-cooldown-first-attempt。后续批量Web运行在横屏用例期间另以143退出，已保留此前成功的390/1440用例，将剩余视口拆成单独进程执行；部分截图及退出记录保留于 artifacts/zombie-fire-research-cooldown-web-844-interruption。
+原生运行真实官方game.js、适配器及WebGL，音频API为模拟宿主桩；软件GPU结果不能作为手机性能结论。官方微信/抖音开发者工具、手机真机、上传和审核未执行。Chrome不可取消touchcancel诊断单独记录，其余控制台错误或未捕获异常会失败。
 
-关卡表此次只完成严格文件指纹、全量字符串/ID边界及八条样本核对；未解码的末尾5字节所在载荷整条排除，章节表50组引用均关联到完整关卡记录，文字及场景配对一致；模式、波次和选卡库派发仍待查，没有将这些表的行数当作主线关数或直接导入游戏。
+微信导出日志完成后，Creator主进程已退出，WSL构建命令仍在等待；核对父进程、路径及启动时间后，仅清理本次构建留下的renderer与crashpad两个子进程。随后构建命令正常结束，导出完整性及包体验证通过；记录见 artifacts/zombie-fire-card-conditions-creator-orphans.json。没有停止其他服务或修改引擎。
 
-原生实际运行官方game.js、适配器和WebGL；音频API为模拟宿主桩，只证明调用链。软件GPU结果不作为手机性能证明。官方微信/抖音开发者工具、手机真机、平台上传和审核未执行；Chrome不可取消touchcancel诊断独立保留，其余控制台错误或未捕获异常会失败。
-
-基础冷却不等于完整最终属性合并已还原。研究费用/上限、普通卡池、隐藏21点调度及部分研究文字冲突继续待查；原版完整主线/成长、视觉一致性、联机与线上赛季仍有缺口。新游戏尚未加入大厅或发布gh-pages，目标继续进行。
-
-本轮浏览器、HTTP服务、原生模拟宿主和Creator构建进程已关闭，原有开发与编辑器服务保留；记录见 artifacts/zombie-fire-research-cooldown-services-closed.json。
+原版完整数值、关卡/成长、视觉一致性及联机/赛季服务仍有缺口。新游戏尚未接入大厅或发布gh-pages。本轮浏览器、HTTP服务、原生宿主和Creator构建进程已关闭，原有开发及编辑器服务保留。
