@@ -1,7 +1,7 @@
 /** Mechanisms are reconstructed from public observations; tuning is explicit local data. */
 export type Element='physical'|'fire'|'ice'|'electric'|'energy'|'wind'|'poison';
-export type SkillId='rifle'|'thermo'|'dryice'|'electro'|'guided'|'ray'|'frost'|'cyclone'|'fuel'|'electron'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon';
-export type Attack='bullet'|'shell'|'beam'|'guided'|'ray'|'field'|'tornado'|'chain'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon';
+export type SkillId='rifle'|'thermo'|'dryice'|'electro'|'guided'|'ray'|'frost'|'cyclone'|'fuel'|'electron'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon'|'pillar'|'orb';
+export type Attack='bullet'|'shell'|'beam'|'guided'|'ray'|'field'|'tornado'|'chain'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon'|'pillar'|'orb';
 export interface Skill {id:SkillId;name:string;element:Element;attack:Attack;color:string;damage:number;interval:number;radius:number;pierce:number;duration:number;description:string}
 export const SKILLS:readonly Skill[]=[
  {id:'rifle',name:'突击步枪',element:'physical',attack:'bullet',color:'#e3b76c',damage:28,interval:.27,radius:3,pierce:0,duration:0,description:'自动锁定靠近防线的敌人。弹匣耗尽后重新装填。'},
@@ -10,7 +10,7 @@ export const SKILLS:readonly Skill[]=[
  {id:'electro',name:'电磁穿刺',element:'electric',attack:'beam',color:'#c2a0ef',damage:100,interval:4.1,radius:44,pierce:0,duration:0,description:'雷击目标并溅射附近敌人，附带麻痹。'},
  {id:'guided',name:'制导激光',element:'energy',attack:'guided',color:'#efbd75',damage:95,interval:3.2,radius:18,pierce:0,duration:1.4,description:'持续追踪锁定目标，目标倒下后自动转移；升级后可折射。'},
  {id:'ray',name:'高能射线',element:'energy',attack:'ray',color:'#78d9ef',damage:60,interval:3.6,radius:14,pierce:99,duration:0,description:'从枪口向目标射出贯穿整条路径的能量射线。'},
- {id:'frost',name:'冰爆发生器',element:'ice',attack:'field',color:'#67cce9',damage:26,interval:5.2,radius:62,pierce:0,duration:2.7,description:'生成冰爆领域，周期伤害并冻结其中的敌人。'},
+ {id:'frost',name:'冰暴发生器',element:'ice',attack:'field',color:'#67cce9',damage:26,interval:5.2,radius:62,pierce:0,duration:2.7,description:'生成冰暴领域，周期伤害并冻结其中的敌人。'},
  {id:'cyclone',name:'旋风加农',element:'wind',attack:'tornado',color:'#8fdcc8',damage:24,interval:5.8,radius:43,pierce:99,duration:4,description:'旋风持续推进，将敌人卷向中心并造成多次伤害。'},
  {id:'fuel',name:'燃油弹',element:'fire',attack:'field',color:'#e77640',damage:23,interval:5.3,radius:61,pierce:0,duration:4,description:'燃油覆盖地面，持续烧灼范围内的尸群。'},
  {id:'electron',name:'跃迁电子',element:'electric',attack:'chain',color:'#aca0ee',damage:51,interval:3.3,radius:128,pierce:4,duration:0,description:'电子在相邻敌人之间跃迁，适合密集尸群。'},
@@ -21,6 +21,8 @@ export const SKILLS:readonly Skill[]=[
  {id:'rift',name:'时空裂隙',element:'energy',attack:'rift',color:'#ae97e8',damage:22,interval:5.5,radius:66,pierce:0,duration:2.5,description:'生成菱形裂隙，每0.4秒造成伤害；区域内施加的负面状态延长20%。'},
  {id:'matrix',name:'生化矩阵',element:'poison',attack:'matrix',color:'#b0d56b',damage:19,interval:5.2,radius:43,pierce:0,duration:2.5,description:'布下多个毒系矩阵，相邻矩阵合并；持续伤害并逐步禁锢区域内的敌人。'},
  {id:'dragon',name:'冰筑龙体',element:'ice',attack:'dragon',color:'#7cd6e9',damage:62,interval:2,radius:52,pierce:0,duration:0,description:'召唤机械冰龙，以利爪攻击；能量蓄满后释放冰狱坠击。'},
+ {id:'pillar',name:'电极柱',element:'electric',attack:'pillar',color:'#79d5f4',damage:29,interval:5.8,radius:9,pierce:0,duration:3.5,description:'地面升起数座电极柱，依次连接；触碰电流连线的敌人持续受到电系伤害。'},
+ {id:'orb',name:'多维弹球',element:'physical',attack:'orb',color:'#e0a9dd',damage:38,interval:4.8,radius:10,pierce:0,duration:12,description:'弹球在目标与墙壁间反弹。选词条积攒幸运，21点可选终极词条；超过21重置为1。'},
 ];
 export const skillById=Object.fromEntries(SKILLS.map(s=>[s.id,s])) as Record<SkillId,Skill>;
 export type SkinId='ranger'|'ember'|'arctic'|'hazard'|'arc';
@@ -33,11 +35,12 @@ export const SKIN_ABILITIES={
  arc:{name:'电磁引导',skill:'electro',hits:2,description:'电磁穿刺命中同一敌人2次，释放等离子场；扩散/收缩造成10%/5%电系伤害。'},
 } as const;
 export const skinAbility=(skin:SkinId)=>skin==='ranger'?null:SKIN_ABILITIES[skin];
-export type Modifier='damage'|'haste'|'count'|'radius'|'pierce'|'duration'|'burn'|'freeze'|'stun'|'bounce'|'crit'|'magazine'|'knock'|'vulnerability';
-export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean}
+export type Modifier='damage'|'haste'|'count'|'radius'|'pierce'|'duration'|'burn'|'freeze'|'stun'|'bounce'|'crit'|'magazine'|'knock'|'vulnerability'|'repeat'|'size'|'speed';
+export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean;luck?:{min:number;delta:readonly [number,number]}}
 const upgrade=(id:string,skill:SkillId,name:string,description:string,mods:Upgrade['mods'],requires:Upgrade['requires']=[],max=1,evolution=false):Upgrade=>({id,skill,name,description,mods,requires,max,evolution});
+const orbUpgrade=(id:string,name:string,description:string,mods:Upgrade['mods'],min:number,delta:readonly [number,number],max=1):Upgrade=>({...upgrade('orb:'+id,'orb',name,description,mods,[],max,min===21),luck:{min,delta}});
 export const UPGRADES:readonly Upgrade[]=[
- ...SKILLS.flatMap(s=>[
+ ...SKILLS.filter(s=>s.id!=='orb').flatMap(s=>[
   upgrade(s.id+':power',s.id,s.name+'增伤','本技能伤害提高 25%。',{damage:.25},[],5),
   upgrade(s.id+':haste',s.id,s.name+'速发','本技能冷却缩短 10%。',{haste:.1},[],3),
  ]),
@@ -68,9 +71,9 @@ export const UPGRADES:readonly Upgrade[]=[
  upgrade('ray:spread','ray','射线扩散','射线增宽，并提高伤害。',{radius:9,damage:.15},[['ray:power',1]],2),
  upgrade('ray:overload','ray','高能过载','贯穿射线冷却明显缩短。',{haste:.22},[['ray:power',2]]),
  upgrade('ray:flash','ray','闪击射线','额外释放一道高能射线。',{count:1,damage:.3},[['ray:overload',1],['ray:spread',1]],1,true),
- upgrade('frost:area','frost','冰爆扩张','冰爆范围增加 20。',{radius:20},[['frost:power',1]],2),
- upgrade('frost:lasting','frost','冰雹延续','冰爆持续时间增加 1.5 秒。',{duration:1.5},[],2),
- upgrade('frost:heavy','frost','重型冰爆','冰爆伤害、范围与冻结强度提升。',{damage:.6,radius:16,freeze:.5},[['frost:area',1],['frost:lasting',1]],1,true),
+ upgrade('frost:area','frost','冰暴扩张','冰暴范围增加 20。',{radius:20},[['frost:power',1]],2),
+ upgrade('frost:lasting','frost','冰雹延续','冰暴持续时间增加 1.5 秒。',{duration:1.5},[],2),
+ upgrade('frost:heavy','frost','重型冰暴','冰暴伤害、范围与冻结强度提升。',{damage:.6,radius:16,freeze:.5},[['frost:area',1],['frost:lasting',1]],1,true),
  upgrade('cyclone:lasting','cyclone','延长气流','旋风持续时间增加 1.5 秒。',{duration:1.5},[],2),
  upgrade('cyclone:double','cyclone','双重旋风','额外发射一道旋风。',{count:1},[['cyclone:lasting',1]],1,true),
  upgrade('cyclone:storm','cyclone','风暴聚焦','旋风扩大，并更强地聚拢敌人。',{radius:18,damage:.4,knock:15},[['cyclone:power',2]],1,true),
@@ -106,6 +109,29 @@ export const UPGRADES:readonly Upgrade[]=[
  upgrade('dragon:energy','dragon','能量回收','提高龙体的能量恢复和击杀能量收益。',{},[],2),
  upgrade('dragon:claw','dragon','极寒利爪','龙体的利爪范围扩大，附带短暂冻结。',{radius:14,freeze:.35},[],2),
  upgrade('dragon:awaken','dragon','机械蜕变','冰狱坠击范围和伤害提升，能量上限提高到140。',{damage:.3,radius:16},[['dragon:heart',1],['dragon:energy',1]],1,true),
+ upgrade('pillar:lasting','pillar','持续供能','电极连线持续时间增加2秒。',{duration:2},[],2),
+ upgrade('pillar:more','pillar','增设电极','每次升起的电极柱增加1座。',{count:1},[],2),
+ upgrade('pillar:wide','pillar','电弧扩展','连线宽度扩大，伤害增加25%。',{radius:5,damage:.25},[['pillar:power',1]],2),
+ orbUpgrade('rise','升维','伤害降低10%，幸运增加11点。',{damage:-.1},0,[11,11],3),
+ orbUpgrade('heavy','弹球重击','体积增大，击退提高25%，伤害提高20%，幸运+5。',{size:.25,knock:2.5,damage:.2},0,[5,5],2),
+ orbUpgrade('wall-split','弹射裂变','撞墙时分裂一枚无强化弹球，幸运+6。',{},0,[6,6]),
+ orbUpgrade('salvo','弹球连发','释放个数+1，弹射次数-1，幸运+8。',{count:1,bounce:-1},0,[8,8],2),
+ orbUpgrade('bounce','低维弹射','弹射次数+1，幸运+4。',{bounce:1},0,[4,4],3),
+ orbUpgrade('repeat','低维连发','释放轮数+1，幸运+7。',{repeat:1},0,[7,7],2),
+ orbUpgrade('power','低维增伤','伤害提高60%，幸运+5。',{damage:.6},0,[5,5],4),
+ orbUpgrade('haste','急速弹射','冷却缩短10%，伤害提高30%，幸运+5。',{haste:.1,damage:.3},0,[5,5],3),
+ orbUpgrade('hinder','阻滞打击','命中减速50%，狂暴免疫；幸运-6。',{},10,[-6,-6]),
+ orbUpgrade('rain','弹珠雨','释放个数+2，体积减小25%，幸运减少10~13点。',{count:2,size:-.25},10,[-13,-10]),
+ orbUpgrade('wall-blast','动能爆破','撞墙时产生80%伤害的爆炸，幸运减少9~12点。',{},10,[-12,-9]),
+ orbUpgrade('split','动能裂变','每命中4个目标，分裂一枚无强化弹球，幸运减少10~13点。',{},10,[-13,-10]),
+ orbUpgrade('high-bounce','高维弹射','弹射次数+2，体积增大25%，幸运减少10~13点。',{bounce:2,size:.25},10,[-13,-10],2),
+ orbUpgrade('high-repeat','高维连发','释放轮数+2，幸运减少10~13点。',{repeat:2},10,[-13,-10]),
+ orbUpgrade('armed','武装弹球','每枚强化弹球的前两次命中必定暴击，幸运减少11~12点。',{},10,[-12,-11]),
+ orbUpgrade('cripple','致残撞击','命中减速90%，持续0.5秒，幸运减少12~16点。',{},10,[-16,-12]),
+ orbUpgrade('tide','弹球浪潮','弹射、个数、轮数各+1，幸运增加3~5点。',{bounce:1,count:1,repeat:1},21,[3,5]),
+ orbUpgrade('destroy','毁灭撞击','大小弹球叠加3%易伤，持续3秒，最多20层；幸运增加3~5点。',{},21,[3,5]),
+ orbUpgrade('cycle','终极循环','冷却-25%，速度+20%，伤害+120%；幸运增加3~5点。',{haste:.25,speed:.2,damage:1.2},21,[3,5]),
+ orbUpgrade('ultimate','终极破坏','伤害提高300%，幸运增加3~5点。',{damage:3},21,[3,5]),
 ];
 export const upgradeById=Object.fromEntries(UPGRADES.map(u=>[u.id,u])) as Record<string,Upgrade>;
 

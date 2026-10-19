@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Battle,DT,FIELD,LIMITS,defaultLoadout,segmentDistance,inRift,type Enemy,type Field,type Projectile,type Loadout} from '../assets/scripts/core';
+import {Battle,DT,FIELD,LIMITS,defaultLoadout,segmentDistance,inRift,nextLuck,onPillarLine,type Enemy,type Field,type Projectile,type Loadout} from '../assets/scripts/core';
 import {ENEMIES,SKILLS,STAGES,UPGRADES,enemyById,type EnemyId,type SkillId,type SkinId} from '../assets/scripts/content';
 import {Armory} from '../assets/scripts/profile';
 import {Session} from '../assets/scripts/session';
 
 function enemy(kind:EnemyId='walker',patch:Partial<Enemy>={}):Enemy {
  const def=enemyById[kind];
- return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,age:0,child:false,...patch};
+ return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child:false,...patch};
 }
 // Isolated fixtures exercise collision and status rules. Full victories below use only public inputs.
 function arena(skill?:SkillId,loadout:Loadout=defaultLoadout()) {
@@ -216,5 +216,68 @@ test('dragon kills charge energy and hearts; cooldown and caps prevent repeated 
  assert.equal(b.dragon!.hearts,9);assert.equal(b.dragon!.maxEnergy,100);assert.ok(b.dragon!.energy<=100);assert.equal(b.dragon!.slams,1);
  const count=b.dragon!.slams;b.enemies=[enemy('brute',{id:50,y:300,hp:100000,maxHp:100000}),...Array.from({length:12},(_,i)=>enemy('walker',{id:51+i,y:180,hp:1,maxHp:1}))];steps(b,300);assert.equal(b.dragon!.slams,count);assert.equal(b.dragon!.energy,100,'a full bar still respects the skill cooldown');
  steps(b,80);assert.ok(b.dragon!.slams>count);b.upgrades['dragon:awaken']=1;b.step();assert.equal(b.dragon!.maxEnergy,140);
+});
+
+function orb(b:Battle,patch:Partial<Projectile>={}):Projectile {
+ const mods={...b.stats('orb'),crit:0};return {id:500,skill:'orb',x:0,y:300,px:0,py:300,vx:320,vy:0,radius:mods.radius,splash:0,damage:mods.damage,remaining:mods.bounce,hits:[],life:mods.duration,mods,source:'weapon',rebounds:0,hitTimes:{},...patch};
+}
+test('electrode damage follows consecutive links, hits crossings once, pauses and expires',()=>{
+ const b=arena(),f=field(b,'pillar',{nodes:[{x:-100,y:260},{x:100,y:260},{x:0,y:350}],radius:9});b.fields=[f];
+ b.enemies=[enemy('walker',{x:100,y:260,hp:1000,maxHp:1000}),enemy('walker',{id:2,x:0,y:310,hp:1000,maxHp:1000})];
+ assert.equal(onPillarLine(b.enemies[0],f),true);assert.equal(onPillarLine(b.enemies[1],f),false,'inside the polygon is not inside a wire');
+ b.step();assert.equal(b.enemies[0].hp,971,'two wires sharing a node do not double-hit');assert.equal(b.enemies[1].hp,1000);
+ stepsNoChoice(b,17);assert.equal(b.enemies[0].hp,971);b.step();assert.equal(b.enemies[0].hp,942);
+ b.pause();const frozen=b.snapshot();stepsNoChoice(b,300);assert.deepEqual(b.snapshot(),frozen);b.resume();
+ const copy=b.snapshot();copy.fields[0].nodes![0].x=500;assert.equal(f.nodes![0].x,-100);
+ stepsNoChoice(b,240);assert.equal(b.fields.length,0);const damage=b.damageDone;stepsNoChoice(b,60);assert.equal(b.damageDone,damage);
+});
+test('lucky cards enforce gates, update only on selection, wrap above 21 and replay deterministically',()=>{
+ const a=arena('orb'),b=arena('orb');
+ for(const run of [a,b]){
+  assert.ok(!run.availableCards().some(c=>c.id==='orb:ultimate'||c.id==='orb:rain'));
+  const select=(id:string)=>{const c=run.availableCards().find(c=>c.id===id);assert.ok(c);run.phase='choice';run.cards=[c];assert.equal(run.choose(id),true);};
+  select('orb:rise');assert.equal(run.orbLuck,11);assert.ok(run.availableCards().some(c=>c.id==='orb:rain'));assert.ok(!run.availableCards().some(c=>c.kind==='evolution'));
+  select('orb:power');select('orb:power');assert.equal(run.orbLuck,21);assert.ok(run.availableCards().some(c=>c.id==='orb:ultimate'));
+  select('orb:ultimate');assert.equal(run.orbLuck,1);assert.ok(run.lastLuck!.overflow);assert.equal(run.lastLuck!.before,21);assert.ok(run.lastLuck!.change>=3&&run.lastLuck!.change<=5);
+  const prior=run.snapshot();assert.equal(run.choose('orb:rain'),false);assert.deepEqual(run.snapshot(),prior);
+ }
+ assert.deepEqual(a.snapshot(),b.snapshot());assert.equal(nextLuck(10,-13),0);assert.equal(nextLuck(17,4),21);assert.equal(nextLuck(20,4),1);
+ const copy=a.snapshot();copy.lastLuck!.after=999;assert.equal(a.lastLuck!.after,1);assert.equal(new Battle().orbLuck,0);
+});
+test('balls travel between living targets, deal physical damage and have finite rebounds',()=>{
+ const b=arena();b.enemies=[enemy('walker',{x:0,y:300,hp:10000,maxHp:10000}),enemy('armor',{id:2,x:100,y:330,hp:10000,maxHp:10000})];
+ const p=orb(b,{x:-40,px:-40});b.projectiles=[p];until(b,()=>p.hits.length===1,20);assert.equal(b.enemies[0].hp,9962);assert.equal(b.enemies[1].hp,10000,'retargeting cannot deal instant damage');assert.ok(p.vx>0&&p.vy>0);
+ until(b,()=>p.hits.length===2,60);assert.ok(Math.abs(b.enemies[1].hp-(10000-38*.35))<1e-6);assert.deepEqual(p.hits,[1,2]);
+ until(b,()=>b.projectiles.length===0,900);assert.ok(p.rebounds!<=5,'the base ball cannot bounce forever');
+});
+test('armed balls guarantee their first two contact criticals, then use normal critical chance',()=>{
+ const b=arena();b.upgrades['orb:armed']=1;b.enemies=[enemy('walker',{x:-60,y:300,hp:10000,maxHp:10000}),enemy('walker',{id:2,x:80,y:320,hp:10000,maxHp:10000})];
+ const p=orb(b,{x:-95,px:-95});b.projectiles=[p];
+ until(b,()=>p.hits.length===1);assert.equal(b.damageDone,76);until(b,()=>p.hits.length===2);assert.equal(b.damageDone,152);until(b,()=>p.hits.length===3);assert.equal(b.damageDone,190);
+});
+test('wall impacts cause optional blasts and unenhanced children cannot recursively split',()=>{
+ const b=arena();b.upgrades['orb:wall-split']=1;b.upgrades['orb:wall-blast']=1;b.enemies=[enemy('walker',{x:140,y:340,hp:10000,maxHp:10000})];
+ b.projectiles=[orb(b,{x:159,px:159,y:300,py:300,remaining:0,damage:100})];b.step();assert.equal(b.damageDone,80);assert.equal(b.projectiles.length,1);
+ const child=b.projectiles[0];assert.equal(child.source,'secondary');assert.equal(child.damage,38);assert.equal(child.radius,6.5);
+ stepsNoChoice(b,600);assert.equal(b.projectiles.length,0);assert.ok(b.damageDone<200,'children cannot inherit the wall blast or spawn a growing chain');
+ const full=arena();full.upgrades['orb:wall-split']=1;full.projectiles=Array.from({length:LIMITS.projectiles},(_,id)=>orb(full,{id,x:159,px:159}));full.step();assert.equal(full.projectiles.length,LIMITS.projectiles);
+});
+test('orb volley rounds are delayed, freeze on pause, and snapshot their cast stats',()=>{
+ const b=arena('orb',{...defaultLoadout(),crit:0});b.upgrades['orb:repeat']=1;b.upgrades['orb:salvo']=1;b.enemies=[enemy('walker',{y:500,hp:100000,maxHp:100000})];b.step();b.learned={};assert.equal(b.shots,2);assert.equal(b.snapshot().pendingVolleys,1);
+ b.pause();const snap=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),snap);b.resume();b.upgrades['orb:ultimate']=1;
+ stepsNoChoice(b,12);assert.equal(b.shots,2);stepsNoChoice(b,2);assert.equal(b.shots,4);assert.equal(b.snapshot().pendingVolleys,0);assert.ok(b.projectiles.every(p=>p.damage===38),'a queued volley keeps its original stats');
+});
+test('kinetic fission occurs on the fourth real contact and small balls can apply destruction stacks',()=>{
+ const b=arena();b.upgrades['orb:split']=1;b.upgrades['orb:destroy']=1;b.enemies=[enemy('walker',{x:-70,y:300,hp:100000,maxHp:100000}),enemy('walker',{id:2,x:80,y:320,hp:100000,maxHp:100000})];
+ const p=orb(b,{x:-100,px:-100,remaining:8});b.projectiles=[p];until(b,()=>p.hits.length===3,180);assert.equal(b.projectiles.length,1);
+ until(b,()=>p.hits.length===4,90);const child=b.projectiles.find(p=>p.source==='secondary')!;assert.ok(child);assert.equal(child.hits.length,0,'newly spawned children wait until the next frame');
+ b.projectiles=[child];const before=b.enemies.reduce((sum,e)=>sum+e.fractures,0);until(b,()=>child.hits.length===1,120);assert.equal(b.enemies.reduce((sum,e)=>sum+e.fractures,0),before+1);
+});
+test('cripple expires, enraged enemies resist it, and vulnerability stacks have an independent cap and timer',()=>{
+ const run=(rage:boolean)=>{const b=arena();b.upgrades['orb:cripple']=1;b.upgrades['orb:destroy']=1;b.enemies=[enemy(rage?'butcher':'walker',{y:300,hp:100000,maxHp:100000,speed:20,age:rage?26:0})];b.projectiles=[orb(b,{x:-20,px:-20,remaining:0})];b.step();return b;};
+ const b=run(false),rage=run(true);assert.equal(b.enemies[0].orbSlowPower,.9);assert.equal(rage.enemies[0].orbSlowPower,0);assert.equal(b.enemies[0].fractures,1);
+ stepsNoChoice(b,31);assert.equal(b.enemies[0].orbSlowPower,0);assert.equal(b.enemies[0].fractures,1);
+ for(let n=0;n<25;n++){const e=b.enemies[0];b.projectiles=[orb(b,{x:e.x-20,y:e.y,remaining:0,mods:{...b.stats('orb'),knock:0,crit:0}})];b.step();}
+ assert.equal(b.enemies[0].fractures,20);stepsNoChoice(b,181);assert.equal(b.enemies[0].fractures,0);assert.equal(b.enemies[0].fractureTime,0);
 });
 
