@@ -88,12 +88,15 @@ export async function verify({p,native,target,viewport,state,click,advance,event
      if(!s.learned.orb&&!s.cards.some(c=>c.id==='learn:orb')&&s.rerolls>0){await click('reroll');s=await fresh();continue;}
      // Only visible choices influence the strategy; quality is never predicted from RNG state.
      const score=c=>c.id==='learn:orb'?5000:c.id==='orb:haste'?1500:c.skill==='rifle'?1000:c.kind==='learn'&&['frost','electron','thermo'].includes(c.skill)?800:c.kind==='learn'?0:c.id==='orb:cycle'?10:500;
-     const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0];await click('choose:'+s.cards.findIndex(c=>c.id===card.id));
+     const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0];await click('choose:'+s.cards.findIndex(c=>c.id===card.id));s=await fresh();
     }else if(s.battlePhase==='playing'){
      const count=s.projectiles.some(p=>p.quality)?12:120;
-     if(native)await p.evaluate(count=>call({type:'advance',count}),count);else await p.evaluate(count=>__collectionAdvance(count),count);
+     // The existing QA step advances the real rules and updates the scene/snapshot.
+     // Render and read GPU pixels for captures, not every 0.2 simulated seconds.
+     if(native){const result=await p.evaluate(count=>call({type:'advance',count}),count);assert.deepEqual(result.errors,[]);s=result.state;}
+     else s=await p.evaluate(count=>{__collectionAdvance(count);return window.__collectionSnapshot;},count);
     }else break;
-    s=await fresh();if(!s.learned.orb&&Object.keys(s.learned).length>=5)break;
+    if(!s.learned.orb&&Object.keys(s.learned).length>=5)break;
     const progress=s.luckyProgress;
     assert.ok(progress.charge>=0&&progress.charge<=progress.required);assert.ok(s.counts.projectiles<=320);
     if(s.battlePhase!=='playing')continue;
@@ -111,6 +114,7 @@ export async function verify({p,native,target,viewport,state,click,advance,event
     if(!lightHit&&s.projectiles.some(p=>p.source==='lucky-light'&&p.hits>0)){lightHit=true;await capture('lucky-light-hit');}
     if(!highBurst&&progress.hitBursts>0&&s.projectiles.some(p=>p.source==='lucky'&&p.quality==='high'&&p.hits>0)){highBurst=true;await capture('lucky-high-burst');}
    }
+   console.log(`${target}/${viewport.width} lucky attempt ${attempt+1}: hits=${[...hitQualities].join(',')||'none'}, light=${lightHit}, highBurst=${highBurst}, casts=${s.luckyProgress.casts}`);
    await home();
   }
   assert.ok(complete(),`lucky effects need actual legal hits: ${JSON.stringify({qualities:[...hitQualities],lightHit,highBurst,paused})}`);
