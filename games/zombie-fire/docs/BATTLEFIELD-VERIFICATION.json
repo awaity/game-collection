@@ -1,0 +1,183 @@
+{
+  "verifiedAt": "2026-10-19T18:58:27.068229+00:00",
+  "readerSha256": "1ef2bd57f22ed015631a33e671bcbb1e37f31ca1fdc2cf90944531dbd5f2aaf2",
+  "tables": 25,
+  "inputs": {
+    "LevelDescTipConfig": {
+      "sha256": "cb7e56f06b94ca542941a286eaa3bbbb49784269d6c1a613523a82f8038fe1f2",
+      "encoding": "plain",
+      "bytes": 540,
+      "declaredRows": 10,
+      "completeRows": 10,
+      "decodedPrefixBytes": 540,
+      "undecodedTailBytes": 0,
+      "declaredChecksum": "5673c5e4",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": true,
+      "incompleteRecordOffset": null
+    },
+    "BattleEffectConfig": {
+      "sha256": "f4aedd7bc610e71fee58aacef7cc274a6928bb525c55af531ec9b5aebfbf1d1a",
+      "encoding": "plain",
+      "bytes": 8653,
+      "declaredRows": 112,
+      "completeRows": 112,
+      "decodedPrefixBytes": 8653,
+      "undecodedTailBytes": 0,
+      "declaredChecksum": "50e0523c",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": true,
+      "incompleteRecordOffset": null
+    },
+    "LevelEffectGroupConfig": {
+      "sha256": "5605be41ba8d5f0ac131d53f680cc3b5ed632dc364550af053cb07bd929f8191",
+      "encoding": "plain",
+      "bytes": 1460,
+      "declaredRows": 72,
+      "completeRows": 72,
+      "decodedPrefixBytes": 1460,
+      "undecodedTailBytes": 0,
+      "declaredChecksum": "560f7200",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": true,
+      "incompleteRecordOffset": null
+    }
+  },
+  "boundaries": {
+    "tipLayout": {
+      "prefixBytes": 28,
+      "stringCount": 1,
+      "completeRows": 10
+    },
+    "effectLayout": {
+      "prefixBytes": 44,
+      "stringCount": 2,
+      "tailBytes": 4,
+      "completeRows": 112,
+      "distinctIds": 99,
+      "recordByteCounts": {
+        "58": 7,
+        "71": 3,
+        "73": 21,
+        "74": 28,
+        "75": 33,
+        "76": 1,
+        "90": 1,
+        "94": 1,
+        "96": 4,
+        "97": 3,
+        "98": 2,
+        "99": 3,
+        "100": 1,
+        "101": 2,
+        "102": 2
+      },
+      "nonemptySecondStrings": 19
+    },
+    "groupLayout": {
+      "recordBytes": 20,
+      "completeRows": 72,
+      "distinctGroups": 57,
+      "matchedEffectReferencesAt4": 72
+    },
+    "repeatedEffectIds": [
+      {
+        "id": 4011,
+        "rows": 3
+      },
+      {
+        "id": 4012,
+        "rows": 2
+      },
+      {
+        "id": 4013,
+        "rows": 2
+      },
+      {
+        "id": 4014,
+        "rows": 4
+      },
+      {
+        "id": 4015,
+        "rows": 2
+      },
+      {
+        "id": 4016,
+        "rows": 2
+      },
+      {
+        "id": 4017,
+        "rows": 2
+      },
+      {
+        "id": 5011,
+        "rows": 2
+      },
+      {
+        "id": 5012,
+        "rows": 2
+      },
+      {
+        "id": 5013,
+        "rows": 2
+      }
+    ],
+    "repeatedIdAndValueAt4": [
+      {
+        "id": 4017,
+        "valueAt4": 1,
+        "rows": 2,
+        "offsets": [
+          6401,
+          6459
+        ]
+      }
+    ],
+    "buffReferences": {
+      "10": {
+        "matchedNonzeroRows": 99,
+        "distinctBuffs": 74
+      },
+      "14": {
+        "matchedNonzeroRows": 9,
+        "distinctBuffs": 9
+      }
+    }
+  },
+  "positiveLog": "artifacts/zombie-fire-battlefield-reference.log",
+  "positiveCommand": [
+    "pnpm",
+    "--filter",
+    "zombie-fire",
+    "reference:inspect"
+  ],
+  "positiveExitCode": 0,
+  "invalidInputs": [
+    {
+      "case": "missing-tip",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-battlefield-reader-missing-tip.log"
+    },
+    {
+      "case": "truncated-effect",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-battlefield-reader-truncated-effect.log"
+    },
+    {
+      "case": "changed-group",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-battlefield-reader-changed-group.log"
+    },
+    {
+      "case": "changed-tip",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-battlefield-reader-changed-tip.log"
+    }
+  ],
+  "temporaryInputsRemoved": true,
+  "scope": "Offline reference reader only. Runtime and flow files remain unchanged from 7f65e64; no game-service process was started by the reader."
+}

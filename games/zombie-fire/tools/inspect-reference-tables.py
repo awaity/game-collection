@@ -39,6 +39,9 @@ FINGERPRINTS = {
     "BootyConfig": "43fdfdd5f281ea3c9802a099045cb267edab3bc8f5a0fa51bcf875b58b2eaaac",
     "GoodsConfig": "eeab422ac2eac80d9836f33f90b047fcfe756be2c564555dfef259c81247d013",
     "CurrencyTypeConfig": "6a6a4a5cf01660b5721798f591fae27cf55688c0cec8edafb4762811f67246d1",
+    "LevelDescTipConfig": "cb7e56f06b94ca542941a286eaa3bbbb49784269d6c1a613523a82f8038fe1f2",
+    "BattleEffectConfig": "f4aedd7bc610e71fee58aacef7cc274a6928bb525c55af531ec9b5aebfbf1d1a",
+    "LevelEffectGroupConfig": "5605be41ba8d5f0ac131d53f680cc3b5ed632dc364550af053cb07bd929f8191",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
     "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
@@ -203,9 +206,10 @@ def read_variable(table: Table, parse, identity) -> list:
             table.offset = start
             table.partial_record_offset = start
             break
-        key = identity(row)
-        require(key not in keys, f"{table.name}: duplicate record identity {key}")
-        keys.add(key)
+        if identity is not None:
+            key = identity(row)
+            require(key not in keys, f"{table.name}: duplicate record identity {key}")
+            keys.add(key)
         records.append({"offset": start, **row})
         table.complete += 1
     if table.partial_record_offset is None:
@@ -306,6 +310,79 @@ def currency_row(table: Table) -> dict:
     (tail,) = table.unpack(">I")
     return {"id": key, "valueAt4": value4, "textReferenceAt8": text8,
             "goodsReferenceAt12": goods12, "iconReference": icon, "tail": tail}
+
+
+def level_tip_row(table: Table) -> dict:
+    values = table.unpack(">7I")
+    return {"id": values[0], "valuesAt4And8": list(values[1:3]),
+            "valuesAt12And16": list(values[3:5]),
+            "textReferencesAt20And24": list(values[5:]), "iconReference": table.string()}
+
+
+def battle_effect_row(table: Table) -> dict:
+    start = table.offset
+    (prefix,) = table.unpack(">44s")
+    first_string, second_string = table.string(), table.string()
+    (tail,) = table.unpack(">I")
+    return {"id": struct.unpack_from(">I", prefix)[0],
+            "valueAt4": struct.unpack_from(">H", prefix, 4)[0],
+            "valuesAt10And14": list(struct.unpack_from(">2I", prefix, 10)),
+            "prefixHex": prefix.hex(), "firstString": first_string, "secondString": second_string,
+            "textReferencesAt28And36": [struct.unpack_from(">I", prefix, offset)[0]
+                                        for offset in (28, 36)],
+            "tail": tail, "recordBytes": table.offset - start}
+
+
+def battlefield_references(tip_table: Table, effect_table: Table, group_table: Table,
+                           texts: dict, buffs: list, buff_attrs: list) -> dict:
+    tips = read_variable(tip_table, level_tip_row, lambda row: row["id"])
+    # Even (ID, u16 at 4) repeats: 4017/1 has two different effect payloads.
+    # A dictionary or a unique-ID parser would silently lose part of the data.
+    effects = read_variable(effect_table, battle_effect_row, None)
+    groups = [list(struct.unpack(">5I", raw)) for raw in read_fixed(group_table, 20)]
+    effect_ids = {row["id"] for row in effects}
+    require(all(row[1] in effect_ids for row in groups),
+            "LevelEffectGroupConfig: unresolved effect reference at 4")
+    for rows, field in ((tips, "textReferencesAt20And24"),
+                        (effects, "textReferencesAt28And36")):
+        require(all(value in texts for row in rows for value in row[field]),
+                "Battlefield descriptions: unresolved text reference")
+    counts = Counter(row["id"] for row in effects)
+    composite_counts = Counter((row["id"], row["valueAt4"]) for row in effects)
+    buff_ids, buff_attr_ids = {row["id"] for row in buffs}, {row["id"] for row in buff_attrs}
+    buff_references = {}
+    for index, offset in enumerate((10, 14)):
+        values = [row["valuesAt10And14"][index] for row in effects if row["valuesAt10And14"][index]]
+        require(all(value in buff_ids and value in buff_attr_ids for value in values),
+                f"BattleEffectConfig: unresolved buff/attribute reference at {offset}")
+        buff_references[offset] = {"matchedNonzeroRows": len(values), "distinctBuffs": len(set(values))}
+    return {
+        "tipLayout": {"prefixBytes": 28, "stringCount": 1, "completeRows": len(tips)},
+        "tips": [{**row, "title": texts[row["textReferencesAt20And24"][0]]["text"],
+                  "description": texts[row["textReferencesAt20And24"][1]]["text"]} for row in tips],
+        "effectLayout": {"prefixBytes": 44, "stringCount": 2, "tailBytes": 4,
+                         "completeRows": len(effects), "distinctIds": len(effect_ids),
+                         "recordByteCounts": dict(sorted(Counter(r["recordBytes"] for r in effects).items())),
+                         "nonemptySecondStrings": sum(bool(r["secondString"]) for r in effects)},
+        "repeatedEffectIds": [{"id": key, "rows": count}
+                              for key, count in sorted(counts.items()) if count > 1],
+        "repeatedIdAndValueAt4": [{"id": key, "valueAt4": value, "rows": count,
+                                   "offsets": [r["offset"] for r in effects
+                                               if r["id"] == key and r["valueAt4"] == value]}
+                                  for (key, value), count in sorted(composite_counts.items()) if count > 1],
+        "groupLayout": {"recordBytes": 20, "completeRows": len(groups),
+                        "distinctGroups": len({row[0] for row in groups}),
+                        "matchedEffectReferencesAt4": len(groups)},
+        "buffReferences": buff_references,
+        "selectedEffects": [{**row, "title": texts[row["textReferencesAt28And36"][0]]["text"],
+                             "description": texts[row["textReferencesAt28And36"][1]]["text"]}
+                            for row in effects if row["id"] in (1001, 1002, 4011, 4012, 4013, 4014, 4017)],
+        "limits": ["Tip text describes split stages, items, terrain and skill locks; it does not prove live dispatch.",
+                   "Values at tip offsets 12/16 resemble ranges, but mode enums and visibility rules are unverified.",
+                   "Preserve repeated effect IDs and repeated ID/u16 pairs in source order.",
+                   "Group references resolve to effect definitions, not to a proven playable stage scheduler.",
+                   "Effect application, stacking, reset rules and client/server overrides remain unverified."],
+    }
 
 
 def campaign_loot_links(directory: Path, candidates: list, booty: Table, goods_table: Table,
@@ -814,6 +891,8 @@ def inspect(directory: Path) -> dict:
     require(len(cooldown_comparisons) == 17, "MagicSkillLevelConfig: unexpected primary cooldown display count")
     buffs = read_variable(tables["BuffConfig"], buff_row, lambda r: r["id"])
     buff_attrs = read_variable(tables["BuffAttrConfig"], buff_attr_row, lambda r: (r["id"], r["rank"]))
+    battlefield = battlefield_references(tables["LevelDescTipConfig"], tables["BattleEffectConfig"],
+                                         tables["LevelEffectGroupConfig"], texts, buffs, buff_attrs)
     skill_attrs = read_skill_attributes(tables["BuffFuncSkillAttrConfig"])
     selected = {}
     for key in [*range(1401, 1421), *range(1501, 1530), 1532, *range(1549, 1555), *range(1560, 1564)]:
@@ -848,6 +927,7 @@ def inspect(directory: Path) -> dict:
         "waveReferences": waves,
         "numberedLevelCandidates": numbered,
         "campaignLootLinks": loot,
+        "battlefieldReferences": battlefield,
         "levelLibraryCandidates": library_candidates,
         "orbGroupComparisons": orb_group_comparisons(groups),
         "skillLevelBoundaries": {"recordBytes": 176, "completeRecords": len(levels),
