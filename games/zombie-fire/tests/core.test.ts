@@ -7,7 +7,7 @@ import {Session} from '../assets/scripts/session';
 
 function enemy(kind:EnemyId='walker',patch:Partial<Enemy>={}):Enemy {
  const def=enemyById[kind];
- return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,haste:0,hinder:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child:false,...patch};
+ return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,haste:0,hinder:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,paralysis:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child:false,...patch};
 }
 // Isolated fixtures exercise collision and status rules. Full victories below use only public inputs.
 function arena(skill?:SkillId,loadout:Loadout=defaultLoadout(),seed=41) {
@@ -107,9 +107,48 @@ test('shields absorb first and armored enemies resist physical shots',()=>{
  const b=arena('rifle',{...defaultLoadout(),crit:0});b.enemies=[enemy('shield',{hp:1000,maxHp:1000,shield:1000})];steps(b,40);assert.equal(b.enemies[0].hp,1000);assert.ok(b.enemies[0].shield<1000);assert.ok(b.damageDone<28*2);
  const a=arena('rifle',{...defaultLoadout(),crit:0}),c=arena('rifle',{...defaultLoadout(),crit:0});a.enemies=[enemy('armor',{hp:1000,maxHp:1000})];c.enemies=[enemy('walker',{hp:1000,maxHp:1000})];steps(a,50);steps(c,50);assert.ok(a.damageDone<c.damageDone*.4);
 });
-test('freeze and paralysis stop movement; elemental immunities remain effective',()=>{
- const b=arena();b.enemies=[enemy('runner',{speed:24,freeze:2}),enemy('runner',{id:2,speed:24,stun:2})];steps(b,60);assert.deepEqual(b.enemies.map(e=>e.y),[270,270]);steps(b,80);assert.ok(b.enemies.every(e=>e.y<270));
- const ice=arena('frost'),lightning=arena('electro');ice.enemies=[enemy('frostguard',{hp:10000,maxHp:10000})];lightning.enemies=[enemy('shockguard',{hp:10000,maxHp:10000})];steps(ice,10);steps(lightning,10);assert.equal(ice.enemies[0].freeze,0);assert.equal(lightning.enemies[0].stun,0);
+test('freeze and paralysis stop movement; elemental resistance shortens rather than removes control',()=>{
+ const b=arena();b.enemies=[enemy('runner',{speed:24,freeze:2}),enemy('runner',{id:2,speed:24,paralysis:2})];steps(b,60);assert.deepEqual(b.enemies.map(e=>e.y),[270,270]);steps(b,80);assert.ok(b.enemies.every(e=>e.y<270));
+ const ice=arena('frost'),lightning=arena('electro');ice.enemies=[enemy('frostguard',{hp:10000,maxHp:10000})];lightning.enemies=[enemy('shockguard',{hp:10000,maxHp:10000})];ice.step();lightning.step();assert.equal(ice.enemies[0].freeze,.35);assert.equal(lightning.enemies[0].paralysis,.3);
+ ice.learned={};ice.fields=[];lightning.learned={};stepsNoChoice(ice,22);stepsNoChoice(lightning,19);assert.equal(ice.enemies[0].freeze,0);assert.equal(lightning.enemies[0].paralysis,0);
+});
+test('projectile resistance differs from physical resistance for piercing ice, shells and bombs',()=>{
+ const hit=(kind:EnemyId,skill:SkillId)=>{const b=arena(skill,{...defaultLoadout(),crit:0});b.enemies=[enemy(kind,{hp:10000,maxHp:10000})];b.step();b.learned={};until(b,()=>b.damageDone>0,100);return b.damageDone;};
+ for(const skill of ['rifle','dryice','orb'] as SkillId[])assert.ok(Math.abs(hit('shield',skill)/hit('walker',skill)-.3)<1e-8,skill);
+ for(const skill of ['thermo','airdrop','guided','ray'] as SkillId[])assert.ok(Math.abs(hit('shield',skill)-hit('walker',skill))<1e-8,skill);
+ assert.ok(Math.abs(hit('shield','electro')/hit('walker','electro')-1.5)<1e-8);
+ for(const [kind,skill,ratio]of [['fireguard','thermo',.4],['fireguard','dryice',2],['frostguard','dryice',.5],['frostguard','thermo',1.5],['shockguard','electro',.4],['shockguard','thermo',1.5],['splitter','thermo',1.5],['splitter','electro',1.5]] as [EnemyId,SkillId,number][])assert.ok(Math.abs(hit(kind,skill)/hit('walker',skill)-ratio)<1e-8,kind+'/'+skill);
+});
+test('true stun immunity leaves electrical paralysis intact and rift duration scales once',()=>{
+ for(const kind of ['walker','shield','splitter','shockguard'] as EnemyId[]){
+  const b=arena(undefined,{...defaultLoadout(),crit:0}),e=enemy(kind,{hp:10000,maxHp:10000,speed:12});b.enemies=[e];
+  b.projectiles=[{id:10,skill:'rifle',x:0,y:240,px:0,py:240,vx:0,vy:600,radius:3,splash:0,damage:1,remaining:0,hits:[],life:1,mods:{...b.stats('rifle'),paralysis:1,stun:2,freeze:0,knock:0}}];
+  b.fields=[{id:11,skill:'rift',x:0,y:270,radius:60,life:3,total:3,tick:999,vy:0,delay:0,damage:0,mods:b.stats('rift')}];
+  until(b,()=>b.damageDone>0,20);assert.equal(e.paralysis,kind==='shockguard'?.6:1.2);assert.equal(e.stun,kind==='shield'||kind==='splitter'?0:2.4);
+  const y=e.y;b.pause();stepsNoChoice(b,120);assert.equal(e.y,y);b.resume();stepsNoChoice(b,10);assert.equal(e.y,y);
+ }
+});
+test('flame and shield immunities apply to direct effects and death-spread flames',()=>{
+ const burn=(kind:EnemyId)=>{const b=arena('thermo',{...defaultLoadout(),crit:0});b.upgrades['thermo:ignite']=1;b.enemies=[enemy(kind,{hp:10000,maxHp:10000})];b.step();b.learned={};until(b,()=>b.damageDone>0,100);return b.enemies[0];};
+ assert.equal(burn('walker').burn,3);assert.equal(burn('frostguard').burn,6);
+ for(const kind of ['fireguard','shield'] as EnemyId[]){const e=burn(kind);assert.equal(e.burn,0);assert.equal(e.burnPower,0);}
+ const ice=arena('frost',{...defaultLoadout(),crit:0});ice.enemies=[enemy('fireguard',{hp:10000,maxHp:10000})];ice.step();assert.equal(ice.enemies[0].freeze,0);assert.ok(ice.damageDone>0,'ice weakness does not imply freeze susceptibility');
+ const b=arena();b.upgrades['thermo:spread']=1;
+ b.enemies=[enemy('walker',{hp:.01,burn:2,burnPower:50}),...(['fireguard','shield','frostguard','bat'] as EnemyId[]).map((kind,i)=>enemy(kind,{id:i+2,x:10+i*10,hp:1000,maxHp:1000}))];b.step();
+ for(const kind of ['fireguard','shield']){const e=b.enemies.find(e=>e.kind===kind)!;assert.equal(e.burn,0);assert.equal(e.burnPower,0);assert.equal(e.hp,1000);}
+ assert.ok(b.enemies.find(e=>e.kind==='frostguard')!.burn>5.9);
+ const flying=b.enemies.find(e=>e.kind==='bat')!;assert.ok(flying.burn>2.9&&flying.hp<1000,'airborne enemies can burn from an airborne effect');
+});
+test('shield anchors resist both knockback and cyclone traction without blocking damage',()=>{
+ for(const skill of ['thermo','cyclone'] as SkillId[]){
+  const b=arena(skill,{...defaultLoadout(),crit:0});b.enemies=[enemy('shield',{hp:10000,maxHp:10000}),enemy('walker',{id:2,x:20,hp:10000,maxHp:10000})];stepsNoChoice(b,180);
+  assert.equal(b.enemies[0].x,0);assert.equal(b.enemies[0].y,270);assert.ok(b.enemies[0].hp<10000);assert.ok(b.enemies[1].y>270,skill+' moves an unanchored target');
+ }
+});
+test('ground immunity stops damage and statuses but not airborne flames or explosions',()=>{
+ const b=arena('fuel',{...defaultLoadout(),crit:0});b.upgrades['fuel:lasting']=1;b.enemies=[enemy('bat',{hp:1000,maxHp:1000})];stepsNoChoice(b,100);
+ assert.equal(b.damageDone,0);assert.equal(b.enemies[0].burn,0);assert.equal(b.enemies[0].y,270);
+ const blast=arena();blast.upgrades['fuel:death']=1;blast.enemies=[enemy('walker',{hp:.01,burn:2,burnPower:50}),enemy('bat',{id:2,x:20,hp:1000,maxHp:1000})];blast.step();assert.ok(blast.enemies[0].hp<1000,'death explosion can reach a flying target');
 });
 test('wounds reduce healer recovery and burn cannot affect fire guards',()=>{
  const b=arena();b.enemies=[enemy('healer',{ability:0}),enemy('walker',{id:2,hp:100,maxHp:1000,x:30,wound:2}),enemy('walker',{id:3,hp:100,maxHp:1000,x:-30})];b.step();assert.equal(b.enemies[1].hp,130);assert.equal(b.enemies[2].hp,160);
@@ -180,7 +219,7 @@ test('lethal boss attacks end immediately without revival from repair or later k
  const b=arena('electro',{...defaultLoadout(),repair:100,mercenaries:['engineer']});b.hp=1;b.enemies=[enemy('mech',{y:FIELD.wall+39,warning:DT/2,hp:1})];b.step();assert.equal(b.phase,'lost');assert.equal(b.hp,0);assert.equal(b.kills,0);const tick=b.tick;steps(b,100);assert.equal(b.tick,tick);
 });
 test('long-lived bosses escape permanent control and continue toward the wall',()=>{
- const b=arena('frost');b.upgrades['frost:heavy']=1;b.enemies=[enemy('butcher',{hp:100000,maxHp:100000,age:26,speed:7,freeze:10,stun:10})];steps(b,90);assert.equal(b.enemies[0].freeze,0);assert.equal(b.enemies[0].stun,0);assert.ok(b.enemies[0].y<260);assert.ok(b.damageDone>0,'enraged enemies can still be damaged');
+ const b=arena('frost');b.upgrades['frost:heavy']=1;b.enemies=[enemy('butcher',{hp:100000,maxHp:100000,age:26,speed:7,freeze:10,paralysis:10})];steps(b,90);assert.equal(b.enemies[0].freeze,0);assert.equal(b.enemies[0].paralysis,0);assert.ok(b.enemies[0].y<260);assert.ok(b.damageDone>0,'enraged enemies can still be damaged');
 });
 test('late endless waves increase incoming pressure as well as enemy health',()=>{
  const attack=(wave:number)=>{const b=new Battle(0,'endless');b.phase='playing';b.wave=wave;b.spawnClock=999;b.waveQuota=999;b.learned={};b.enemies=[enemy('walker',{y:FIELD.wall+15,attack:0})];b.step();return b.damageTaken;};

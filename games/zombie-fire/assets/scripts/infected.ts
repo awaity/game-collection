@@ -15,7 +15,7 @@ export class InfectedPainter {
  private curve(points:number[][],fill:string,outline=ink){const g=this.g,p=points.map(([x,y])=>[this.x+x*this.scale,this.y+y*this.scale]);g.fillColor=paint(fill);g.strokeColor=paint(outline);g.lineWidth=1.3*this.scale;g.moveTo(p[0][0],p[0][1]);for(let i=1;i<p.length;i+=3)g.bezierCurveTo(p[i][0],p[i][1],p[i+1][0],p[i+1][1],p[i+2][0],p[i+2][1]);g.close();g.fill();g.stroke();}
  draw(e:Enemy,x:number,y:number,scale:number,motion:boolean,detail:boolean){
   this.x=x;this.y=y;this.scale=scale;
-  const kind=e.kind,skin=enemyById[kind].color,walk=motion&&e.freeze<=0&&e.stun<=0&&e.root<=0?Math.sin(e.age*(kind==='runner'?14:8))*2:0;
+  const kind=e.kind,skin=enemyById[kind].color,walk=motion&&e.freeze<=0&&e.paralysis<=0&&e.stun<=0&&e.root<=0?Math.sin(e.age*(kind==='runner'?14:8))*2:0;
   const metal=kind==='armor'||kind==='mech',heavy=kind==='brute'||kind==='butcher',doctor=kind==='healer',mutant=kind==='splitter'||kind==='queen';
   this.oval(0,-21,heavy?18:14,4.5,'#17202945');
   if(kind==='mech'){this.mech(walk);return;}

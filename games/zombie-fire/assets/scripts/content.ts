@@ -1,8 +1,13 @@
 /** Mechanisms are reconstructed from public observations; tuning is explicit local data. */
 export type Element='physical'|'fire'|'ice'|'electric'|'energy'|'wind'|'poison';
+export type DamageDelivery='projectile'|'explosion'|'laser'|'ground'|'other';
+export type StatusKind='burn'|'freeze'|'paralysis'|'stun'|'slow';
 export type SkillId='rifle'|'thermo'|'dryice'|'electro'|'guided'|'ray'|'frost'|'cyclone'|'fuel'|'electron'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon'|'pillar'|'orb';
 export type Attack='bullet'|'shell'|'beam'|'guided'|'ray'|'field'|'tornado'|'chain'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon'|'pillar'|'orb';
 export interface Skill {id:SkillId;name:string;element:Element;attack:Attack;color:string;damage:number;interval:number;radius:number;pierce:number;duration:number;description:string}
+/** Delivery describes this reconstruction's hit, independently of its element.
+ * Secondary explosions override it; burning DOT is not a ground collision. */
+export const SKILL_DELIVERY:Record<SkillId,DamageDelivery>={rifle:'projectile',thermo:'explosion',dryice:'projectile',electro:'other',guided:'laser',ray:'laser',frost:'other',cyclone:'other',fuel:'ground',electron:'other',blade:'projectile',vehicle:'ground',airdrop:'explosion',drone:'projectile',rift:'other',matrix:'other',dragon:'other',pillar:'other',orb:'projectile'};
 // Base special-weapon cooldowns match SkillBaseConfg and the level-1 display
 // fields in MagicSkillLevelConfig. Damage, unit mapping and haste stacking remain
 // local tuning; the summoned dragon uses its separate 2-second attack cadence.
@@ -48,7 +53,7 @@ export const SKIN_ABILITIES={
  arc:{name:'电磁引导',skill:'electro',hits:2,description:'电磁穿刺命中同一敌人2次，释放等离子场；扩散/收缩造成10%/5%电系伤害。'},
 } as const;
 export const skinAbility=(skin:SkinId)=>skin==='ranger'?null:SKIN_ABILITIES[skin];
-export type Modifier='damage'|'haste'|'count'|'radius'|'pierce'|'duration'|'burn'|'freeze'|'stun'|'bounce'|'crit'|'magazine'|'knock'|'vulnerability'|'repeat'|'size'|'speed';
+export type Modifier='damage'|'haste'|'count'|'radius'|'pierce'|'duration'|'burn'|'freeze'|'paralysis'|'stun'|'bounce'|'crit'|'magazine'|'knock'|'vulnerability'|'repeat'|'size'|'speed';
 export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean;luck?:{min:number;delta:readonly [number,number]};researchMin?:number;researchVariant?:{level:number;name:string;description:string;mods:Partial<Record<Modifier,number>>}}
 const upgrade=(id:string,skill:SkillId,name:string,description:string,mods:Upgrade['mods'],requires:Upgrade['requires']=[],max=1,evolution=false):Upgrade=>({id,skill,name,description,mods,requires,max,evolution});
 const orbUpgrade=(id:string,name:string,description:string,mods:Upgrade['mods'],min:number,delta:readonly [number,number],max=1):Upgrade=>({...upgrade('orb:'+id,'orb',name,description,mods,[],max,min===21),luck:{min,delta}});
@@ -84,7 +89,7 @@ export const UPGRADES:readonly Upgrade[]=[
  upgrade('dryice:pierce','dryice','低温贯穿','增加 3 次穿透，扩大弹道。',{pierce:3,radius:3},[],2),
  upgrade('dryice:extreme','dryice','极寒冰弹','延长冻结并增强干冰弹伤害。',{damage:.7,freeze:1},[['dryice:freeze',1],['dryice:pierce',1],['dryice:power',2]],1,true),
  upgrade('electro:split','electro','电磁分流','雷击增加一个目标。',{count:1},[],2),
- upgrade('electro:paralyze','electro','麻痹增伤','延长麻痹，提高电磁伤害。',{stun:.8,damage:.25},[['electro:power',1]]),
+ upgrade('electro:paralyze','electro','麻痹增伤','延长麻痹，提高电磁伤害。',{paralysis:.8,damage:.25},[['electro:power',1]]),
  upgrade('electro:fission','electro','电磁裂变','雷击向更多目标扩散。',{count:2,radius:18},[['electro:split',1],['electro:paralyze',1]],1,true),
  upgrade('electro:voltage','electro','高压粒子','裂变雷击更强，并产生额外溅射。',{damage:.8,radius:20},[['electro:fission',1],['electro:power',2]],1,true),
  upgrade('guided:focus','guided','聚焦','提高制导激光的单体伤害。',{damage:.5},[],2),
@@ -103,7 +108,7 @@ export const UPGRADES:readonly Upgrade[]=[
  upgrade('fuel:lasting','fuel','火焰侵袭','延长燃烧区域的持续时间。',{duration:2,burn:8},[],2),
  upgrade('fuel:death','fuel','死亡爆炸','燃烧伤害提高，燃烧中的敌人倒下时爆炸。',{burn:18,damage:.4},[['thermo',1],['fuel:lasting',1]],1,true),
  upgrade('electron:compound','electron','复合电子','电子增加 3 次跃迁。',{bounce:3},[],2),
- upgrade('electron:high','electron','高压电子','提升电子伤害并附带麻痹。',{damage:.35,stun:.35},[['electron:power',1]]),
+ upgrade('electron:high','electron','高压电子','提升电子伤害并附带麻痹。',{damage:.35,paralysis:.35},[['electron:power',1]]),
  upgrade('electron:perpetual','electron','永动电子','增加跃迁，显著缩短冷却。',{bounce:4,haste:.25},[['electron:compound',2],['electron:high',1]],1,true),
  upgrade('blade:salvo','blade','三连气刃','额外释放气刃。',{count:1},[],2),
  upgrade('blade:wide','blade','气刃风波','加宽气刃并提升重伤效果。',{radius:10,vulnerability:.12},[],2),
@@ -163,21 +168,24 @@ export const UPGRADES:readonly Upgrade[]=[
 export const upgradeById=Object.fromEntries(UPGRADES.map(u=>[u.id,u])) as Record<string,Upgrade>;
 
 export type EnemyId='walker'|'runner'|'brute'|'shield'|'armor'|'spitter'|'healer'|'splitter'|'bat'|'bomber'|'fireguard'|'frostguard'|'shockguard'|'burrower'|'butcher'|'mech'|'queen';
-export interface EnemyDefinition {id:EnemyId;name:string;hp:number;speed:number;damage:number;interval:number;radius:number;xp:number;color:string;resist?:Partial<Record<Element,number>>;boss?:boolean;description:string}
+export interface EnemyDefinition {id:EnemyId;name:string;hp:number;speed:number;damage:number;interval:number;radius:number;xp:number;color:string;resist?:Partial<Record<Element,number>>;deliveryResist?:Partial<Record<DamageDelivery,number>>;statusDuration?:Partial<Record<StatusKind,number>>;knockback?:number;traction?:number;boss?:boolean;description:string}
+// Five trait sets follow reference descriptions/attributes; identities, art and
+// base stats remain local. Frost fire vulnerability uses the description (50%);
+// its conflicting raw +100% slot is preserved in ENEMY-TRAITS.md, not hidden.
 export const ENEMIES:readonly EnemyDefinition[]=[
  {id:'walker',name:'感染者',hp:64,speed:12,damage:5,interval:1.5,radius:15,xp:2,color:'#88aa96',description:'缓慢接近并持续攻击防线。'},
  {id:'runner',name:'狂奔者',hp:46,speed:24,damage:4,interval:1.2,radius:13,xp:2,color:'#a3b487',description:'移动迅速，控制技能可争取集火时间。'},
  {id:'brute',name:'臃肿怪',hp:230,speed:8,damage:13,interval:2,radius:22,xp:5,color:'#a2ae72',description:'血量很高，倒下时掉落更多经验。'},
- {id:'shield',name:'持盾者',hp:108,speed:11,damage:8,interval:1.7,radius:17,xp:3,color:'#90a594',resist:{physical:.45},description:'护盾消耗前抵挡伤害，物理抗性较高。'},
+ {id:'shield',name:'持盾者',hp:108,speed:11,damage:8,interval:1.7,radius:17,xp:3,color:'#90a594',resist:{electric:1.5},deliveryResist:{projectile:.3},statusDuration:{burn:0,stun:0},knockback:0,traction:0,description:'弹道伤害降低70%，电伤提高50%；免疫燃烧、眩晕、击退与牵引，可被麻痹。'},
  {id:'armor',name:'装甲感染者',hp:160,speed:9,damage:9,interval:1.8,radius:18,xp:4,color:'#7e999a',resist:{physical:.35,fire:.8},description:'厚重护甲克制普通弹道，冰电伤害更有效。'},
  {id:'spitter',name:'酸液投手',hp:100,speed:12,damage:13,interval:3,radius:16,xp:3,color:'#91ba7a',description:'接近到射程后投掷酸液，优先消灭。'},
  {id:'healer',name:'孢子医师',hp:125,speed:9,damage:5,interval:2,radius:17,xp:4,color:'#b0a5c3',description:'周期治疗周围敌人；气刃重伤可抑制恢复。'},
- {id:'splitter',name:'裂殖体',hp:142,speed:10,damage:8,interval:1.7,radius:20,xp:4,color:'#79b29c',description:'倒下后分裂出两只迅捷的小型感染者。'},
- {id:'bat',name:'毒翼蝠',hp:67,speed:22,damage:5,interval:1,radius:14,xp:2,color:'#b494c0',resist:{physical:.8},description:'飞行敌人不受地面燃油和装甲车伤害。'},
+ {id:'splitter',name:'裂殖体',hp:142,speed:10,damage:8,interval:1.7,radius:20,xp:4,color:'#79b29c',resist:{fire:1.5,electric:1.5},statusDuration:{stun:0},description:'免疫眩晕，火与电伤提高50%；倒下后分裂成两只小型感染者。'},
+ {id:'bat',name:'毒翼蝠',hp:67,speed:22,damage:5,interval:1,radius:14,xp:2,color:'#b494c0',resist:{physical:.8},deliveryResist:{ground:0},description:'飞行敌人不受地面燃油和装甲车伤害。'},
  {id:'bomber',name:'爆破感染者',hp:74,speed:16,damage:40,interval:2,radius:17,xp:3,color:'#c0ac87',description:'接触防线后自爆；远处击败不会损伤防线。'},
- {id:'fireguard',name:'炽热感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#ba8064',resist:{fire:.15,ice:1.35},description:'抵抗火焰与烧灼，冰系伤害提高。'},
- {id:'frostguard',name:'寒霜感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#8bbbc8',resist:{ice:.15,fire:1.35},description:'抗冻结且冰系伤害大幅降低。'},
- {id:'shockguard',name:'绝缘感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#b7ab66',resist:{electric:.15},description:'抵抗雷电和麻痹，改用其他流派集火。'},
+ {id:'fireguard',name:'炽热感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#ba8064',resist:{fire:.4,ice:2},statusDuration:{burn:0,freeze:0},description:'免疫燃烧和冻结，火伤降低60%，冰伤提高100%。'},
+ {id:'frostguard',name:'寒霜感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#8bbbc8',resist:{ice:.5,fire:1.5},statusDuration:{freeze:.5,burn:2},description:'冰伤与冻结时长减半；火伤提高50%，燃烧时长翻倍。'},
+ {id:'shockguard',name:'绝缘感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#b7ab66',resist:{electric:.4,fire:1.5},statusDuration:{paralysis:.5},description:'电伤降低60%，麻痹时长减半；火伤提高50%。'},
  {id:'burrower',name:'潜地感染者',hp:92,speed:15,damage:8,interval:1.2,radius:15,xp:3,color:'#9f9981',description:'从战场中段钻出，突然逼近防线。'},
  {id:'butcher',name:'屠戮巨尸',hp:1900,speed:7,damage:34,interval:3,radius:36,xp:40,color:'#af896a',boss:true,description:'标记重击后冲锋；被冻结会延后行动。'},
  {id:'mech',name:'冰钻机甲',hp:2350,speed:6,damage:30,interval:2.7,radius:39,xp:45,color:'#b1ab84',resist:{physical:.6,ice:.4},boss:true,description:'护甲厚重，周期发射远程钻头并呼叫援军。'},

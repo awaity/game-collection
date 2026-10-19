@@ -28,7 +28,8 @@ export class BattlefieldArt {
   if(e.hp<e.maxHp||def.boss){this.rect(p.x,p.y+33*scale,30*scale,3*scale,'#343c3c');this.rect(p.x-(1-e.hp/e.maxHp)*15*scale,p.y+33*scale,30*scale*Math.max(0,e.hp/e.maxHp),3*scale,'#bc6557');}
   if(e.freeze>0){poly([[-16,-15],[-19,15],[-10,30],[12,26],[19,7],[13,-17]],'#a3e9fa77');this.line([pt(-15,5),pt(-4,18),pt(1,2),pt(13,12)],'#d6faff',scale);}
   if(e.burn>0)for(const side of [-1,1])poly([[side*13,-8],[side*18,8],[side*12,1],[side*8,12],[side*7,-7]],'#ef9a42cc');
-  if(e.stun>0)this.line([pt(-12,27),pt(-3,31),pt(-7,24),pt(7,28)],'#f4d27d',2*scale);
+  if(e.stun>0)this.line([pt(-12,31),pt(-3,35),pt(9,32),pt(3,28),pt(-12,31)],'#f4d27d',2*scale);
+  if(e.paralysis>0)this.line([pt(-12,27),pt(-3,31),pt(-7,24),pt(7,28)],'#f4d27d',2*scale);
   if(e.warning>0){const radius=(23+(1.4-e.warning)*8)*scale;this.g.strokeColor=color('#ed6b4e');this.g.lineWidth=2.5;this.g.circle(p.x,p.y,radius);this.g.stroke();}
   if(b.priority===e.id){this.g.strokeColor=color('#f4e0a2');this.g.lineWidth=2;this.g.circle(p.x,p.y,22*scale);this.g.stroke();}
  }

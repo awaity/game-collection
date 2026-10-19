@@ -35,6 +35,7 @@ FINGERPRINTS = {
     "ChapterConfig": "9c5dba0a9d52998459ef5095a86dfd4530348ef564017af996bb8a3a44ecc98f",
     "MonsterCfg": "691e8cda216bd1fb3025950118a4d055e2823143c1ab3cbe13db03af3fd9c713",
     "MonsterManualCfg": "29a5d955f39c76a27331a55de7464a54f9b6443841ee1a40b2d280f541203cf9",
+    "AttrDataConfig": "ce78e68f04d6dc3184dc7628711acab160b4be848f99bc681bc2e6c3ac890521",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
     "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
@@ -269,8 +270,53 @@ def monster_row(table: Table) -> dict:
             "valueAt4": struct.unpack_from(">I", prefix, 4)[0],
             "byteAt8": prefix[8], "nameReferenceAt9": struct.unpack_from(">I", prefix, 9)[0],
             "descriptionReferenceAt13": struct.unpack_from(">I", prefix, 13)[0],
+            "attributeSlotsAt83": [{"offset": offset, "attribute": attribute,
+                                    "method": method, "value": value}
+                                   for offset in range(83, 139, 7)
+                                   for attribute, method, value in [struct.unpack_from(">HBf", prefix, offset)]],
             "firstString": first_string, "secondString": second_string,
             "recordBytes": table.offset - start}
+
+
+def attribute_row(table: Table) -> dict:
+    (key,) = table.unpack(">I")
+    label = table.string()
+    table.unpack(">31s")
+    return {"id": key, "label": label}
+
+
+def monster_attribute_links(monsters: list, attributes: list, texts: dict) -> dict:
+    by_id = {row["id"]: row for row in attributes}
+    slots = [slot for row in monsters for slot in row["attributeSlotsAt83"]]
+    require(all(math.isfinite(s["value"]) for s in slots), "MonsterCfg: non-finite attribute")
+    require(all(s["attribute"] in by_id and s["method"] == 1 if s["attribute"] else
+                s["method"] == 0 and s["value"] == 0 for s in slots),
+            "MonsterCfg: unresolved attribute or unexpected slot method")
+    selected = []
+    for row in monsters:
+        if row["id"] not in (10, 20, 30, 40, 50, 60, 70, 80, 90, 100):
+            continue
+        selected.append({"id": row["id"], "name": texts[row["nameReferenceAt9"]]["text"],
+                         "description": texts[row["descriptionReferenceAt13"]]["text"],
+                         "attributes": [{**slot, "label": by_id[slot["attribute"]]["label"]}
+                                        for slot in row["attributeSlotsAt83"] if slot["attribute"]]})
+    frost = next(row for row in selected if row["id"] == 70)
+    fire = next(slot for slot in frost["attributes"] if slot["attribute"] == 303)
+    require(fire["value"] == 1 and "50%" in frost["description"],
+            "MonsterCfg: expected frost fire-damage text/attribute discrepancy")
+    return {"definitionLayout": {"idBytes": 4, "stringCount": 1, "tailBytes": 31},
+            "definitionRows": len(attributes), "monsterRows": len(monsters),
+            "slots": len(slots), "nonzeroSlots": sum(bool(s["attribute"]) for s in slots),
+            "methodCounts": dict(sorted(Counter(s["method"] for s in slots).items())),
+            "missingAttributeIds": [], "selectedMonsters": selected,
+            "statusDefinitions": [row for row in attributes if row["id"] in (310, 311, 312, 313, 316)],
+            "textAttributeConflicts": [{"monster": 70, "attribute": 303, "slotValue": fire["value"],
+                                        "description": frost["description"],
+                                        "localChoice": "Use the description's +50%; raw +100% remains unresolved."}],
+            "limits": ["Attribute IDs and static values are verified; runtime merge order is not.",
+                       "Method 1 is not assumed to mean the same operation for every attribute.",
+                       "Burn/freeze/stun immunity uses descriptions; not all immunity comes from these eight slots.",
+                       "Paralysis (311) and stun (313) are different statuses."]}
 
 
 def monster_references(monsters: list, manual_table: Table, texts: dict) -> dict:
@@ -631,6 +677,8 @@ def inspect(directory: Path) -> dict:
     require(level_end == level_table.size, "LevelBaseConfig: inferred final boundary differs from file size")
     chapter_links = chapter_level_links(tables["ChapterConfig"], level_bases, texts)
     monsters = read_variable(tables["MonsterCfg"], monster_row, lambda row: row["id"])
+    attributes = read_variable(tables["AttrDataConfig"], attribute_row, lambda row: row["id"])
+    attribute_links = monster_attribute_links(monsters, attributes, texts)
     monster_links = monster_references(monsters, tables["MonsterManualCfg"], texts)
     waves = wave_references(directory, level_bases, monsters)
     library_candidates = level_library_candidates(tables["BuildLibraryConfig"], libraries,
@@ -685,6 +733,7 @@ def inspect(directory: Path) -> dict:
                                if r["id"] in (9997, 9998, 9999, 1001, 1002, 1003, 2001, 2002)],
         "chapterLevelLinks": chapter_links,
         "monsterReferences": monster_links,
+        "monsterAttributeLinks": attribute_links,
         "waveReferences": waves,
         "numberedLevelCandidates": numbered_level_candidates(level_bases, texts, waves),
         "levelLibraryCandidates": library_candidates,

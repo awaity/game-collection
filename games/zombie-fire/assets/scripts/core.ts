@@ -1,17 +1,17 @@
-import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,ORB_MOTION,ORB_TIMING,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,upgradeForResearch,type Element,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId} from './content';
+import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,ORB_MOTION,ORB_TIMING,SKILLS,SKILL_DELIVERY,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,upgradeForResearch,type DamageDelivery,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId,type StatusKind} from './content';
 export const DT=1/60,FIELD={halfWidth:170,height:640,wall:60},LIMITS={enemies:180,projectiles:320,fields:64,events:320,links:12,volleys:32};
 export type Mode='campaign'|'endless'|'daily';
 export type Phase='ready'|'playing'|'choice'|'paused'|'won'|'lost';
 export interface Loadout {damage:number;haste:number;health:number;crit:number;armor:number;repair:number;research:Partial<Record<SkillId,number>>;mercenaries:string[];mercenaryLevels:Record<string,number>;skin:SkinId}
 export const defaultLoadout=():Loadout=>({damage:1,haste:1,health:1000,crit:.05,armor:0,repair:0,research:{},mercenaries:[],mercenaryLevels:{},skin:'ranger'});
-export interface Enemy {id:number;kind:EnemyId;x:number;y:number;hp:number;maxHp:number;shield:number;speed:number;haste:number;hinder:number;radius:number;attack:number;ability:number;warning:number;burn:number;burnPower:number;freeze:number;stun:number;slow:number;root:number;bind:number;wound:number;vulnerable:number;orbSlow:number;orbSlowPower:number;fractures:number;fractureTime:number;age:number;child:boolean}
+export interface Enemy {id:number;kind:EnemyId;x:number;y:number;hp:number;maxHp:number;shield:number;speed:number;haste:number;hinder:number;radius:number;attack:number;ability:number;warning:number;burn:number;burnPower:number;freeze:number;paralysis:number;stun:number;slow:number;root:number;bind:number;wound:number;vulnerable:number;orbSlow:number;orbSlowPower:number;fractures:number;fractureTime:number;age:number;child:boolean}
 type AttackSource='weapon'|'mercenary'|'skin'|'secondary'|'lucky'|'lucky-light';
 export interface Projectile {id:number;skill:SkillId;x:number;y:number;px:number;py:number;vx:number;vy:number;radius:number;splash:number;damage:number;remaining:number;hits:number[];life:number;mods:Stats;source?:AttackSource;rebounds?:number;wallRebounds?:number;wallEventAt?:number;hitTimes?:Record<number,number>;quality?:OrbQuality;prepare?:number;deriveAt?:number;wallBlast?:boolean;wallBlastAt?:number}
 export interface Field {id:number;skill:SkillId;x:number;y:number;radius:number;life:number;total:number;tick:number;vy:number;delay:number;damage:number;mods:Stats;target?:number;source?:AttackSource;variant?:'plasma'|'ice-storm'|'dragon-slam';pulse?:number;merged?:number;linked?:boolean;nodes?:{x:number;y:number}[];hits?:number}
 export interface Dragon {x:number;y:number;energy:number;maxEnergy:number;hearts:number;attack:number;cooldown:number;animation:number;slams:number}
 export interface QuantumLink {ids:number[];damage:Record<number,number>;life:number;spent:boolean}
 export interface Fx {id:number;type:'shot'|'hit'|'burst'|'beam'|'chain'|'death'|'wall'|'wave'|'level'|'win'|'lose'|'reload';x:number;y:number;tx?:number;ty?:number;skill?:SkillId;value?:number;crit?:boolean;quality?:OrbQuality}
-export interface Stats {damage:number;interval:number;count:number;radius:number;pierce:number;duration:number;burn:number;freeze:number;stun:number;bounce:number;crit:number;magazine:number;knock:number;vulnerability:number;repeat:number;speed:number}
+export interface Stats {damage:number;interval:number;count:number;radius:number;pierce:number;duration:number;burn:number;freeze:number;paralysis:number;stun:number;bounce:number;crit:number;magazine:number;knock:number;vulnerability:number;repeat:number;speed:number}
 export interface Card {id:string;skill:SkillId;name:string;description:string;kind:'learn'|'upgrade'|'evolution'|'supply';rank:number;luckChange?:number;luckAfter?:number}
 const clamp=(n:number,min:number,max:number)=>Math.max(min,Math.min(max,n));
 const finite=(n:number,fallback:number)=>Number.isFinite(n)?n:fallback;
@@ -101,30 +101,41 @@ export class Battle {
  reroll(){if(this.phase!=='choice'||this.rerolls<=0)return false;this.rerolls--;this.rerollUsed++;this.offer();return true;}
  private checkLevel(){if(this.phase==='playing'&&this.xp>=this.xpNeeded){this.xp-=this.xpNeeded;this.level++;this.offer();}}
  stats(id:SkillId):Stats{
-  const s=skillById[id],mods:Record<Modifier,number>={damage:0,haste:0,count:0,radius:0,pierce:0,duration:0,burn:0,freeze:0,stun:0,bounce:0,crit:0,magazine:0,knock:0,vulnerability:0,repeat:0,size:0,speed:0};
+  const s=skillById[id],mods:Record<Modifier,number>={damage:0,haste:0,count:0,radius:0,pierce:0,duration:0,burn:0,freeze:0,paralysis:0,stun:0,bounce:0,crit:0,magazine:0,knock:0,vulnerability:0,repeat:0,size:0,speed:0};
   for(const u of UPGRADES)if(u.skill===id&&this.upgrades[u.id])for(const [key,value]of Object.entries(upgradeForResearch(u,this.loadout.research[id]).mods))mods[key as Modifier]+=(value??0)*this.upgrades[u.id];
-  return {damage:s.damage*Math.max(.1,1+mods.damage+(this.upgrades['global:power']??0)*.05+(this.loadout.research[id]??0)*.04)*this.loadout.damage,interval:s.interval*Math.max(.24,1-mods.haste)/this.loadout.haste,count:1+mods.count,radius:(s.radius+mods.radius)*Math.max(.25,1+mods.size),pierce:s.pierce+mods.pierce,duration:s.duration+mods.duration,burn:mods.burn,freeze:(id==='frost'?.7:0)+mods.freeze,stun:(id==='electro'?.6:0)+mods.stun,bounce:Math.max(0,(id==='orb'?ORB_MOTION.targetRebounds:id==='electron'?4:0)+mods.bounce),crit:Math.min(.85,this.loadout.crit+mods.crit),magazine:12+mods.magazine+(this.dailyRule?.ammo??0),knock:(id==='thermo'?20:id==='dryice'?7:id==='vehicle'?12:id==='orb'?10:0)+mods.knock,vulnerability:mods.vulnerability,repeat:mods.repeat,speed:1+mods.speed};
+  return {damage:s.damage*Math.max(.1,1+mods.damage+(this.upgrades['global:power']??0)*.05+(this.loadout.research[id]??0)*.04)*this.loadout.damage,interval:s.interval*Math.max(.24,1-mods.haste)/this.loadout.haste,count:1+mods.count,radius:(s.radius+mods.radius)*Math.max(.25,1+mods.size),pierce:s.pierce+mods.pierce,duration:s.duration+mods.duration,burn:mods.burn,freeze:(id==='frost'?.7:0)+mods.freeze,paralysis:(id==='electro'?.6:0)+mods.paralysis,stun:mods.stun,bounce:Math.max(0,(id==='orb'?ORB_MOTION.targetRebounds:id==='electron'?4:0)+mods.bounce),crit:Math.min(.85,this.loadout.crit+mods.crit),magazine:12+mods.magazine+(this.dailyRule?.ammo??0),knock:(id==='thermo'?20:id==='dryice'?7:id==='vehicle'?12:id==='orb'?10:0)+mods.knock,vulnerability:mods.vulnerability,repeat:mods.repeat,speed:1+mods.speed};
  }
  private nextWave(){this.wave++;this.waveTime=0;this.spawnClock=.25;this.spawned=0;this.waveQuota=12+Math.min(72,Math.floor(this.stage*.6)+this.wave*3);this.bossSpawned=false;this.event('wave',0,400,{value:this.wave});}
  private spawn(kind:EnemyId,child=false,x?:number,y?:number){
   if(this.enemies.filter(e=>e.hp>0).length>=LIMITS.enemies)return false;
   const def=enemyById[kind],scaling=(1+this.stage*.105+Math.max(0,this.wave-1)*.055)*(this.mode==='endless'?Math.pow(1.065,Math.max(0,this.wave-8)):1),hp=def.hp*scaling*(child?.5:1)*(this.dailyRule?.health??1);
-  this.enemies.push({id:++this.serial,kind,x:x??(this.random()*2-1)*150,y:y??(kind==='burrower'?240+this.random()*160:FIELD.height+this.random()*35),hp,maxHp:hp,shield:kind==='shield'?hp*.65:0,speed:def.speed*(this.dailyRule?.speed??1)*(1+Math.min(.45,this.stage*.009))*(this.mode==='endless'?1+Math.min(1.2,Math.max(0,this.wave-8)*.014):1),haste:child?.3:0,hinder:0,radius:def.radius*(child?.7:1),attack:1+this.random(),ability:4+this.random()*4,warning:0,burn:0,burnPower:0,freeze:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child});return true;
+  this.enemies.push({id:++this.serial,kind,x:x??(this.random()*2-1)*150,y:y??(kind==='burrower'?240+this.random()*160:FIELD.height+this.random()*35),hp,maxHp:hp,shield:0,speed:def.speed*(this.dailyRule?.speed??1)*(1+Math.min(.45,this.stage*.009))*(this.mode==='endless'?1+Math.min(1.2,Math.max(0,this.wave-8)*.014):1),haste:child?.3:0,hinder:0,radius:def.radius*(child?.7:1),attack:1+this.random(),ability:4+this.random()*4,warning:0,burn:0,burnPower:0,freeze:0,paralysis:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child});return true;
  }
  private target(excluded:number[]=[]){return this.enemies.filter(e=>e.hp>0&&e.y<=FIELD.height-70&&!excluded.includes(e.id)).sort((a,b)=>(a.id===this.priority?-10000:a.y)-(b.id===this.priority?-10000:b.y)||a.id-b.id)[0];}
- private hurt(e:Enemy,amount:number,skill:SkillId,mods:Stats,dot=false,source:AttackSource='secondary'){
-  if(e.hp<=0||amount<=0)return;const def=enemyById[e.kind],element=skillById[skill].element;let damage=amount*(def.resist?.[element]??1)*(1+e.vulnerable+e.fractures*.03);const crit=!dot&&this.random()<mods.crit;if(crit)damage*=2;
+ private statusDuration(e:Enemy,status:StatusKind,seconds:number){
+  if(seconds<=0||status!=='burn'&&this.isEnraged(e))return 0;
+  const def=enemyById[e.kind],rift=this.fields.some(f=>f.skill==='rift'&&f.life>0&&f.delay<=0&&inRift(e,f))?1.2:1;
+  const boss=def.boss?(status==='freeze'?.4:status==='paralysis'||status==='stun'?.35:1):1;
+  return seconds*Math.max(0,def.statusDuration?.[status]??1)*rift*boss;
+ }
+ private ignite(e:Enemy,power:number){
+  const duration=this.statusDuration(e,'burn',3);
+  if(duration>0&&power>0){e.burn=Math.max(e.burn,duration);e.burnPower=Math.max(e.burnPower,power);}
+ }
+ private hurt(e:Enemy,amount:number,skill:SkillId,mods:Stats,dot=false,source:AttackSource='secondary',delivery:DamageDelivery=dot?'other':SKILL_DELIVERY[skill]){
+  if(e.hp<=0||amount<=0)return;const def=enemyById[e.kind],element=skillById[skill].element;
+  const resistance=(def.resist?.[element]??1)*(def.deliveryResist?.[delivery]??1);
+  if(resistance<=0)return;let damage=amount*resistance*(1+e.vulnerable+e.fractures*.03);const crit=!dot&&this.random()<mods.crit;if(crit)damage*=2;
   const absorbed=Math.min(e.shield,damage);e.shield-=absorbed;damage-=absorbed;const actual=Math.min(e.hp,damage);e.hp-=damage;this.damageDone+=actual+absorbed;
   const links=this.links.filter(l=>!l.spent&&l.life>0&&l.ids.includes(e.id));for(const link of links)link.damage[e.id]=(link.damage[e.id]??0)+actual;
   if(source==='weapon'&&!dot&&actual+absorbed>0)this.chargeSkin(e,skill,mods.damage);
   if(!dot){
    const debuff=this.fields.some(f=>f.skill==='rift'&&f.life>0&&inRift(e,f))?1.2:1;
-   if(mods.burn&&e.kind!=='fireguard'){e.burn=Math.max(e.burn,3*debuff);e.burnPower=Math.max(e.burnPower,mods.burn*this.loadout.damage);}
-   if(mods.freeze&&e.kind!=='frostguard'&&!this.isEnraged(e))e.freeze=Math.max(e.freeze,mods.freeze*debuff*(def.boss?.4:1));
-   if(mods.stun&&e.kind!=='shockguard'&&!this.isEnraged(e))e.stun=Math.max(e.stun,mods.stun*debuff*(def.boss?.35:1));
-   if(skill==='drone'&&this.upgrades['drone:slow']&&!this.isEnraged(e))e.slow=Math.max(e.slow,.5*debuff);
+   if(mods.burn)this.ignite(e,mods.burn*this.loadout.damage);
+   for(const status of ['freeze','paralysis','stun'] as const)if(mods[status])e[status]=Math.max(e[status],this.statusDuration(e,status,mods[status]));
+   if(skill==='drone'&&this.upgrades['drone:slow'])e.slow=Math.max(e.slow,this.statusDuration(e,'slow',.5));
    if(skill==='blade')e.wound=Math.max(e.wound,5*debuff);e.vulnerable=Math.max(e.vulnerable,mods.vulnerability);
-   e.y=Math.min(FIELD.height+35,e.y+mods.knock*(this.isEnraged(e)?0:def.boss?.18:1));
+   e.y=Math.min(FIELD.height+35,e.y+mods.knock*(def.knockback??1)*(this.isEnraged(e)?0:def.boss?.18:1));
    this.event('hit',e.x,e.y,{skill,value:Math.round(actual+absorbed),crit});
   }
   if(e.hp<=0){
@@ -133,10 +144,10 @@ export class Battle {
    for(const link of links){link.spent=true;const share=link.damage[e.id]??0;for(const id of link.ids)if(id!==e.id){const other=this.enemies.find(enemy=>enemy.id===id&&enemy.hp>0);if(other)this.hurt(other,share,'rift',{...this.stats('rift'),crit:0},true);}}
    this.event('death',e.x,e.y,{skill,value:def.radius});
    if(e.kind==='splitter'&&!e.child)for(const side of [-1,1])this.spawn('runner',true,clamp(e.x+side*13,-150,150),e.y+12);
-   if(e.burn>0&&this.upgrades['thermo:spread'])for(const other of this.enemies)if(other.hp>0&&other.id!==e.id&&Math.hypot(other.x-e.x,other.y-e.y)<65){other.burn=Math.max(other.burn,3);other.burnPower=Math.max(other.burnPower,e.burnPower);}
+   if(e.burn>0&&this.upgrades['thermo:spread'])for(const other of this.enemies)if(other.hp>0&&other.id!==e.id&&Math.hypot(other.x-e.x,other.y-e.y)<65)this.ignite(other,e.burnPower);
    if(e.burn>0&&this.upgrades['fuel:death']){
     // Dead enemies cannot trigger twice; secondary explosions may chain through the crowd.
-    const blast=this.stats('fuel');this.area(e.x,e.y,65,blast.damage*1.6,'fuel',{...blast,crit:0});
+    const blast=this.stats('fuel');this.area(e.x,e.y,65,blast.damage*1.6,'fuel',{...blast,crit:0},false,'secondary',undefined,'explosion');
    }
   }
  }
@@ -154,7 +165,7 @@ export class Battle {
     this.fire(skin==='ember'?'thermo':'blade',skin==='ember'?1:.8,'skin',3);
    }else if(this.fields.length<LIMITS.fields){
     const plasma=skin==='arc',skill=plasma?'electro':'dryice',base=this.stats(skill),duration=plasma?.9:1.8;
-    this.fields.push({id:++this.serial,skill,x:hit.x,y:hit.y,radius:plasma?70:76,life:duration,total:duration,tick:0,vy:0,delay:0,damage:hit.damage,mods:{...base,crit:0,knock:0,burn:0,stun:0,freeze:plasma?0:.65},source:'skin',variant:plasma?'plasma':'ice-storm',pulse:0});
+    this.fields.push({id:++this.serial,skill,x:hit.x,y:hit.y,radius:plasma?70:76,life:duration,total:duration,tick:0,vy:0,delay:0,damage:hit.damage,mods:{...base,crit:0,knock:0,burn:0,paralysis:0,stun:0,freeze:plasma?0:.65},source:'skin',variant:plasma?'plasma':'ice-storm',pulse:0});
    }
    this.skinTriggers++;
   }
@@ -194,7 +205,7 @@ export class Battle {
  private luckyStats(){
   // Ordinary orb-card bonuses target 15011/15221, not lucky bullets or their derivatives.
   const base=skillById.orb.damage*(1+(this.upgrades['global:power']??0)*.05+(this.loadout.research.orb??0)*.04)*this.loadout.damage;
-  return {...this.stats('orb'),damage:base,crit:this.loadout.crit,knock:0,burn:0,freeze:0,stun:0,vulnerability:0};
+  return {...this.stats('orb'),damage:base,crit:this.loadout.crit,knock:0,burn:0,freeze:0,paralysis:0,stun:0,vulnerability:0};
  }
  private launchLucky(){
   const required=this.luckyProgress.required;
@@ -213,7 +224,7 @@ export class Battle {
  private luckyBurst(p:Projectile,wall=false){
   // Primary bullets carry 5x base damage; light/explosion modifiers address separate skills.
   const damage=p.damage*(wall?3:4)/5,radius=LUCKY_ORB.blastRadius*(wall?.8:1);
-  for(const e of [...this.enemies])if(e.hp>0&&Math.hypot(e.x-p.x,e.y-p.y)<=radius+e.radius)this.hurt(e,damage,'orb',{...p.mods,damage},false,'secondary');
+  for(const e of [...this.enemies])if(e.hp>0&&Math.hypot(e.x-p.x,e.y-p.y)<=radius+e.radius)this.hurt(e,damage,'orb',{...p.mods,damage},false,'secondary','explosion');
   this.event('burst',p.x,p.y,{skill:'orb',value:radius,quality:p.quality});this.luckyBursts++;if(wall)this.luckyWallBursts++;
  }
  private deriveLucky(p:Projectile){
@@ -285,7 +296,7 @@ export class Battle {
    // reference boundary limit is bounded here by lifetime and the shared cap.
    if(p.source!=='secondary'&&this.tick>=(p.wallEventAt??0)){
     p.wallEventAt=this.tick+Math.round(ORB_TIMING.wallEventInterval/DT);
-    if(this.upgrades['orb:wall-blast'])this.area(p.x,p.y,52,p.damage*.8,'orb',p.mods);
+    if(this.upgrades['orb:wall-blast'])this.area(p.x,p.y,52,p.damage*.8,'orb',p.mods,false,'secondary',undefined,'explosion');
     if(this.upgrades['orb:wall-split'])this.splitOrb(p);
    }
   }
@@ -298,7 +309,7 @@ export class Battle {
    const duration=this.fields.some(f=>f.skill==='rift'&&f.life>0&&inRift(e,f))?1.2:1;
    if(enhanced&&!this.isEnraged(e)){
     if(this.upgrades['orb:hinder'])e.hinder=Math.max(e.hinder,duration);
-    if(this.upgrades['orb:cripple']){e.orbSlow=Math.max(e.orbSlow,.5*duration);e.orbSlowPower=.9;}
+    if(this.upgrades['orb:cripple']){e.orbSlow=Math.max(e.orbSlow,this.statusDuration(e,'slow',.5));e.orbSlowPower=e.orbSlow>0?.9:0;}
    }
    if(this.upgrades['orb:destroy']){e.fractures=Math.min(20,e.fractures+1);e.fractureTime=3*duration;}
   }
@@ -331,7 +342,7 @@ export class Battle {
     this.hurt(e,p.damage*amplification,p.skill,p.mods,false,p.source??'weapon');continue;
    }
    p.hits.push(e.id);
-   if(p.splash)this.area(e.x,e.y,p.splash,p.damage,p.skill,p.mods,false,p.source??'weapon');
+   if(p.splash)this.area(e.x,e.y,p.splash,p.damage,p.skill,p.mods,false,p.source??'weapon',undefined,'explosion');
    else this.hurt(e,p.damage,p.skill,p.mods,false,p.source??'weapon');
    if(p.splash||p.remaining--<=0){
     const next=p.skill==='rifle'&&(p.rebounds??0)<p.mods.bounce?this.enemies.filter(v=>v.hp>0&&!p.hits.includes(v.id)&&Math.hypot(v.x-e.x,v.y-e.y)<=180).sort((a,b)=>Math.hypot(a.x-e.x,a.y-e.y)-Math.hypot(b.x-e.x,b.y-e.y)||a.id-b.id)[0]:undefined;
@@ -359,7 +370,7 @@ export class Battle {
   }
  }
  private wallDamage(damage:number,x:number){const pressure=this.mode==='endless'?1+Math.max(0,this.wave-8)*.035:1,actual=damage*(1-this.loadout.armor)*(1+this.stage*.035)*pressure;this.hp=Math.max(0,this.hp-actual);this.damageTaken+=actual;this.event('wall',x,FIELD.wall,{value:Math.round(actual)});if(this.hp<=0){this.phase='lost';this.cards=[];this.event('lose');}}
- private area(x:number,y:number,radius:number,damage:number,skill:SkillId,mods:Stats,ground=false,source:AttackSource='secondary',alreadyHit?:number){for(const e of [...this.enemies])if(e.hp>0&&(!ground||e.kind!=='bat')&&Math.hypot(e.x-x,e.y-y)<=radius+e.radius)this.hurt(e,damage,skill,mods,false,e.id===alreadyHit?'secondary':source);this.event('burst',x,y,{skill,value:radius});}
+ private area(x:number,y:number,radius:number,damage:number,skill:SkillId,mods:Stats,ground=false,source:AttackSource='secondary',alreadyHit?:number,delivery:DamageDelivery=ground?'ground':SKILL_DELIVERY[skill]){for(const e of [...this.enemies])if(e.hp>0&&Math.hypot(e.x-x,e.y-y)<=radius+e.radius)this.hurt(e,damage,skill,mods,false,e.id===alreadyHit?'secondary':source,delivery);this.event('burst',x,y,{skill,value:radius});}
  private fire(id:SkillId,power=1,source:AttackSource='weapon',count?:number){
   const def=skillById[id],base=this.stats(id),mods={...base,damage:base.damage*power,count:count??base.count},used:number[]=[];
   if(id==='orb'){
@@ -409,9 +420,9 @@ export class Battle {
   if(bossWave&&!this.bossSpawned&&this.spawned>=this.waveQuota){if(this.spawn(this.map.boss)){this.bossSpawned=true;if(this.mode==='campaign'&&STAGES[this.stage].elite&&this.wave===this.maxWaves)this.spawn(this.map.boss,true);}}
   for(const e of [...this.enemies]){
    if(e.hp<=0)continue;e.age+=DT;const def=enemyById[e.kind],enraged=this.isEnraged(e);
-   if(enraged){e.freeze=0;e.stun=0;e.slow=0;e.root=0;e.bind=0;e.orbSlow=0;e.orbSlowPower=0;e.hinder=0;}
+   if(enraged){e.freeze=0;e.paralysis=0;e.stun=0;e.slow=0;e.root=0;e.bind=0;e.orbSlow=0;e.orbSlowPower=0;e.hinder=0;}
    if(e.burn>0){const accelerated=this.upgrades['rift:future']&&this.fields.some(f=>f.skill==='rift'&&f.life>0&&inRift(e,f));e.burn=Math.max(0,e.burn-DT);this.hurt(e,e.burnPower*DT*(accelerated?1.15:1),'fuel',{...this.stats('fuel'),crit:0},true);}
-   e.wound=Math.max(0,e.wound-DT);e.freeze=Math.max(0,e.freeze-DT);e.stun=Math.max(0,e.stun-DT);e.slow=Math.max(0,e.slow-DT);e.root=Math.max(0,e.root-DT);
+   e.wound=Math.max(0,e.wound-DT);e.freeze=Math.max(0,e.freeze-DT);e.paralysis=Math.max(0,e.paralysis-DT);e.stun=Math.max(0,e.stun-DT);e.slow=Math.max(0,e.slow-DT);e.root=Math.max(0,e.root-DT);
    e.orbSlow=Math.max(0,e.orbSlow-DT);if(e.orbSlow<=0)e.orbSlowPower=0;
    e.hinder=Math.max(0,e.hinder-DT);
    e.fractureTime=Math.max(0,e.fractureTime-DT);if(e.fractureTime<=0)e.fractures=0;
@@ -420,7 +431,7 @@ export class Battle {
     e.bind=clamp(e.bind+DT*(matrix?(this.upgrades['matrix:pulse']?1.8:1):-1.5),0,1.5);
     if(matrix&&e.bind>=1){const duration=this.fields.some(f=>f.skill==='rift'&&f.life>0&&inRift(e,f))?1.2:1;e.root=Math.max(e.root,(def.boss?.08:.25)*duration);}
    }
-   if(e.hp<=0||e.freeze>0||e.stun>0)continue;
+   if(e.hp<=0||e.freeze>0||e.paralysis>0||e.stun>0)continue;
    if(e.warning>0){e.warning-=DT;if(e.warning<=0){if(e.kind==='butcher'){if(e.root<=0)e.y=Math.max(FIELD.wall+e.radius,e.y-100);if(e.y<=FIELD.wall+e.radius+3)this.wallDamage(80,e.x);}else if(e.kind==='mech'){this.wallDamage(32,e.x);for(let n=0;n<2;n++)this.spawn('walker',true,e.x+(n?25:-25),e.y+35);}else{for(let n=0;n<3;n++)this.spawn('runner',true,e.x+(n-1)*25,e.y+35);}}if(this.hp<=0)return;continue;}
    e.ability-=DT;
    if(e.ability<=0){
@@ -468,7 +479,7 @@ export class Battle {
     continue;
    }
    if(f.variant==='ice-storm'){
-    if(f.tick<=0){f.tick=.35;this.area(f.x,f.y,f.radius,f.damage*.2,f.skill,f.mods,false,'skin');}
+    if(f.tick<=0){f.tick=.35;this.area(f.x,f.y,f.radius,f.damage*.2,f.skill,f.mods,false,'skin',undefined,'other');}
     continue;
    }
    if(f.skill==='guided'){
@@ -478,7 +489,7 @@ export class Battle {
     }}continue;
    }
    if(f.tick<=0){f.tick=.35;this.area(f.x,f.y,f.radius,f.damage,f.skill,f.mods,f.skill==='fuel'||f.skill==='vehicle');
-    if(f.skill==='cyclone')for(const e of this.enemies)if(e.hp>0&&!this.isEnraged(e)&&Math.hypot(e.x-f.x,e.y-f.y)<f.radius+e.radius){e.x+=(f.x-e.x)*.18;e.y=Math.min(FIELD.height+35,e.y+(enemyById[e.kind].boss?.8:5));}
+    if(f.skill==='cyclone')for(const e of this.enemies)if(e.hp>0&&!this.isEnraged(e)&&Math.hypot(e.x-f.x,e.y-f.y)<f.radius+e.radius){const def=enemyById[e.kind],traction=def.traction??1;e.x+=(f.x-e.x)*.18*traction;e.y=Math.min(FIELD.height+35,e.y+(def.boss?.8:5)*traction);}
     if(f.skill==='airdrop'){f.life=0;if(this.upgrades['airdrop:nuke']&&this.fields.length<LIMITS.fields)this.fields.push({...f,id:++this.serial,skill:'fuel',delay:0,life:3,total:3,tick:0,damage:f.damage*.12});}
    }
   }
@@ -495,5 +506,5 @@ export class Battle {
   }
   this.checkLevel();
  }
- snapshot(){return {phase:this.phase,mode:this.mode,seed:this.seed,dailyRule:this.dailyRule?.id??null,priority:this.priority,stage:this.stage,map:this.mapIndex,tick:this.tick,time:this.time,wave:this.wave,maxWaves:Number.isFinite(this.maxWaves)?this.maxWaves:null,hp:Math.ceil(this.hp),maxHp:this.maxHp,level:this.level,xp:this.xp,xpNeeded:this.xpNeeded,kills:this.kills,bossKills:this.bossKills,damage:Math.round(this.damageDone),damageTaken:Math.round(this.damageTaken),ammo:this.ammo,reload:this.reload,learned:{...this.learned},weaponStats:Object.fromEntries(Object.keys(this.learned).map(id=>[id,this.stats(id as SkillId)])),upgrades:{...this.upgrades},cards:this.cards.map(c=>({...c})),rerolls:this.rerolls,skin:this.loadout.skin,skinProgress:this.skinProgress,orbLuck:this.orbLuck,luckyProgress:this.luckyProgress,lastLuck:this.lastLuck?{...this.lastLuck}:null,pendingVolleys:this.orbVolleys.length,dragon:this.dragon?{...this.dragon}:null,links:this.links.map(l=>({...l,ids:[...l.ids],damage:{...l.damage}})),counts:{enemies:this.enemies.length,projectiles:this.projectiles.length,fields:this.fields.length,links:this.links.length},fields:this.fields.map(f=>({id:f.id,skill:f.skill,x:f.x,y:f.y,radius:f.radius,life:f.life,delay:f.delay,variant:f.variant,merged:f.merged,pulse:f.pulse,hits:f.hits,nodes:f.nodes?.map(p=>({...p}))})),projectiles:this.projectiles.map(p=>({id:p.id,skill:p.skill,x:p.x,y:p.y,rebounds:p.rebounds,wallRebounds:p.wallRebounds,remaining:p.remaining,hits:p.hits.length,small:p.source==='secondary',source:p.source,quality:p.quality,prepare:p.prepare,life:p.life,radius:p.radius,damage:p.damage})),enemies:this.enemies.map(e=>({id:e.id,kind:e.kind,x:Math.round(e.x),y:Math.round(e.y),hp:Math.ceil(e.hp),shield:Math.ceil(e.shield),freeze:e.freeze,stun:e.stun,burn:e.burn,slow:e.slow,root:e.root,bind:e.bind,haste:e.haste,hinder:e.hinder,orbSlow:e.orbSlow,fractures:e.fractures,warning:e.warning})),randomState:this.randomState};}
+ snapshot(){return {phase:this.phase,mode:this.mode,seed:this.seed,dailyRule:this.dailyRule?.id??null,priority:this.priority,stage:this.stage,map:this.mapIndex,tick:this.tick,time:this.time,wave:this.wave,maxWaves:Number.isFinite(this.maxWaves)?this.maxWaves:null,hp:Math.ceil(this.hp),maxHp:this.maxHp,level:this.level,xp:this.xp,xpNeeded:this.xpNeeded,kills:this.kills,bossKills:this.bossKills,damage:Math.round(this.damageDone),damageTaken:Math.round(this.damageTaken),ammo:this.ammo,reload:this.reload,learned:{...this.learned},weaponStats:Object.fromEntries(Object.keys(this.learned).map(id=>[id,this.stats(id as SkillId)])),upgrades:{...this.upgrades},cards:this.cards.map(c=>({...c})),rerolls:this.rerolls,skin:this.loadout.skin,skinProgress:this.skinProgress,orbLuck:this.orbLuck,luckyProgress:this.luckyProgress,lastLuck:this.lastLuck?{...this.lastLuck}:null,pendingVolleys:this.orbVolleys.length,dragon:this.dragon?{...this.dragon}:null,links:this.links.map(l=>({...l,ids:[...l.ids],damage:{...l.damage}})),counts:{enemies:this.enemies.length,projectiles:this.projectiles.length,fields:this.fields.length,links:this.links.length},fields:this.fields.map(f=>({id:f.id,skill:f.skill,x:f.x,y:f.y,radius:f.radius,life:f.life,delay:f.delay,variant:f.variant,merged:f.merged,pulse:f.pulse,hits:f.hits,nodes:f.nodes?.map(p=>({...p}))})),projectiles:this.projectiles.map(p=>({id:p.id,skill:p.skill,x:p.x,y:p.y,rebounds:p.rebounds,wallRebounds:p.wallRebounds,remaining:p.remaining,hits:p.hits.length,small:p.source==='secondary',source:p.source,quality:p.quality,prepare:p.prepare,life:p.life,radius:p.radius,damage:p.damage})),enemies:this.enemies.map(e=>({id:e.id,kind:e.kind,x:Math.round(e.x),y:Math.round(e.y),hp:Math.ceil(e.hp),shield:Math.ceil(e.shield),freeze:e.freeze,paralysis:e.paralysis,stun:e.stun,burn:e.burn,slow:e.slow,root:e.root,bind:e.bind,haste:e.haste,hinder:e.hinder,orbSlow:e.orbSlow,fractures:e.fractures,warning:e.warning})),randomState:this.randomState};}
 }
