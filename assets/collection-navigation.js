@@ -60,8 +60,11 @@ function placeMenuLink() {
   Object.assign(link.style,best);
 }
 function update() {
+  // The full-screen career menu has its own Back button. Return to the game's
+  // menu first, so the portal link never covers purchases or map selection.
+  const careerOpen = [...document.querySelectorAll('[data-action="career:close"],.cocos-control[aria-label="每日签到"],.cocos-control[aria-label="今日已签到"]')].some(el=>!el.hidden&&el.getClientRects().length>0);
   const hidden =
-    activePointers.size > 0 ||
+    careerOpen || activePointers.size > 0 ||
     !["menu", "paused", "result"].includes(
       document.documentElement.dataset.collectionState,
     );

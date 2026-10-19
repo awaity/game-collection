@@ -2,8 +2,8 @@
   "engine": "Cocos Creator",
   "version": "3.8.8",
   "target": "web-mobile",
-  "sourceHash": "2230dd48b8541aab7082451589b08f06b7310ad6ef4a6b03aa55fedc863ab558",
-  "builtAt": "2026-10-16T16:11:41.781Z",
+  "sourceHash": "66632e2efce9399054e36b51e879a409187c7f513e2da95e47d710a25add7104",
+  "builtAt": "2026-10-19T01:58:37.167Z",
   "cliExitCode": 36,
   "appIdConfigured": false,
   "files": {
@@ -29,7 +29,7 @@
     },
     "assets/main/import/84/84a06ce3-039f-56f1-af0c-f0c20d9f23eb.json": {
       "bytes": 795,
-      "sha256": "eb772caf1ebe091318cdfbff6e6c41d68bf50ef7f25a449a4fa1617a94712eaa"
+      "sha256": "701d5eac10bd94c05c899e09c2a6f95120899aad3aa1f096535e70c89e0a5358"
     },
     "assets/main/import/ba/ba21476f-2866-4f81-9c4d-6e359316e448.json": {
       "bytes": 192,
@@ -40,8 +40,8 @@
       "sha256": "c2eee4552a460ed97591f527e127b95c811d5f796b9448f3f705974af9beba9d"
     },
     "assets/main/index.js": {
-      "bytes": 545243,
-      "sha256": "31ca4fe5ae7f84162dfeb4406a41f24c85b2cfe7dac565c0f493f84715239329"
+      "bytes": 559232,
+      "sha256": "d26142c16f2949feedb0f9471a15f5e823c1d4252ff69f6cb3e9fdec78b7a549"
     },
     "assets/night-0/config.json": {
       "bytes": 600,
