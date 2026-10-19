@@ -460,6 +460,20 @@ export class World{
   if(correction){const depth=this.camera.position.distanceTo(new T.Vector3(0,.9,0));this.camera.position.x+=correction*depth*Math.tan(this.camera.fov*Math.PI/360)*this.camera.aspect;this.camera.updateMatrixWorld();}
  }
  draw(g,events=[]){
+  const theme=g.config.theme??0,skin=g.skin?.id??'classic';
+  if(this.expansionTheme!==theme){this.expansionTheme=theme;const colors=[0xb68761,0x426c61,0x7498a4,0x383354];this.scene.background=C(colors[theme]);this.scene.fog.color.copy(C(colors[theme]));if(this.mapDecor){this.scene.remove(this.mapDecor);this.mapDecor.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});}this.mapDecor=new T.Group();this.scene.add(this.mapDecor);if(theme)for(let i=0;i<14;i++)for(const side of[-1,1]){const geometry=theme===1?new T.ConeGeometry(2,7,6):theme===2?new T.ConeGeometry(3,5,4):new T.BoxGeometry(1.6,6,1.6);const m=new T.Mesh(geometry,std([0,0x7ea985,0xbce3e9,0x9990d6][theme]));m.position.set(side*(8+i%3),2,-i*13);this.mapDecor.add(m);}}
+  if(this.expansionSkin!==skin){
+   this.expansionSkin=skin;const tint=skin==='classic'?null:C(g.skin.color);
+   for(const part of this.blue.parts){
+    // Scout colours are baked into vertices. Clone only this squad's geometry,
+    // preserve faces/equipment, and restore original colours when unequipping.
+    if(!part.skinColors){part.mesh.geometry=part.mesh.geometry.clone();const a=part.mesh.geometry.getAttribute('color');part.skinColors=Array.from({length:a.count},(_,i)=>[a.getX(i),a.getY(i),a.getZ(i)]);}
+    const colors=part.mesh.geometry.getAttribute('color');
+    part.skinColors.forEach(([r,g,b],i)=>{const blue=b>r*1.2&&b>g*.95,value=Math.max(r,g,b);colors.setXYZ(i,...(tint&&blue?[tint.r*value,tint.g*value,tint.b*value]:[r,g,b]));});
+    colors.needsUpdate=true;
+   }
+  }
+
   if(!this.ready||this.lost)return;
   const dt=Math.max(0,Math.min(.1,(g.tick-this.lastTick)/60));this.lastTick=g.tick;
   for(const e of events){const age=(g.tick-e.tick)/60,maxLife={shot:.18,impact:.37,kill:.81,casualty:.81,recruit:.93,upgrade:.93,'pod-open':1.15,'pod-break':1.15,strike:.81,'boss-kill':.81}[e.type]??0;if(age<=maxLife)this.effects.event(e);if(e.type==='upgrade')this.blue.upgradeTick=e.tick;if(e.type==='strike')this.boss.motion.set(e.bossId,e.tick);if(e.type==='strike'||e.type==='boss-kill')this.shakeTick=e.tick;}

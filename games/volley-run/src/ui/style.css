@@ -2,3 +2,8 @@
 
 /* Demo/replay status must never obscure gates or the final boss health bar. */
 #replay-badge{top:auto;bottom:calc(80px + env(safe-area-inset-bottom));}
+
+.career-screen {position:fixed;inset:0;z-index:1000;background:#102538;touch-action:none;}
+.career-screen[hidden] {display:none;}
+.career-screen button:focus-visible {opacity:1!important;background:#24475f;color:#fff;border:3px solid #ffdb80;}
+#career-open {margin:8px 0;width:100%;min-height:38px;}

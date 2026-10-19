@@ -2,7 +2,7 @@ import {Game as LegacyGame, runReplay as runLegacyReplay} from './game-v1.js';
 /** Deterministic game rules. No DOM, rendering, wall-clock, or Math.random here. */
 export const DT=1/60, MAX_TROOPS=96, ROAD_HALF=5.25;
 export const WEAPONS=[{name:'脉冲步枪',damage:1,interval:11,speed:44},{name:'电弧连射',damage:2,interval:10,speed:49},{name:'双联重炮',damage:3,interval:9,speed:52}];
-export const LEVELS=[{name:'赤岩长桥',subtitle:'CANYON CROSSING',length:143,speed:8.6,bossHP:1700,seed:91261},{name:'烈日防线',subtitle:'SUNBREAK LINE',length:166,speed:9.0,bossHP:2200,seed:28017},{name:'最后一击',subtitle:'LAST VOLLEY',length:188,speed:9.3,bossHP:2800,seed:74139}];
+export const LEVELS=[{name:'赤岩长桥',subtitle:'CANYON CROSSING',length:143,speed:8.6,bossHP:1700,seed:91261},{name:'烈日防线',subtitle:'SUNBREAK LINE',length:166,speed:9.0,bossHP:2200,seed:28017},{name:'最后一击',subtitle:'LAST VOLLEY',length:188,speed:9.3,bossHP:2800,seed:74139},{name:'翡翠栈道',subtitle:'EMERALD PASS',length:156,speed:8.4,bossHP:1950,seed:62731,theme:1},{name:'极光长桥',subtitle:'AURORA BRIDGE',length:174,speed:8.8,bossHP:2400,seed:19287,theme:2},{name:'霓虹环线',subtitle:'NEON CIRCUIT',length:194,speed:9.5,bossHP:2850,seed:81823,theme:3}];
 // Geometry and projectile/selection bounds share this width; no invisible wide gate.
 export const gateWidth=value=>clamp(1.20+Math.abs(value)*.26,1.50,3.65);
 export function rng(seed){let a=seed>>>0||1;return()=>{a^=a<<13;a^=a>>>17;a^=a<<5;return(a>>>0)/4294967296;};}
@@ -17,17 +17,19 @@ export function formation(n){
  return chosen.map(p=>({x:p.x-cx,d:p.d-cd}));
 }
 export class Game{
- constructor({level=0,seed=LEVELS[level]?.seed??91261}={}){
-  this.level=Number.isFinite(level)?clamp(Math.trunc(level),0,2):0;this.config=LEVELS[this.level];this.seed=(Number.isFinite(seed)?seed:this.config.seed)>>>0;this.random=rng(this.seed);
+ constructor({level=0,seed=LEVELS[level]?.seed??91261,modifiers={}}={}){
+  this.level=Number.isFinite(level)?clamp(Math.trunc(level),0,LEVELS.length-1):0;this.config=LEVELS[this.level];this.seed=(Number.isFinite(seed)?seed:this.config.seed)>>>0;this.random=rng(this.seed);
+  this.modifiers={power:clamp(Math.floor(modifiers.power||0),0,5),haste:clamp(Math.floor(modifiers.haste||0),0,5),guard:clamp(Math.floor(modifiers.guard||0),0,5),pressure:clamp(Math.floor(modifiers.pressure||0),0,30),carry:clamp(Math.floor(modifiers.carry||0),0,96)};
+  this.config={...this.config,bossHP:this.config.bossHP*(1+this.modifiers.pressure*.08)};
   this.tick=0;this.distance=0;this.phase='ready';this.targetX=1.95;this.centerX=1.95;this.weapon=0;
   this.troops=[];this.enemies=[];this.gates=[];this.pods=[];this.bullets=[];this.events=[];this.inputLog=[];this.nextId=1;this.slots=[];this.lastInput=null;
   this.stats={shots:0,hits:0,kills:0,recruited:0,lost:0,upgrades:0,gates:0,peak:8,bossDamage:0};this.finalBossKilled=false;this.reason='';
-  this.addTroops(8,false);this.layout();this.events=[];
+  this.addTroops(Math.max(8+this.modifiers.guard*2,this.modifiers.carry),false);this.layout();this.events=[];
  }
  id(){return this.nextId++;}
  emit(type,data={}){this.events.push({type,tick:this.tick,...data});if(this.events.length>320)this.events.shift();}
  layout(){
-  const level=this.level;
+  const level=this.level%3;
   const gate=(d,x,value,operation='add')=>this.gates.push({id:this.id(),d,x,width:gateWidth(value),base:value,value,operation,maxGain:d>=128?4:12,charge:0,alive:true,flash:-100});
   const pod=(d,x,hp,tier)=>this.pods.push({id:this.id(),d,x,width:3.65,hp,maxHP:hp,tier,alive:true,unlocked:false,flash:-100});
   const addEnemy=(x,d,hp)=>this.enemies.push({id:this.id(),kind:'raider',x,d,hp:hp+level,maxHP:hp+level,alive:true,phase:this.random()*6.28,hitTick:-100,move:.35+this.random()*.35});
@@ -42,6 +44,7 @@ export class Game{
   wave(112,-.2,9,2);gate(128,-2.65,1);pod(128,2.65,64+level*8,2);
   if(level>=1){wave(140,-2.2,9,3);gate(150,2.65,3);pod(150,-2.65,72,2);}
   if(level===2){wave(164,2.2,10,3);gate(175,-2.65,3);pod(175,2.65,85,2);}
+  if(this.level>=3){for(const entity of [...this.gates,...this.pods])if(entity.d>40)entity.x*=-1;wave(84,0,6+level*2,3);pod(this.config.length-12,0,45+level*8,2);}
   const end=this.config.length;
   boss(end+16,0,this.config.bossHP,true);
   // Rectangular, staggered ranks rather than a circular fan. Every figure has real HP.
@@ -89,8 +92,9 @@ export class Game{
   const weapon=WEAPONS[this.weapon];
   for(let i=0;i<this.troops.length;i++){
    const t=this.troops[i],p=this.slots[i];t.x+=(this.centerX+p.x-t.x)*.19;t.d+=(this.distance+p.d-t.d)*.25;
-   if((this.tick+t.id*7)%weapon.interval===0){
-    this.bullets.push({id:this.id(),x:t.x+.20,d:t.d+.72,prevD:t.d+.72,damage:weapon.damage,speed:weapon.speed,tier:this.weapon,born:this.tick,alive:true});this.stats.shots++;
+   const period=weapon.interval*(1-this.modifiers.haste*.04),shotTick=this.tick+t.id*7;
+   if(Math.floor(shotTick/period)>Math.floor((shotTick-1)/period)){
+    this.bullets.push({id:this.id(),x:t.x+.20,d:t.d+.72,prevD:t.d+.72,damage:weapon.damage*(1+this.modifiers.power*.12),speed:weapon.speed,tier:this.weapon,born:this.tick,alive:true});this.stats.shots++;
     this.emit('shot',{x:t.x+.20,d:t.d+.73,tier:this.weapon,id:t.id});
    }
   }
@@ -168,13 +172,14 @@ export class Game{
  }
  drainEvents(){const events=this.events;this.events=[];return events;}
  summary(){return {version:2,seed:this.seed,level:this.level,tick:this.tick,phase:this.phase,distance:+this.distance.toFixed(4),count:this.troops.length,weapon:this.weapon,stats:{...this.stats},bosses:this.enemies.filter(e=>e.kind==='boss').map(e=>({id:e.id,hp:e.hp,alive:e.alive,final:!!e.final})),inputCount:this.inputLog.length};}
- replay(){const expected=this.summary();if(expected.phase==='paused'||expected.phase==='ready')expected.phase='running';return {format:'volley-run.replay',version:2,seed:this.seed,level:this.level,ticks:this.tick,inputs:this.inputLog.map(a=>[...a]),expected};}
+ replay(){const expected=this.summary();if(expected.phase==='paused'||expected.phase==='ready')expected.phase='running';return {format:'volley-run.replay',version:this.level>=3||Object.values(this.modifiers).some(v=>v>0)?3:2,modifiers:{...this.modifiers},seed:this.seed,level:this.level,ticks:this.tick,inputs:this.inputLog.map(a=>[...a]),expected};}
 }
 export function validateReplay(data){
- if(!data||data.format!=='volley-run.replay'||![1,2].includes(data.version))throw new Error('不是受支持的回放文件');
- if(!Number.isInteger(data.level)||data.level<0||data.level>2||!Number.isInteger(data.seed)||data.seed<0||data.seed>0xffffffff)throw new Error('关卡或种子无效');
+ if(!data||data.format!=='volley-run.replay'||![1,2,3].includes(data.version))throw new Error('不是受支持的回放文件');
+ if(!Number.isInteger(data.level)||data.level<0||data.level>(data.version===3?LEVELS.length-1:2)||!Number.isInteger(data.seed)||data.seed<0||data.seed>0xffffffff)throw new Error('关卡或种子无效');
  if(!Number.isInteger(data.ticks)||data.ticks<0||data.ticks>60*60*15)throw new Error('回放长度无效（最多 15 分钟）');
  if(!Array.isArray(data.inputs)||data.inputs.length>60000)throw new Error('输入记录无效');
+ if(data.modifiers){for(const key of ['power','haste','guard','pressure','carry'])if(!Number.isInteger(data.modifiers[key])||data.modifiers[key]<0||data.modifiers[key]>(key==='pressure'?30:key==='carry'?96:5))throw new Error('回放成长数据无效');}
  let prev=-1;for(const a of data.inputs){if(!Array.isArray(a)||a.length!==2||!Number.isInteger(a[0])||a[0]<0||a[0]<=prev||a[0]>=data.ticks||!Number.isFinite(a[1])||Math.abs(a[1])>4.8)throw new Error('回放输入超出范围');prev=a[0];}
  return data;
 }

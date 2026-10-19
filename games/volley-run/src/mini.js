@@ -1,3 +1,5 @@
+import {Campaign} from './campaign.js';
+import {drawCareerCanvas} from '@game-collection/platform/progression-panel';
 import { MiniPlatform } from "@game-collection/platform/mini";
 import { FixedClock } from "@game-collection/platform/loop";
 import { World } from "./render/world.js";
@@ -47,6 +49,7 @@ class Overlay {
       bottom = h - view.safeBottom;
     const g = app.game,
       signature = [
+        app.campaign.panel.active,app.campaign.panel.tab,app.campaign.panel.page,app.campaign.career.data.coins,app.campaign.career.message,
         g.phase,
         g.tick >> 3,
         g.troops.length,
@@ -190,8 +193,8 @@ class Overlay {
             true,
           );
           button("home", "返回集合点", cy + 165 * s);
-          if (g.phase === "won" && app.level < 2)
-            button("next", "下一条防线 →", cy + 220 * s);
+          if (g.phase === "won" && (app.campaign.endless||app.level < LEVELS.length-1))
+            button("next",app.campaign.endless?`第 ${app.campaign.wave+1} 波 · 继续无尽`:"下一条防线 →", cy + 220 * s);
         }
         const optionsY = Math.min(bottom - 60 * s, cy + 285 * s);
         button(
@@ -211,6 +214,8 @@ class Overlay {
           (w - 70 * s) / 2,
         );
       }
+      if(g.phase==='ready')button('career:open',`军需库 · ${app.campaign.career.data.coins} 金币`,Math.max(top,bottom-52*s));
+      if(app.campaign.panel.active)this.buttons=drawCareerCanvas(c,app.campaign.panel,w,h,false,view.safeTop+10,view.safeBottom+20);
       this.texture.needsUpdate = true;
     }
     const r = app.world.renderer;
@@ -232,11 +237,11 @@ export async function boot() {
     clock = new FixedClock();
   const settings = platform.read("volley.settings.v1") ?? {},
     progress = platform.read("volley.progress.v1") ?? {};
-  const best = [0, 1, 2].map((i) =>
+  const best = LEVELS.map((_,i) =>
     Number.isFinite(progress.best?.[i]) ? clamp(progress.best[i], 0, 96) : 0,
   );
   const cleared = Array.isArray(progress.cleared)
-    ? progress.cleared.filter((i) => Number.isInteger(i) && i >= 0 && i < 3)
+    ? progress.cleared.filter((i) => Number.isInteger(i) && i >= 0 && i < LEVELS.length)
     : [];
   app = {
     world,
@@ -247,6 +252,7 @@ export async function boot() {
     sound: settings.sound !== false,
     pause,
   };
+  const campaign=new Campaign(key=>platform.read(key),(key,value)=>{platform.write(key,value);return JSON.stringify(platform.read(key))===JSON.stringify(value)},(map,endless)=>{app.level=map;campaign.endless=endless;reset(true);});app.campaign=campaign;
   platform.setSound(app.sound);
   // Low is the portable default. Balanced needs an actual depth texture extension.
   const canBalanced =
@@ -258,8 +264,9 @@ export async function boot() {
     pressed = null,
     visible = true,
     frameId = 0;
-  function reset(start = false, mode = "play") {
-    app.game = createGame({ level: app.level });
+  function reset(start = false, mode = "play",continuing=false) {
+    app.game = start?campaign.start(app.level,mode,null,continuing):createGame({ level: app.level });
+    app.game.skin=campaign.career.skin;
     app.mode = mode;
     world.reset(app.game);
     clock.reset();
@@ -269,6 +276,7 @@ export async function boot() {
     overlay.signature = "";
   }
   function pause() {
+    if(app.game)campaign.checkpoint(app.game);
     if (app.game?.phase === "running") app.game.pause();
     drag = null;
     pressed = null;
@@ -277,6 +285,7 @@ export async function boot() {
   }
   function action(id) {
     platform.unlockAudio();
+    if(id.startsWith('career:')){pause();campaign.panel.action(id);overlay.signature='';return;}
     platform.sound("click");
     if (id === "start" || id === "retry") reset(true);
     else if (id === "demo") reset(true, "demo");
@@ -284,13 +293,12 @@ export async function boot() {
     else if (id === "resume" && app.game.phase === "paused" && !world.lost) {
       app.game.pause();
       clock.reset();
-    } else if (id === "home") reset();
+    } else if (id === "home") {campaign.endless=false;reset();}
     else if (id === "route") {
-      app.level = (app.level + 1) % 3;
+      app.level = (app.level + 1) % LEVELS.length;
       reset();
     } else if (id === "next") {
-      app.level = Math.min(2, app.level + 1);
-      reset(true);
+      if(campaign.endless){app.level=campaign.next(app.game);reset(true,"play",true)}else{app.level=Math.min(LEVELS.length-1,app.level+1);reset(true);}
     } else if (id === "sound") {
       app.sound = !app.sound;
       platform.setSound(app.sound);
@@ -344,12 +352,13 @@ export async function boot() {
       const g = app.game;
       if (g.phase !== "running") return;
       g.step(app.mode === "demo" ? demoInput(g) : g.targetX);
+      if(g.tick%60===0||g.phase!=='running')campaign.checkpoint(g);
       events.push(...g.drainEvents());
       if (g.phase === "won" || g.phase === "lost") {
         platform.sound(g.phase === "won" ? "win" : "lose");
         if (app.mode === "play") {
           platform.write("volley.replay.v1", g.replay());
-          if (g.phase === "won") {
+          if (g.phase === "won"&&!campaign.endless) {
             best[app.level] = Math.max(best[app.level], g.troops.length);
             if (!cleared.includes(app.level)) cleared.push(app.level);
             platform.write("volley.progress.v1", { best, cleared });

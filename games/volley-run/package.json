@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "test:sites": "node --test tests/sites-worker.test.mjs",
     "start": "vite --host 0.0.0.0 --port 4173",
-    "test": "node --test tests/*.test.mjs",
+    "test": "tsx --test tests/*.test.mjs",
     "build:weixin": "tsx scripts/build-mini.ts weixin",
     "build:douyin": "tsx scripts/build-mini.ts douyin"
   },
