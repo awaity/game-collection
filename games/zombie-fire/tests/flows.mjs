@@ -253,6 +253,10 @@ export async function verify({p,native,target,viewport,state,click,advance,event
   let {x,y}=point(enemy,s);const previous=s.priority;
   if(native){await event('TouchStart',x,y);await event('TouchCancel',x,y);}else if(viewport.width<900){const c=await p.context().newCDPSession(p);await c.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});await c.send('Input.dispatchTouchEvent',{type:'touchCancel',touchPoints:[]});await c.detach();}
   s=await fresh();assert.equal(s.priority,previous,'cancelled gesture must not set a priority');
+  // Presenting the cancelled gesture can complete a kill and open a real level
+  // choice. Resolve that visible menu before sending the separate aiming tap.
+  for(let n=0;s.battlePhase==='choice'&&n<20;n++){await click('choose:0');s=await fresh();}
+  assert.equal(s.battlePhase,'playing','aiming requires active combat');
   enemy=s.enemies.find(e=>e.id===enemy.id)??s.enemies.find(e=>e.y<580&&e.y>120);assert.ok(enemy,'visible target remains available');({x,y}=point(enemy,s));
   if(native){await event('TouchStart',x,y);await event('TouchEnd',x,y);}else if(viewport.width<900)await p.touchscreen.tap(x,y);else await p.mouse.click(x,y);
   assert.equal((await fresh()).priority,enemy.id,'real pointer selects the visible enemy');
