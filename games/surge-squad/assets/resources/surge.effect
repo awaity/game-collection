@@ -86,6 +86,13 @@ CCProgram surge-fs %{
     vec4 c=texture(mainTexture,uv)*mainColor;
     #if USE_COLOR
       vec3 base=pow(c.rgb,vec3(2.2))*pow(tint.rgb,vec3(2.2)),n=normalize(surfaceNormal);
+      #if USE_SKIN
+        vec3 original=texture(mainTexture,uv).rgb*tint.rgb;
+        base=pow(original,vec3(2.2));
+        if(length(mainColor.rgb-vec3(1.))>.01 && original.b>original.r*1.2 && original.b>original.g*.95){
+          base=pow(mainColor.rgb*max(original.r,max(original.g,original.b)),vec3(2.2));
+        }
+      #endif
       if(tint.a>.5){
         vec3 hemi=mix(vec3(.045,.034,.065),vec3(.552,.723,1.),n.y*.5+.5)*.56;
         float sun=max(0.,dot(n,normalize(vec3(-21.,34.,24.))));

@@ -46,7 +46,7 @@ export class SurgeArt {
   }
   for(const name of ['world','road','vanguard','raider','brute','titan','crowd','shadow','projection','decal','beam','arc']){
    const mat=new Material(),actor=['vanguard','raider','brute','titan'].includes(name);
-   mat.initialize({effectAsset:fx,defines:{USE_BEAM:name==='beam',USE_PROJECTION:name==='projection',USE_INSTANCING:!['crowd','shadow','arc'].includes(name),USE_GAIT:actor,USE_COLOR:!['crowd','shadow','beam','arc'].includes(name),USE_CROWD:name==='crowd',USE_SHADOW:name==='shadow',USE_ROAD:name==='road'}});
+   mat.initialize({effectAsset:fx,defines:{USE_SKIN:name==='vanguard',USE_BEAM:name==='beam',USE_PROJECTION:name==='projection',USE_INSTANCING:!['crowd','shadow','arc'].includes(name),USE_GAIT:actor,USE_COLOR:!['crowd','shadow','beam','arc'].includes(name),USE_CROWD:name==='crowd',USE_SHADOW:name==='shadow',USE_ROAD:name==='road'}});
    if(name!=='arc')mat.setProperty('mainTexture',name==='crowd'?crowd:name==='road'?road:world);
    if(name==='projection')mat.setProperty('mainColor',new Color().fromHEX('#51556dff'));
    if(name==='arc'){mat.setProperty('mainColor',new Color().fromHEX('#50dfffc9'));mat.overridePipelineStates({depthStencilState:{depthWrite:false}})}
@@ -67,9 +67,11 @@ export class SurgeArt {
  }
  draw(game:Game,time:number,quality:string){
   const u=this.ui,p=game.player,renderDistance=u.camera.fov<=36?72:u.camera.fov<50?120:160;
+  this.materials.get('vanguard')!.setProperty('mainColor',new Color().fromHEX(game.skinColor));
   this.materials.get('road')!.setProperty('animation',new Vec4(game.distance,0,0,0));this.mesh('road','road',0,-.39,-90,1,1,1,'road');
-  u.shape('sea','box','#07101e',0,-1.8,-80,600,.01,600);
+  u.shape('sea','box',['#07101e','#07101e','#07101e','#34566c','#705744','#28264c'][game.level.index],0,-1.8,-80,600,.01,600);
   for(const side of [-1,1]){u.shape('rail'+side,'box','#a6aab8',side*5.38,.13,-90,.20,.36,280);u.shape('border'+side,'box','#d2d8e7',side*5.22,.025,-90,.10,.03,280)}
+  if(game.level.index>=3)for(let i=0;i<12;i++)for(const side of[-1,1])u.shape('map-object'+i+'/'+side,game.level.index===3?'cone':game.level.index===4?'cylinder':'box',['#a6dce6','#b58c59','#7d7cb1'][game.level.index-3],side*(8+(i%3)),1,-((i*15-game.distance*.55)%170),game.level.index===3?3:1.7,3+(i%3),3);
   let blue=0,gold=0,lastBlue=Infinity,lastGold=Infinity;
   for(const c of game.level.cells){const gap=c.d-game.distance;if(gap>renderDistance+12)break;if(gap<-28||c.taken)continue;const z=zFor(gap);
    if(c.kind==='blue'&&blue<260){if(lastBlue-z<.435)continue;lastBlue=z;this.mesh(`blue-base${blue}`,'blueBase',0,.065,z);this.mesh(`blue-body${blue}`,'blueBody',0,.27,z);this.mesh(`blue-shadow${blue}`,'blueBody',0,.27,z,1,1,1,'projection');this.mesh(`blue-top${blue}`,'blueTop',0,.541,z).setRotationFromEuler(-90,0,0);blue++;}
@@ -84,6 +86,7 @@ export class SurgeArt {
   for(const name of ['vanguard','raider'])this.materials.get(name)!.setProperty('animation',new Vec4(time,name==='raider'?.7:1,0,0));
   this.arcs.begin(u.camera.node.rotation);this.shadows.begin();const slots=formation(p.troops);
   slots.forEach((slot,i)=>{const pose=playerPose(p,slot,i,time,['playing','paused'].includes(game.phase));if(!(p.invincible>0&&Math.floor(time*14)%2===0))this.actor(`player${i}`,'vanguard',pose.x,pose.y,pose.z,pose.scale,pose.yaw,pose.roll);this.shadows.add(pose.x,.023,pose.z+.15,1.15,1.02);const muzzle=transformSocket(pose),charge=p.energy/CONFIG.energyMax;
+   if(game.skinMark)u.shape('skin-badge'+i,'sphere',game.skinColor,pose.x,pose.y+1.35,pose.z,.28,.18,.28);
    if(charge>.03){const r=.11+charge*.17;this.glow('orb-core'+i,pose.x,pose.y+1.55,pose.z+.08,r*2.4,r*2.4,1,'#4bf2ffdd');this.glow('orb-glow'+i,pose.x,pose.y+1.55,pose.z+.08,.38+charge*.58,.42+charge*.58,1,'#08c8ffb8');this.glow('ground-charge'+i,pose.x,.044,pose.z,.75+charge*.52,.95+charge*.40,1,'#1199ff50',true)}
    if(charge>.03&&(p.charging||charge>.87)){const radius=.38+charge*.14;for(let j=0;j<20;j++){const at=(angle:number)=>{const n=Math.sin(angle*5+time*21+i)*.065;return new Vec3(pose.x+Math.cos(angle)*(radius+n),pose.y+1.44+Math.sin(angle)*.36,pose.z+.10+Math.sin(angle*2+time*7+i)*.16)};this.arcs.segment(at(j/20*Math.PI*2),at((j+1)/20*Math.PI*2),.018)}}
    if(p.laser)this.glow('muzzle'+i,muzzle.x,muzzle.y,muzzle.z,1.22,1.52,1,'#16c9ffb8');else if(p.shotClock>.11){const r=.29+(p.shotClock-.11)*4;this.glow('muzzle'+i,muzzle.x,muzzle.y,muzzle.z,r,r*1.3,1,'#ffc64aff')}

@@ -32,6 +32,9 @@ export const CHAPTERS = Object.freeze([
     bossHp: [899, 2499], bossDistance: [76, 164], gateHp: [30, 160, 500], tint: 1 },
   { name: '最后电站', english: 'LAST CURRENT', length: 205, speed: 3.75, density: 15, enemyHp: 1.3,
     bossHp: [1299, 3499], bossDistance: [83, 185], gateHp: [34, 190, 580], tint: 2 },
+  {name:'冰川电网',english:'GLACIER GRID',length:180,speed:3.4,density:14,enemyHp:1.2,bossHp:[950,2600],bossDistance:[74,160],gateHp:[30,150,470],tint:3},
+  {name:'沙丘风场',english:'DUNE CURRENT',length:195,speed:3.8,density:15,enemyHp:1.35,bossHp:[1100,3000],bossDistance:[78,173],gateHp:[28,170,530],tint:4},
+  {name:'星港脉冲',english:'ORBITAL PULSE',length:215,speed:3.65,density:16,enemyHp:1.5,bossHp:[1300,3600],bossDistance:[84,194],gateHp:[32,180,570],tint:5},
 ]);
 export function clamp(value:number, min:number, max:number) { return Math.max(min, Math.min(max, value)); }
 export function visibleTroops(count:number) { return Math.min(CONFIG.maxVisibleTroops, Math.max(0, count)); }
@@ -128,6 +131,10 @@ export function makeLevel(index = 0, seed = 17429):Level {
     hp: chapter.bossHp[i], maxHp: chapter.bossHp[i], type: i === 0 ? 'brute' : 'titan',
     deadAt: -1, hitFlash: 0, attackTimer: i===0?4.8:2.4, warning: null, slamAt: -100, phase: 'march',
     size: i === 0 ? 1.32 : 1.80 }));
+  if(index===3)for(const e of enemies)e.d+=Math.sin(e.x*3)*1.2;
+  if(index===4)for(const c of cells)if(c.kind==='blue'&&Math.floor(c.d/12)%3===1)c.taken=true;
+  if(index===5)for(const c of cells)if(c.kind==='gold')c.d-=5;
+  enemies.sort((a,b)=>a.d-b.d);cells.sort((a,b)=>a.d-b.d);
   return { chapter, enemies, gates, cells, bosses, seed, index };
 }
 
@@ -179,7 +186,7 @@ export function traceRay(game:Game, socket:Socket, radius = .19, range = CONFIG.
 
 export function updatePlasma(game:Game, dt:number) {
   const p = game.player, slots = formation(p.troops), units = Math.min(24, p.troops);
-  const boost = p.boost > 0 ? 1.45 : 1;
+  const boost = (p.boost > 0 ? 1.45 : 1)*game.damageScale;
   p.damageBudget = Math.min(p.damageBudget + (72 + units * 82) * dt * boost, 120);
   game.beams = [];
   for (let index = 0; index < slots.length; index++) {
@@ -230,7 +237,14 @@ export class Game {
   enemyStart:number;cellStart:number;nextBulletId:number;combo:number;comboTimer:number;
   finalArena:boolean;arenaClock:number;demo:boolean;nextAutoAction:string;
 
+  damageScale=1;intervalScale=1;skinColor='#ffffff';skinMark='';
+  configure(power=0,haste=0,guard=0,pressure=0,color='#ffffff',mark=''){
+    this.damageScale=1+power*.12;this.intervalScale=1-haste*.04;this.player.troops+=guard;this.skinColor=color;this.skinMark=mark;
+    const scale=1+Math.min(pressure,30)*.08;
+    for(const e of [...this.level.enemies,...this.level.bosses]){e.hp*=scale;e.maxHp*=scale;}
+  }
   constructor(index = 0, seed = 17429) {
+    for(const key of ['damageScale','intervalScale','skinColor','skinMark'])Object.defineProperty(this,key,{enumerable:false});
     this.level = makeLevel(index, seed); this.phase = 'ready'; this.time = 0; this.distance = 0;
     this.player = { x: 0, targetX: 0, troops: 1, energy: 0, boost: 0, invincible: 0,
       laser: false, charging: false, shotClock: 0, damageBudget: 0 };
@@ -305,7 +319,7 @@ export class Game {
   fireBullets(dt:number) {
     const p = this.player; p.shotClock -= dt;
     if (p.shotClock > 0) return;
-    p.shotClock += 0.165;
+    p.shotClock += 0.165*this.intervalScale;
     const slots = formation(Math.min(p.troops, 14));
     for (let index = 0; index < slots.length; index++) {
       if (this.bullets.length >= CONFIG.maxBullets) break;
@@ -314,7 +328,7 @@ export class Game {
       const ySlope = target ? (target.y - socket.y) / Math.max(1, target.d - socket.d) : 0;
       this.bullets.push({ id: this.nextBulletId++, x: socket.x, d: socket.d, y: socket.y,
         originD: socket.d, originY: socket.y, originX: socket.x, slope: socket.slope, ySlope,
-        born: this.time, damage: p.boost > 0 ? 8 : 5.2, speed: 83 });
+        born: this.time, damage: (p.boost > 0 ? 8 : 5.2)*this.damageScale, speed: 83 });
       this.stats.shots++;
     }
     this.emit('shot', { count: slots.length });
@@ -502,16 +516,16 @@ export class Game {
 }
 
 export interface Save {version:1;unlocked:number;best:number[];settings:{sound:boolean;music:boolean;quality:'low'|'medium'|'high';reducedMotion:boolean}}
-export const defaultSave=():Save=>({version:1,unlocked:1,best:[0,0,0],settings:{sound:true,music:true,quality:'high',reducedMotion:false}});
+export const defaultSave=():Save=>({version:1,unlocked:1,best:CHAPTERS.map(()=>0),settings:{sound:true,music:true,quality:'high',reducedMotion:false}});
 export function normalizeSave(raw:unknown):Save{
  const save=defaultSave();if(!raw||typeof raw!=='object')return save;const value=raw as Partial<Save>;if(value.version!==1)return save;
- save.unlocked=Number.isInteger(value.unlocked)?clamp(value.unlocked!,1,3):1;
+ save.unlocked=Number.isInteger(value.unlocked)?clamp(value.unlocked!,1,CHAPTERS.length):1;
  save.best=save.best.map((_,i)=>Number.isFinite(value.best?.[i])?Math.max(0,Math.floor(value.best![i])):0);
  for(const key of ['sound','music','reducedMotion'] as const)if(typeof value.settings?.[key]==='boolean')save.settings[key]=value.settings[key];
  if(value.settings&&['low','medium','high'].includes(value.settings.quality))save.settings.quality=value.settings.quality;
  return save;
 }
 export function recordVictory(save:Save,chapter:number,score:number):Save{
- if(!Number.isInteger(chapter)||chapter<0||chapter>2||!Number.isFinite(score))return save;
- return {...save,unlocked:Math.max(save.unlocked,Math.min(3,chapter+2)),best:save.best.map((n,i)=>i===chapter?Math.max(n,Math.max(0,Math.floor(score))):n)};
+ if(!Number.isInteger(chapter)||chapter<0||chapter>=CHAPTERS.length||!Number.isFinite(score))return save;
+ return {...save,unlocked:Math.max(save.unlocked,Math.min(CHAPTERS.length,chapter+2)),best:save.best.map((n,i)=>i===chapter?Math.max(n,Math.max(0,Math.floor(score))):n)};
 }

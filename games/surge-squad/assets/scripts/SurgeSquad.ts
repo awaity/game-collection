@@ -1,3 +1,4 @@
+import {loadCareer,drawCareer,Career,CareerPanel} from 'db://assets/collection/career';
 import {_decorator,AudioClip,AudioSource,Color,Component,Graphics,KeyCode,Label,Layers,Node,Rect,Sprite,SpriteFrame,Texture2D,UITransform,Vec3,resources} from 'cc';
 import {GameView} from 'db://assets/collection/runtime';
 import {CHAPTERS,CONFIG,Game,Save,SurgeEvent,clamp,normalizeSave,recordVictory} from './core';
@@ -5,20 +6,24 @@ import {SurgeArt} from './art';
 const{ccclass}=_decorator;
 @ccclass('SurgeSquad')
 export class SurgeSquad extends Component{
+ private career!:Career;private careerPanel!:CareerPanel;private rewardRun=0;private endless=false;private wave=1;private bankKills=0;private bankTime=0;private rewardEligible=false;
  private ui!:GameView;private sim=new Game();private art:SurgeArt|null=null;private accumulator=0;private idle=0;private selected=0;private clean=false;
  private titleShade:SpriteFrame|null=null;private frozen=false;private pauseSettings=false;private save!:Save;private held=new Set<number>();private drag:{x:number;origin:number}|null=null;private toast='';private toastUntil=0;private failure='';
  private audio!:AudioSource;private music!:AudioSource;private clips=new Map<string,AudioClip>();private lastShot=-1;
  private get width(){return this.ui.width<=600?this.ui.width:Math.min(this.ui.width,this.ui.height*.5625,760)}
  async start(){
   this.ui=new GameView('surge-squad.save.v1','#081320');this.save=normalizeSave(this.ui.platform.load({}));this.save.settings.reducedMotion ||= this.ui.services.reducedMotion;
+  this.career=loadCareer('surge-squad');this.careerPanel=new CareerPanel(this.career,()=>CHAPTERS.map((c,i)=>({name:c.name,description:['中央充能 · 放电突破','密集敌群 · 赤潮来袭','双首领封锁','冰川交错阵列','断续充能带 · 控制电量','提前金色电站 · 超载爆发'][i],unlocked:i<this.save.unlocked})),(map,endless)=>this.begin(map,false,endless),'电涌补给站');
+  this.careerPanel.guardDescription='每级增加 1 名初始队员';
   this.audio=this.node.addComponent(AudioSource);this.music=this.node.addComponent(AudioSource);this.music.loop=true;this.music.volume=.20;
   resources.loadDir('audio',AudioClip,(e,clips)=>{if(!e){for(const c of clips)this.clips.set(c.name,c);this.music.clip=this.clips.get('music')??null}});
   resources.load('title-shade/texture',Texture2D,(e,t)=>{if(!e){this.titleShade=new SpriteFrame();this.titleShade.texture=t}});
   this.ui.onHide=()=>this.pause();
   this.ui.onKey=(e,down)=>{
+   if(this.careerPanel.active){if(down&&e.keyCode===KeyCode.ESCAPE)this.careerPanel.active=false;this.held.clear();return}
    if(!down){this.held.delete(e.keyCode);return}this.held.add(e.keyCode);
    if([KeyCode.ESCAPE,KeyCode.KEY_P,KeyCode.SPACE].includes(e.keyCode))this.sim.phase==='paused'?this.resume():this.pause();
-   if(e.keyCode===KeyCode.KEY_R&&this.sim.phase!=='ready')this.begin(this.sim.level.index,this.sim.demo);
+   if(e.keyCode===KeyCode.KEY_R&&this.sim.phase!=='ready')this.begin(this.sim.level.index,this.sim.demo,this.endless);
    if(e.keyCode===KeyCode.KEY_M){this.save.settings.sound=!this.save.settings.sound;this.persist()}
    if(e.keyCode===KeyCode.KEY_H&&this.sim.phase!=='ready')this.clean=!this.clean;
    if([KeyCode.KEY_A,KeyCode.KEY_D,KeyCode.ARROW_LEFT,KeyCode.ARROW_RIGHT].includes(e.keyCode)&&this.sim.phase==='playing')this.sim.demo=false;
@@ -34,10 +39,13 @@ export class SurgeSquad extends Component{
  }
  private persist(){if(!this.ui.platform.save(this.save))this.message('本机存储不可用，本次行动仍可继续。',4);this.syncMusic()}
  private message(text:string,duration=1.8){this.toast=text;this.toastUntil=this.sim.time+duration}
- private begin(chapter=this.selected,demo=false){this.art?.feedback.clear();this.frozen=false;this.sim=new Game(chapter);this.sim.demo=demo;this.sim.start();this.selected=chapter;this.accumulator=0;this.idle=0;this.clean=false;this.clearInput();this.lastShot=-1;this.syncMusic();this.events()}
+ private begin(chapter=this.selected,demo=false,endless=false,continuing=false){
+  const survivors=this.sim.player.troops;
+  if(!continuing){this.endless=endless;this.wave=1;this.bankKills=0;this.bankTime=0;this.rewardEligible=!demo;this.rewardRun=demo?0:this.career.begin(endless?'endless':'stage');}
+this.art?.feedback.clear();this.frozen=false;this.sim=new Game(chapter,17429+(this.endless?this.wave*9781:0));if(!demo){const b=this.career.data.upgrades;this.sim.configure(b.power,b.haste,b.guard,this.endless?this.wave-1:0,this.career.data.skin==='classic'?'#ffffff':this.career.skin.color,this.career.data.skin==='classic'?'':this.career.skin.mark);if(continuing)this.sim.player.troops=Math.min(150,Math.max(6,survivors)+2);}this.sim.demo=demo;this.sim.start();this.selected=chapter;this.accumulator=0;this.idle=0;this.clean=false;this.clearInput();this.lastShot=-1;this.syncMusic();this.events()}
  private home(){this.art?.feedback.clear();this.selected=this.sim.level.index;this.sim=new Game(this.selected);this.clearInput();this.clean=false;this.syncMusic()}
  private clearInput(){this.held.clear();this.drag=null;this.accumulator=0}
- private pause(){this.pauseSettings=false;this.sim.pause();this.clearInput();this.syncMusic()}
+ private pause(){if(this.rewardEligible&&this.sim.phase==='playing')this.reward();this.pauseSettings=false;this.sim.pause();this.clearInput();this.syncMusic()}
  private resume(){this.frozen=false;this.sim.resume();this.clearInput();this.syncMusic()}
  private aim(x:number){this.frozen=false;if(this.sim.phase==='playing'){this.sim.demo=false;this.sim.aim(x)}}
  private syncMusic(){const active=this.sim.phase==='playing'&&this.save.settings.sound&&this.save.settings.music;if(active&&!this.music.playing&&this.music.clip)this.music.play();if(!active)this.music.pause();if(this.sim.phase!=='playing'||!this.save.settings.sound)this.audio.stop()}
@@ -46,14 +54,17 @@ export class SurgeSquad extends Component{
    this.art?.feedback.event(e,this.sim);
    const messages:Record<string,string|undefined>={start:'中央蓝带蓄能，横移自动放电',recruit:`+${e.value} 队员加入`,overcharge:'金色电能 +99 · 超载强化',arena:'巨兽封锁前路 · 躲开致命重击',warning:e.bossType==='titan'?'终局重击 · 立刻离开红色区域':undefined,combo:`${e.value} 连破`,victory:'防线突破',defeat:'重新集结，再来一次','missed-gate':`错过 +${e.value} 补给`};
    if(messages[e.type])this.message(messages[e.type]!,e.type==='start'?4:1.8);
-   if(e.type==='victory'&&!this.sim.demo){this.save=recordVictory(this.save,this.sim.level.index,this.sim.stats.score);this.persist()}
+   if(e.type==='victory'&&this.rewardEligible&&!this.endless){this.save=recordVictory(this.save,this.sim.level.index,this.sim.stats.score);this.persist()}
    if(this.save.settings.sound){const name=e.type==='overcharge'?'recruit':e.type==='cell'?(e.gold?'gold':'cell'):e.type;const clip=this.clips.get(name);if(clip&&(name!=='shot'||this.sim.time-this.lastShot>.10)){this.audio.playOneShot(clip,.35);if(name==='shot')this.lastShot=this.sim.time;}}
   }
  }
- private step(){const s=this.sim;if(s.phase!=='playing')return;const left=this.held.has(KeyCode.KEY_A)||this.held.has(KeyCode.ARROW_LEFT),right=this.held.has(KeyCode.KEY_D)||this.held.has(KeyCode.ARROW_RIGHT);if(left!==right)this.aim(s.player.targetX+(right?1:-1)*7.4/60);s.step();this.events();this.art?.feedback.update(1/60)}
+ private step(){const s=this.sim;if(s.phase!=='playing')return;const left=this.held.has(KeyCode.KEY_A)||this.held.has(KeyCode.ARROW_LEFT),right=this.held.has(KeyCode.KEY_D)||this.held.has(KeyCode.ARROW_RIGHT);if(left!==right)this.aim(s.player.targetX+(right?1:-1)*7.4/60);s.step();this.events();if(this.rewardEligible&&(Math.round(s.time*60)%60===0||s.phase!=='playing'))this.reward();this.art?.feedback.update(1/60)}
+ private reward(){this.career.checkpoint(this.rewardRun,{kills:this.bankKills+this.sim.stats.kills,seconds:this.bankTime+this.sim.time,waves:this.endless?this.wave-(this.sim.phase==='victory'?0:1):0,clear:!this.endless&&this.sim.phase==='victory'?String(this.sim.level.index):undefined});}
+ private nextBattle(){if(this.endless){this.reward();this.bankKills+=this.sim.stats.kills;this.bankTime+=this.sim.time;this.wave++;this.begin((this.sim.level.index+1)%CHAPTERS.length,false,true,true)}else this.begin((this.sim.level.index+1)%CHAPTERS.length,false);}
  update(dt:number){
   if(!this.ui)return;const u=this.ui,s=this.sim;u.begin();
-  if(!this.art){u.text('loading',this.failure||'正在接通电源…',0,0,18);u.end({slug:'surge-squad',phase:'loading'});return}
+  if(!this.art){u.text('loading',this.failure||'正在接通电源…',0,0,18);u.end({slug:'surge-squad',career:{skin:this.career.data.skin,upgrades:this.career.data.upgrades},skinColor:s.skinColor,damageScale:s.damageScale,intervalScale:s.intervalScale,phase:'loading'});return}
+  if(this.careerPanel.active){drawCareer(u,this.careerPanel);return;}
   if(s.phase==='playing'&&!this.frozen){this.accumulator+=Math.min(.08,Math.max(0,dt));while(this.accumulator>=1/60){this.step();this.accumulator-=1/60}this.idle=0}else if(s.phase!=='paused'&&!this.save.settings.reducedMotion)this.idle+=dt;
   this.syncMusic();const w=this.width,ratio=w/u.height,pan=s.player.x*.70;
   u.camera.rect=new Rect((u.width-w)/2/u.width,0,w/u.width,1);u.camera.fov=ratio<.5?2*Math.atan(Math.tan(32*Math.PI/360)*(.50/ratio))*180/Math.PI:32;
@@ -64,7 +75,7 @@ export class SurgeSquad extends Component{
    if(s.phase==='paused')this.pauseMenu();if(s.phase==='victory'||s.phase==='defeat')this.result();
   }
   u.platform.state(s.phase==='ready'?'menu':s.phase==='victory'||s.phase==='defeat'?'result':s.phase);
-  u.end({slug:'surge-squad',phase:s.phase,tick:Math.round(s.time*60),chapter:s.level.index,energy:s.player.energy,troops:s.player.troops,boss:s.level.bosses.map(b=>b.hp),gates:s.level.gates.map(g=>g.state),laser:s.player.laser,kills:s.stats.kills,score:s.stats.score,demo:s.demo,unlocked:this.save.unlocked,sound:this.save.settings.sound,music:this.save.settings.music,quality:this.save.settings.quality,reducedMotion:this.save.settings.reducedMotion,clean:this.clean});
+  u.end({slug:'surge-squad',career:{skin:this.career.data.skin,upgrades:this.career.data.upgrades},skinColor:s.skinColor,damageScale:s.damageScale,intervalScale:s.intervalScale,phase:s.phase,tick:Math.round(s.time*60),chapter:s.level.index,endless:this.endless,wave:this.wave,coins:this.career.data.coins,energy:s.player.energy,troops:s.player.troops,boss:s.level.bosses.map(b=>b.hp),gates:s.level.gates.map(g=>g.state),laser:s.player.laser,kills:s.stats.kills,score:s.stats.score,demo:s.demo,unlocked:this.save.unlocked,sound:this.save.settings.sound,music:this.save.settings.music,quality:this.save.settings.quality,reducedMotion:this.save.settings.reducedMotion,clean:this.clean});
  }
  private desktop(){const u=this.ui;if(u.width<=1050)return;const left=-this.width/2-130,right=this.width/2+125;
   u.text('desktop-mark','S / S',left,u.height*.36,14,'#88b9d0',180);u.text('desktop-title','SURGE\nSQUAD',left,u.height*.22,30,'#8ba9be',180).node.getComponent(UITransform)!.setContentSize(180,100);u.text('desktop-chinese','电涌小队',left,u.height*.12,11,'#5d7e97',180);u.text('desktop-small','CHARGE.\nRECRUIT.\nBREAK THROUGH.',left,u.height*.035,9,'#36576e',180).node.getComponent(UITransform)!.setContentSize(180,60);u.text('desktop-guide','中央蓄能\n两侧突破',right,-u.height*.24,14,'#7192ac',160).node.getComponent(UITransform)!.setContentSize(160,70);u.text('desktop-input','拖动鼠标 / 方向键\n自动射击 · 自动放电',right,-u.height*.33,9,'#385b73',160);
@@ -81,11 +92,12 @@ export class SurgeSquad extends Component{
  private menu(){const u=this.ui,w=this.width,h=u.height/2,small=u.height<650,base=-h+(small?38:84)+u.insets.bottom;
   u.panel('title-shade',0,0,w,u.height,'#00000000');const shade=u.objects.get('panel:title-shade')!;shade.getComponent(Graphics)!.clear();
   if(this.titleShade){let overlay=shade.getChildByName('gradient');if(!overlay){overlay=new Node('gradient');overlay.parent=shade;overlay.layer=Layers.Enum.UI_2D;overlay.addComponent(UITransform);overlay.addComponent(Sprite)}const sprite=overlay.getComponent(Sprite)!;sprite.sizeMode=Sprite.SizeMode.CUSTOM;sprite.spriteFrame=this.titleShade;overlay.getComponent(UITransform)!.setContentSize(w,u.height)}
+  this.button('career:open',`远征 · 商店 · ${this.career.data.coins} 金币`,0,h-70-u.insets.top,w*.82,()=>{this.pause();this.careerPanel.open()},true,40);
   u.text('eyebrow','•  O R I G I N A L   3 D   R U N N E R',0,base+(small?265:295),9,'#90b8d3',w-30);
   u.text('title','电涌小队',0,base+(small?222:250),small?35:Math.min(59,u.height*.050),'#f4f7fb',w-24).isBold=true;
   u.text('english','S U R G E   S Q U A D',0,base+(small?187:210),11,'#c1dbed',w-30);
   u.text('tagline','蓄满电能，击穿整条防线。',0,base+(small?155:176),11,'#96aec5',w-30);
-  CHAPTERS.forEach((c,i)=>{const unlocked=i<this.save.unlocked;this.button('chapter'+i,`0${i+1} ${unlocked?c.name:'· 锁定'}`,(i-1)*81,base+(small?120:133),75,()=>{if(unlocked){this.selected=i;this.sim=new Game(i)}},i===this.selected,31);this.ui.buttons.get('chapter'+i)!.label.fontSize=9});
+  CHAPTERS.slice(0,3).forEach((c,i)=>{const unlocked=i<this.save.unlocked;this.button('chapter'+i,`0${i+1} ${unlocked?c.name:'· 锁定'}`,(i-1)*81,base+(small?120:133),75,()=>{if(unlocked){this.selected=i;this.sim=new Game(i)}},i===this.selected,31);this.ui.buttons.get('chapter'+i)!.label.fontSize=9});
   this.button('start','开始行动      →',0,base+73,w*.82,()=>this.begin(this.selected,false),true,52);
   this.button('demo','观看实机演示  ↗',0,base+18,210,()=>this.begin(this.selected,true),false,32);
   u.text('instruction','拖动 / A D 横移　 ·　 自动开火',0,base-15,9,'#557088',w-20);
@@ -107,7 +119,7 @@ export class SurgeSquad extends Component{
  private pauseMenu(){if(this.ui.height<490){this.compactPause();return}const u=this.ui,w=Math.min(this.width*.84,390),height=Math.min(510,u.height-60-u.insets.top-u.insets.bottom),top=height/2,compact=height<490,step=compact?42:48;
   u.panel('overlay',0,0,this.width,u.height,'#06111dc9');u.panel('pause-card',0,0,w,height,'#102437fa');
   u.text('pause-kicker','TAKE A BREATH',0,top-28,9,'#90b8d3',w-30);u.text('pause-title','电流暂歇',0,top-61,compact?23:29,'#f4f7fb',w-30);u.text('pause-copy','队伍正在等你。',0,top-94,11,'#8faec3',w-30);
-  this.button('resume','继续行动 →',0,top-133,w-42,()=>this.resume(),true,40);this.button('retry','重新开始',0,top-133-step,w-42,()=>this.begin(this.sim.level.index,this.sim.demo),false,36);
+  this.button('resume','继续行动 →',0,top-133,w-42,()=>this.resume(),true,40);this.button('retry','重新开始',0,top-133-step,w-42,()=>this.begin(this.sim.level.index,this.sim.demo,this.endless),false,36);
   const y=top-133-step*2;(['low','medium','high']as const).forEach((q,i)=>{this.button('quality-'+q,['流畅','均衡','精细'][i],(i-1)*(w-42)/3,y,(w-54)/3,()=>{this.save.settings.quality=q;this.persist()},q===this.save.settings.quality,32)});
   this.button('music',`背景音乐：${this.save.settings.music?'开':'关'}`,0,y-step,w-42,()=>{this.save.settings.music=!this.save.settings.music;this.persist()},false,32);
   this.button('motion',`减少震动 / 闪烁：${this.save.settings.reducedMotion?'开':'关'}`,0,y-step*2,w-42,()=>{this.save.settings.reducedMotion=!this.save.settings.reducedMotion;this.persist()},false,32);
@@ -116,12 +128,12 @@ export class SurgeSquad extends Component{
  private result(){if(this.ui.height<490){this.compactResult();return}const u=this.ui,s=this.sim,win=s.phase==='victory',w=Math.min(this.width*.84,400),height=Math.min(530,u.height-52),top=height/2,small=height<510;
   u.panel('overlay',0,0,this.width,u.height,'#06111dc9');u.panel('result',0,0,w,height,'#102437fa');u.text('result-kicker',win?'MISSION COMPLETE':'REGROUP & RETURN',0,top-31,8,'#90b8d3',w-30);
   const stars=win?(s.stats.kills>1800&&s.stats.bosses===2?3:s.stats.kills>800?2:1):0;u.text('stars',win?[0,1,2].map(i=>i<stars?'✦':'✧').join(' '):'ϟ',0,top-73,30,win?'#f7cf70':'#fa7782',w-30);
-  u.text('result-title',win?'防线已突破':'电涌暂时熄灭',0,top-115,small?23:27,'#f4f7fb',w-26).isBold=true;
-  u.text('result-copy',win?(s.level.index===2?'三段防线已全部打通。':'小队已抵达下一座电站。'):'先在中央蓄能，再横移清场与扩编。',0,top-150,11,'#8faec3',w-30);
+  u.text('result-title',win?(this.endless?`无尽第 ${this.wave} 波突破`:'防线已突破'):'电涌暂时熄灭',0,top-115,small?23:27,'#f4f7fb',w-26).isBold=true;
+  u.text('result-copy',win?(this.endless?`无尽第 ${this.wave} 波 · 已获 ${this.career.lastReward} 金币`:s.level.index===CHAPTERS.length-1?'六张地图已全部打通。':'小队已抵达下一座电站。'):'先在中央蓄能，再横移清场与扩编。',0,top-150,11,'#8faec3',w-30);
   u.text('score-caption','本次得分',0,top-184,9,'#688ba6',w-30);u.text('score',String(s.stats.score),0,top-221,small?31:39,'#f4f7fb',w-30).isBold=true;
   [['敌人击破',String(s.stats.kills)],['队员存活',String(s.player.troops)],['行动用时',s.time.toFixed(1)+'s']].forEach(([title,value],i)=>{u.text('metric'+i,value,(i-1)*w*.28,top-274,18,'#d6e6f1',w*.27);u.text('metric-caption'+i,title,(i-1)*w*.28,top-299,8,'#61819c',w*.28)});
-  let y=top-345;if(win){this.button('next',s.level.index===2?'重返海堤 ↻':'下一段防线 →',0,y,w-44,()=>this.begin((s.level.index+1)%3,false),true,44);y-=54}
-  this.button('retry','再来一次',0,y,w-44,()=>this.begin(s.level.index,s.demo),!win,40);this.button('home','返回主菜单',0,y-48,w-44,()=>this.home(),false,34);
+  let y=top-345;if(win){this.button('next',this.endless?'下一波 · 保留队员':s.level.index===CHAPTERS.length-1?'重返海堤 ↻':'下一段防线 →',0,y,w-44,()=>this.nextBattle(),true,44);y-=54}
+  this.button('retry','再来一次',0,y,w-44,()=>this.begin(s.level.index,s.demo,this.endless),!win,40);this.button('home','返回主菜单',0,y-48,w-44,()=>this.home(),false,34);
  }
  private compactPause(){
   const u=this.ui,w=Math.min(this.width-24,360),height=u.height-48,top=height/2;
@@ -133,16 +145,16 @@ export class SurgeSquad extends Component{
    this.button('sound-setting',`声音：${this.save.settings.sound?'开':'关'}`,0,top-221,w-24,()=>{this.save.settings.sound=!this.save.settings.sound;this.persist()},false,34);
    this.button('settings-back','返回暂停',0,top-269,w-24,()=>this.pauseSettings=false,false,34);
   }else{
-   const choices:[string,string,()=>void][]=[['resume','继续行动 →',()=>this.resume()],['retry','重新开始',()=>this.begin(this.sim.level.index,this.sim.demo)],['settings','画面与声音',()=>this.pauseSettings=true],['clean','净画面模式',()=>{this.clean=true;this.resume()}],['home','返回主菜单',()=>this.home()]];
+   const choices:[string,string,()=>void][]=[['resume','继续行动 →',()=>this.resume()],['retry','重新开始',()=>this.begin(this.sim.level.index,this.sim.demo,this.endless)],['settings','画面与声音',()=>this.pauseSettings=true],['clean','净画面模式',()=>{this.clean=true;this.resume()}],['home','返回主菜单',()=>this.home()]];
    choices.forEach(([id,label,action],i)=>this.button(id,label,0,top-78-i*48,w-24,action,i===0,36));
   }
  }
  private compactResult(){
   const u=this.ui,s=this.sim,win=s.phase==='victory',w=Math.min(this.width-24,380),height=u.height-42,top=height/2;
-  u.panel('overlay',0,0,this.width,u.height,'#06111dc9');u.panel('result',0,0,w,height,'#102437fa');u.text('result-title',win?'防线已突破':'电涌暂时熄灭',0,top-28,20,'#f4f7fb',w-16).isBold=true;
+  u.panel('overlay',0,0,this.width,u.height,'#06111dc9');u.panel('result',0,0,w,height,'#102437fa');u.text('result-title',win?(this.endless?`无尽第 ${this.wave} 波突破`:'防线已突破'):'电涌暂时熄灭',0,top-28,20,'#f4f7fb',w-16).isBold=true;
   u.text('score-caption',`击破 ${s.stats.kills} · 存活 ${s.player.troops}`,0,top-67,11,'#90b8d3',w-16);u.text('score',String(s.stats.score),0,top-110,31,'#f7cf70',w-20);u.text('time',`行动用时 ${s.time.toFixed(1)}s`,0,top-149,11,'#90b8d3',w-16);
-  let y=top-194;if(win){this.button('next',s.level.index===2?'重返海堤':'下一段防线',0,y,w-24,()=>this.begin((s.level.index+1)%3,false),true,36);y-=44}
-  this.button('retry','再来一次',0,y,w-24,()=>this.begin(s.level.index,s.demo),!win,36);this.button('home','返回主菜单',0,y-44,w-24,()=>this.home(),false,34);
+  let y=top-194;if(win){this.button('next',this.endless?'下一波 · 保留队员':s.level.index===CHAPTERS.length-1?'重返海堤':'下一段防线',0,y,w-24,()=>this.nextBattle(),true,36);y-=44}
+  this.button('retry','再来一次',0,y,w-24,()=>this.begin(s.level.index,s.demo,this.endless),!win,36);this.button('home','返回主菜单',0,y-44,w-24,()=>this.home(),false,34);
  }
  onDestroy(){this.audio?.stop();this.music?.stop();this.art?.destroy();this.ui?.destroy()}
 }

@@ -24,5 +24,5 @@ test('front solid gate blocks ray damage from reaching enemies behind it',()=>{
  const g=new Game(),socket=weaponSocket(g.player,{x:0,z:0},0,0,0),hit=traceRay(g,socket);assert.equal(hit?.kind,'gate');assert.equal(hit?.item.id,'gate-1');
 });
 test('validated saves keep unlocked chapters and best scores monotonic',()=>{
- const a=defaultSave(),b=recordVictory(a,0,66996);assert.equal(a.unlocked,1);assert.equal(b.unlocked,2);assert.equal(recordVictory(b,0,5).best[0],66996);assert.deepEqual(recordVictory(b,4,20),b);assert.deepEqual(normalizeSave({version:7}),defaultSave());assert.equal(normalizeSave({version:1,unlocked:999,best:[NaN,-3,5],settings:{quality:'bad'}}).unlocked,3);
+ const a=defaultSave(),b=recordVictory(a,0,66996);assert.equal(a.unlocked,1);assert.equal(b.unlocked,2);assert.equal(recordVictory(b,0,5).best[0],66996);assert.deepEqual(recordVictory(b,999,20),b);assert.deepEqual(normalizeSave({version:7}),defaultSave());assert.equal(normalizeSave({version:1,unlocked:999,best:[NaN,-3,5],settings:{quality:'bad'}}).unlocked,6);
 });
