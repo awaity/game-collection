@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import struct
 from pathlib import Path
 
@@ -24,6 +25,11 @@ FINGERPRINTS = {
     "BuildGroupConditionConfig": "180c0436a1883a76cf39cc528f25bf68e343061fe5df4890b2c024aeef6d700b",
     "BuildLibraryConfig": "d5210a455bf64ccec8ea739864338a0cc8045b2f87e1b53faaa79a3f875af1ba",
     "BuildReplaceConfig": "8e7ef1e379ea9dffb775513190e3df2cd71df717bc1ebfdaecf7bcae93593632",
+    "SubSkillConfg": "fd0f349dc6df06171dcb95fa6aa3396592e5017e881a01eecf746d0b333c4ffc",
+    "MagicSkillConfig": "81209cf4d89d688cbfda8f8af6d7614a17f5e6ebe8c5b08bbb3555af10fddcc6",
+    "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
+    "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
+    "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
 }
 PERMUTATION = (5, 4, 2, 6, 1, 0, 3, 7, 8, 15, 10, 11, 9, 13, 14, 12)
 SUBTRACT = {1: 0x8F, 9: 0x69, 10: 0x0D, 11: 0xD8, 13: 0xED, 14: 0x5F}
@@ -53,22 +59,29 @@ def decode_prefix(raw: bytes) -> bytes:
     return bytes(decoded)
 
 
+class IncompleteRecord(ValueError):
+    """A fixed-version record reaches the unverified partial block."""
+
+
 class Table:
     def __init__(self, directory: Path, name: str):
         raw = (directory / name).read_bytes()
         self.name = name
         self.sha256 = hashlib.sha256(raw).hexdigest()
         require(self.sha256 == FINGERPRINTS[name], f"{name}: unknown reference revision")
-        self.data = decode_prefix(raw)
+        self.encoding = "plain" if raw[:4] == struct.pack(">I", 0x2DEF) else "transformed-blocks"
+        self.data = raw if self.encoding == "plain" else decode_prefix(raw)
         magic, size, version, self.count, self.checksum = struct.unpack_from(">5I", self.data)
         require((magic, size, version) == (0x2DEF, len(raw), 1), f"{name}: invalid header")
         self.size = size
         self.offset = 20
         self.complete = 0
+        self.partial_record_offset = None
 
     def unpack(self, fmt: str):
         size = struct.calcsize(fmt)
-        require(self.offset + size <= len(self.data), f"{self.name}: undecoded data at {self.offset}")
+        if self.offset + size > len(self.data):
+            raise IncompleteRecord(f"{self.name}: undecoded data at {self.offset}")
         result = struct.unpack_from(fmt, self.data, self.offset)
         self.offset += size
         return result
@@ -76,7 +89,8 @@ class Table:
     def string(self) -> str:
         (size,) = self.unpack(">I")
         require(size <= 10000, f"{self.name}: invalid string size at {self.offset}")
-        require(self.offset + size <= len(self.data), f"{self.name}: incomplete string")
+        if self.offset + size > len(self.data):
+            raise IncompleteRecord(f"{self.name}: incomplete string")
         raw = self.data[self.offset:self.offset + size]
         self.offset += size
         if not size:
@@ -87,6 +101,7 @@ class Table:
     def summary(self) -> dict:
         return {
             "sha256": self.sha256,
+            "encoding": self.encoding,
             "bytes": self.size,
             "declaredRows": self.count,
             "completeRows": self.complete,
@@ -95,6 +110,7 @@ class Table:
             "declaredChecksum": f"{self.checksum:08x}",
             "checksumVerified": False,
             "recordBoundariesReachFileEnd": self.offset == self.size,
+            "incompleteRecordOffset": self.partial_record_offset,
         }
 
 
@@ -159,6 +175,72 @@ def read_fixed(table: Table, size: int) -> list:
     return records
 
 
+def read_variable(table: Table, parse, identity) -> list:
+    """Validate every complete row; an unknown final boundary stays unknown."""
+    records, keys = [], set()
+    for index in range(table.count):
+        start = table.offset
+        try:
+            row = parse(table)
+        except IncompleteRecord:
+            require(index == table.count - 1 and len(table.data) < table.size,
+                    f"{table.name}: incomplete data before the last record")
+            table.offset = start
+            table.partial_record_offset = start
+            break
+        key = identity(row)
+        require(key not in keys, f"{table.name}: duplicate record identity {key}")
+        keys.add(key)
+        records.append({"offset": start, **row})
+        table.complete += 1
+    if table.partial_record_offset is None:
+        require(table.offset == table.size, f"{table.name}: unexpected trailing data")
+    return records
+
+
+def subskill_row(table: Table) -> dict:
+    (key,) = table.unpack(">I")
+    label = table.string()
+    return {"id": key, "string": label, "tail": list(table.unpack(">3I"))}
+
+
+def magic_row(table: Table) -> dict:
+    prefix = table.unpack(">5I")
+    icon = table.string()
+    return {"id": prefix[0], "prefix": list(prefix), "iconReference": icon,
+            "tail": list(table.unpack(">5I"))}
+
+
+def buff_row(table: Table) -> dict:
+    (key,) = table.unpack(">I")
+    name, icon = table.string(), table.string()
+    (middle,) = table.unpack(">34s")
+    effect = table.string()
+    (tail,) = table.unpack(">I")
+    return {"id": key, "name": name, "iconReference": icon,
+            "middleHex": middle.hex(), "effectReference": effect, "tail": tail}
+
+
+def buff_attr_row(table: Table) -> dict:
+    (prefix,) = table.unpack(">132s")
+    return {"id": struct.unpack_from(">I", prefix)[0], "rank": struct.unpack_from(">I", prefix, 4)[0],
+            "wordsAt96To128": list(struct.unpack_from(">9I", prefix, 96)),
+            "strings": [table.string() for _ in range(3)]}
+
+
+def read_skill_attributes(table: Table) -> list:
+    rows = []
+    for raw in read_fixed(table, 58):
+        key, flag = struct.unpack_from(">IB", raw)
+        effects = [struct.unpack_from(">HBf", raw, 37 + i * 7) for i in range(3)]
+        require(all(math.isfinite(v) for _, _, v in effects), f"{table.name}: nonfinite attribute")
+        # Repeated IDs are valid: one modifier may address several skill subsets.
+        rows.append({"id": key, "flag": flag, "targets": list(struct.unpack_from(">8I", raw, 5)),
+                     "attributes": [{"attribute": a, "method": method, "value": v}
+                                    for a, method, v in effects if a]})
+    return rows
+
+
 def inspect(directory: Path) -> dict:
     tables = {name: Table(directory, name) for name in FINGERPRINTS}
     texts = read_text(tables["TextConfig"])
@@ -177,8 +259,13 @@ def inspect(directory: Path) -> dict:
     conditions = read_fixed(tables["BuildGroupConditionConfig"], 16)
     libraries = read_fixed(tables["BuildLibraryConfig"], 8)
     replacements = read_fixed(tables["BuildReplaceConfig"], 28)
+    subskills = read_variable(tables["SubSkillConfg"], subskill_row, lambda r: r["id"])
+    magic = read_variable(tables["MagicSkillConfig"], magic_row, lambda r: r["id"])
+    buffs = read_variable(tables["BuffConfig"], buff_row, lambda r: r["id"])
+    buff_attrs = read_variable(tables["BuffAttrConfig"], buff_attr_row, lambda r: (r["id"], r["rank"]))
+    skill_attrs = read_skill_attributes(tables["BuffFuncSkillAttrConfig"])
     selected = {}
-    for key in [*range(1401, 1421), *range(1501, 1526)]:
+    for key in [*range(1401, 1421), *range(1501, 1526), *range(1560, 1564)]:
         row = builds[key]
         require(row["complete"], f"Build {key}: incomplete payload")
         require(row["title"] in texts and row["description"] in texts, f"Build {key}: unresolved text")
@@ -191,6 +278,15 @@ def inspect(directory: Path) -> dict:
         "tables": {name: table.summary() for name, table in tables.items()},
         "selectedBuilds": selected,
         "selectedGroups": [g for g in groups if g["group"] in (1014, 1015)],
+        "orbMechanics": {
+            "texts": {key: texts[key] for key in (402915000, 416002055, 416102055, 470281301,
+                                                   407401561, 407401562, 407401563, 407401564, 407401567)},
+            "magic": [r for r in magic if r["id"] == 15000],
+            "subskills": [r for r in subskills if 15000 <= r["id"] < 15700],
+            "buffs": [r for r in buffs if r["id"] in (150111, 150112, 150113, 156011, 156012, 156013)],
+            "buffAttributes": [r for r in buff_attrs if r["id"] in (150111, 150112, 150113, 156011, 156012, 156013)],
+            "skillAttributes": [r for r in skill_attrs if 15000 <= r["id"] < 15700],
+        },
         "selectedLibraries": [list(struct.unpack(">2I", raw)) for raw in libraries
                               if struct.unpack(">2I", raw)[1] in (1014, 1015, 14000, 15000)],
         "unresolvedGroupBuildReferences": [{"group": g["group"], "build": g["build"]}
