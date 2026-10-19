@@ -26,6 +26,7 @@ test('base, gear, research, and mercenary upgrades all enter the combat loadout'
  const after=a.loadout();assert.ok(after.damage>before.damage);assert.ok(after.health>before.health);assert.equal(after.mercenaryLevels.storm,2);assert.equal(after.research.thermo,1);assert.ok(new Battle(0,'campaign',1,after).stats('thermo').damage>new Battle().stats('thermo').damage);
 });
 test('research variant unlock is atomic, persists, and applies only to later battles',()=>{
+ assert.deepEqual(normalize(fresh(today),today).research,fresh(today).research,'fresh and reloaded profiles have the same zero-level research entries');
  let writable=true,saved:unknown;const a=new Armory(profile(),p=>{if(!writable)return false;saved=structuredClone(p);return true;},()=>today);
  for(let n=0;n<5;n++)assert.equal(a.research('orb'),true);
  const entered=new Battle(0,'campaign',1,a.loadout());entered.learned={orb:1};
