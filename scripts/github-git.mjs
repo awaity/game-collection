@@ -7,7 +7,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {root} from './site-config.mjs';
 
 const repository='https://api.github.com/repos/awaity/game-collection';
-const git=(args,options={})=>execFileSync('git',args,{cwd:root,stdio:['pipe','pipe','pipe'],maxBuffer:64*1024*1024,...options});
+const git=(args,options={})=>execFileSync('git',args,{cwd:root,stdio:['pipe','pipe','pipe'],maxBuffer:64*1024*1024,timeout:30000,...options,env:{...process.env,...options.env,GIT_NO_LAZY_FETCH:'1'}});
 const sha=value=>{assert.match(value,/^[a-f0-9]{40}$/);return value;};
 
 export function parseCommit(raw){
