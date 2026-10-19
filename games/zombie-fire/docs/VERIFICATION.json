@@ -1,47 +1,48 @@
 {
-  "verifiedAt": "2026-10-19T19:00:01.368Z",
-  "implementationRevision": "7f65e64e110f89a9159897dbdcb36a3d8b4e3148",
-  "sourceRevision": "e4c5f7862f2c78ac8d7beeff7f2ed8449624ed66",
+  "verifiedAt": "2026-10-19T19:57:44.518Z",
+  "implementationRevision": "fc92d2499fe4714df68dd8242132e4d31c455058",
+  "sourceRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
   "scope": "Independent reconstruction; actual official exports and legal inputs, not original-client execution.",
   "rules": {
-    "tests": 84,
-    "log": "artifacts/zombie-fire-enemy-traits-rules.log"
+    "tests": 94,
+    "log": "artifacts/zombie-fire-armor-rules.log"
   },
   "exports": {
     "web": {
       "target": "web-mobile",
       "version": "3.8.8",
-      "sourceHash": "1c6c3f3f82988f2223ca94e34b46c338416be23c157b48301718bcdd385e7886",
-      "builtAt": "2026-10-19T18:19:59.338Z",
+      "sourceHash": "625e35e3cd613fba44d243afb29002f309c093fb142fa7e3ab2e3cc485350a97",
+      "builtAt": "2026-10-19T19:17:20.971Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "weixin": {
       "target": "wechatgame",
       "version": "3.8.8",
-      "sourceHash": "87b4dc83d0ead0b78ac2aba0e4f5053982478e2a26631c64227163c692497f80",
-      "builtAt": "2026-10-19T18:20:59.835Z",
+      "sourceHash": "1cb0b7a0006513f53f643894e5dad343979246cd2e27d376bf5a37cd9d82e58f",
+      "builtAt": "2026-10-19T19:18:26.579Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "douyin": {
       "target": "bytedance-mini-game",
       "version": "3.8.8",
-      "sourceHash": "18bfad76014393e731e9b3181b966263faed3b03e19f48b76db472b08bef500c",
-      "builtAt": "2026-10-19T18:22:01.548Z",
+      "sourceHash": "98f0cfd285ac0fd5a8a0156666413a15f5031dfc20676550a761a80ec1659465",
+      "builtAt": "2026-10-19T19:19:27.849Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     }
   },
   "web": [
     {
-      "verifiedAt": "2026-10-19T18:30:02.777Z",
+      "verifiedAt": "2026-10-19T19:39:31.282Z",
       "target": "web",
       "viewport": {
         "width": 390,
         "height": 844
       },
       "flows": [
+        "six-hit-armor-block-break-and-pause",
         "enemy-traits-and-distinct-paralysis",
         "legal-first-clear",
         "three-choice-and-reroll",
@@ -80,45 +81,190 @@
       ],
       "evidence": "artifacts/cocos/zombie-fire/web-390-verification.json",
       "command": {
+        "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
         "target": "web",
         "width": 390,
-        "startedAt": "2026-10-19T18:20:47.510998+00:00",
-        "completedAt": "2026-10-19T18:30:02.893052+00:00",
+        "startedAt": "2026-10-19T19:32:33.695918+00:00",
+        "completedAt": "2026-10-19T19:39:31.434062+00:00",
         "exitCode": 0,
-        "log": "artifacts/zombie-fire-enemy-traits-web-390.log"
+        "log": "artifacts/zombie-fire-armor-web-390.log"
       },
-      "sourceHash": "1c6c3f3f82988f2223ca94e34b46c338416be23c157b48301718bcdd385e7886",
+      "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
+      "sourceHash": "625e35e3cd613fba44d243afb29002f309c093fb142fa7e3ab2e3cc485350a97",
       "traits": {
-        "verifiedAt": "2026-10-19T18:30:02.777Z",
+        "verifiedAt": "2026-10-19T19:39:31.282Z",
         "observedKinds": {
-          "runner": 3715,
-          "walker": 10892,
-          "brute": 6026,
-          "frostguard": 4,
-          "queen": 43,
-          "bomber": 2507,
-          "butcher": 413,
-          "spitter": 7847,
-          "armor": 11426,
-          "shield": 7933,
-          "mech": 783,
-          "splitter": 829,
-          "healer": 820
+          "runner": 2688,
+          "walker": 4524,
+          "brute": 3375,
+          "frostguard": 65,
+          "bat": 45,
+          "queen": 36,
+          "bomber": 1318,
+          "butcher": 227,
+          "spitter": 3241,
+          "armor": 4046,
+          "shield": 2156,
+          "mech": 159,
+          "splitter": 1077,
+          "healer": 1143
         },
-        "paralyzed": 1198,
-        "frozen": 3629,
-        "shieldWithoutExtraBarrier": 7933,
+        "paralyzed": 694,
+        "frozen": 2808,
+        "shieldWithoutExtraBarrier": 2156,
         "evidence": "artifacts/cocos/zombie-fire/web-390-enemy-traits.json"
+      },
+      "armor": {
+        "verifiedAt": "2026-10-19T19:39:29.530Z",
+        "intact": {
+          "attempt": 1,
+          "tick": 13176,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 596,
+            "hp": 246,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 4,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 5,
+            "blocked": 3,
+            "broken": 0
+          }
+        },
+        "broken": {
+          "attempt": 1,
+          "tick": 13398,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 562,
+            "hp": 112,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 0,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 6,
+            "blocked": 13,
+            "broken": 2
+          }
+        },
+        "paused": true,
+        "transitions": [
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 695,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 700,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13086,
+            "id": 695,
+            "before": 5,
+            "after": 4,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 695,
+            "before": 4,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 700,
+            "before": 5,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 711,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13368,
+            "id": 695,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13368,
+            "id": 700,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          }
+        ],
+        "evidence": "artifacts/cocos/zombie-fire/web-390-armor.json"
       }
     },
     {
-      "verifiedAt": "2026-10-19T18:43:08.839Z",
+      "verifiedAt": "2026-10-19T19:48:37.961Z",
       "target": "web",
       "viewport": {
         "width": 1440,
         "height": 900
       },
       "flows": [
+        "six-hit-armor-block-break-and-pause",
         "enemy-traits-and-distinct-paralysis",
         "legal-first-clear",
         "three-choice-and-reroll",
@@ -155,45 +301,190 @@
       "diagnostics": [],
       "evidence": "artifacts/cocos/zombie-fire/web-1440-verification.json",
       "command": {
+        "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
         "target": "web",
         "width": 1440,
-        "startedAt": "2026-10-19T18:30:18.868050+00:00",
-        "completedAt": "2026-10-19T18:43:08.954490+00:00",
+        "startedAt": "2026-10-19T19:40:22.833308+00:00",
+        "completedAt": "2026-10-19T19:48:38.131963+00:00",
         "exitCode": 0,
-        "log": "artifacts/zombie-fire-enemy-traits-web-1440.log"
+        "log": "artifacts/zombie-fire-armor-web-1440.log"
       },
-      "sourceHash": "1c6c3f3f82988f2223ca94e34b46c338416be23c157b48301718bcdd385e7886",
+      "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
+      "sourceHash": "625e35e3cd613fba44d243afb29002f309c093fb142fa7e3ab2e3cc485350a97",
       "traits": {
-        "verifiedAt": "2026-10-19T18:43:08.839Z",
+        "verifiedAt": "2026-10-19T19:48:37.960Z",
         "observedKinds": {
-          "runner": 3715,
-          "walker": 10892,
-          "brute": 6026,
-          "frostguard": 4,
-          "queen": 43,
-          "bomber": 2507,
-          "butcher": 413,
-          "spitter": 7847,
-          "armor": 11426,
-          "shield": 7933,
-          "mech": 783,
-          "splitter": 829,
-          "healer": 820
+          "runner": 2688,
+          "walker": 4524,
+          "brute": 3375,
+          "frostguard": 65,
+          "bat": 45,
+          "queen": 36,
+          "bomber": 1318,
+          "butcher": 227,
+          "spitter": 3241,
+          "armor": 4046,
+          "shield": 2156,
+          "mech": 159,
+          "splitter": 1077,
+          "healer": 1143
         },
-        "paralyzed": 1198,
-        "frozen": 3629,
-        "shieldWithoutExtraBarrier": 7933,
+        "paralyzed": 694,
+        "frozen": 2808,
+        "shieldWithoutExtraBarrier": 2156,
         "evidence": "artifacts/cocos/zombie-fire/web-1440-enemy-traits.json"
+      },
+      "armor": {
+        "verifiedAt": "2026-10-19T19:48:35.311Z",
+        "intact": {
+          "attempt": 1,
+          "tick": 13176,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 596,
+            "hp": 246,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 4,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 5,
+            "blocked": 3,
+            "broken": 0
+          }
+        },
+        "broken": {
+          "attempt": 1,
+          "tick": 13398,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 562,
+            "hp": 112,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 0,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 6,
+            "blocked": 13,
+            "broken": 2
+          }
+        },
+        "paused": true,
+        "transitions": [
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 695,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 700,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13086,
+            "id": 695,
+            "before": 5,
+            "after": 4,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 695,
+            "before": 4,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 700,
+            "before": 5,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 711,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13368,
+            "id": 695,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13368,
+            "id": 700,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          }
+        ],
+        "evidence": "artifacts/cocos/zombie-fire/web-1440-armor.json"
       }
     },
     {
-      "verifiedAt": "2026-10-19T18:51:50.434Z",
+      "verifiedAt": "2026-10-19T19:46:41.905Z",
       "target": "web",
       "viewport": {
         "width": 844,
         "height": 390
       },
       "flows": [
+        "six-hit-armor-block-break-and-pause",
         "enemy-traits-and-distinct-paralysis",
         "legal-first-clear",
         "three-choice-and-reroll",
@@ -232,45 +523,190 @@
       ],
       "evidence": "artifacts/cocos/zombie-fire/web-844-verification.json",
       "command": {
+        "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
         "target": "web",
         "width": 844,
-        "startedAt": "2026-10-19T18:43:08.999648+00:00",
-        "completedAt": "2026-10-19T18:51:50.538979+00:00",
+        "startedAt": "2026-10-19T19:40:22.836307+00:00",
+        "completedAt": "2026-10-19T19:46:42.058532+00:00",
         "exitCode": 0,
-        "log": "artifacts/zombie-fire-enemy-traits-web-844.log"
+        "log": "artifacts/zombie-fire-armor-web-844.log"
       },
-      "sourceHash": "1c6c3f3f82988f2223ca94e34b46c338416be23c157b48301718bcdd385e7886",
+      "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
+      "sourceHash": "625e35e3cd613fba44d243afb29002f309c093fb142fa7e3ab2e3cc485350a97",
       "traits": {
-        "verifiedAt": "2026-10-19T18:51:50.433Z",
+        "verifiedAt": "2026-10-19T19:46:41.904Z",
         "observedKinds": {
-          "runner": 3715,
-          "walker": 10892,
-          "brute": 6026,
-          "frostguard": 4,
-          "queen": 43,
-          "bomber": 2507,
-          "butcher": 413,
-          "spitter": 7847,
-          "armor": 11426,
-          "shield": 7933,
-          "mech": 783,
-          "splitter": 829,
-          "healer": 820
+          "runner": 2688,
+          "walker": 4524,
+          "brute": 3375,
+          "frostguard": 65,
+          "bat": 45,
+          "queen": 36,
+          "bomber": 1318,
+          "butcher": 227,
+          "spitter": 3241,
+          "armor": 4046,
+          "shield": 2156,
+          "mech": 159,
+          "splitter": 1077,
+          "healer": 1143
         },
-        "paralyzed": 1198,
-        "frozen": 3629,
-        "shieldWithoutExtraBarrier": 7933,
+        "paralyzed": 694,
+        "frozen": 2808,
+        "shieldWithoutExtraBarrier": 2156,
         "evidence": "artifacts/cocos/zombie-fire/web-844-enemy-traits.json"
+      },
+      "armor": {
+        "verifiedAt": "2026-10-19T19:46:39.882Z",
+        "intact": {
+          "attempt": 1,
+          "tick": 13176,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 596,
+            "hp": 246,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 4,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 5,
+            "blocked": 3,
+            "broken": 0
+          }
+        },
+        "broken": {
+          "attempt": 1,
+          "tick": 13398,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 562,
+            "hp": 112,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 0,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 6,
+            "blocked": 13,
+            "broken": 2
+          }
+        },
+        "paused": true,
+        "transitions": [
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 695,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 700,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13086,
+            "id": 695,
+            "before": 5,
+            "after": 4,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 695,
+            "before": 4,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 700,
+            "before": 5,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 711,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13368,
+            "id": 695,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13368,
+            "id": 700,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          }
+        ],
+        "evidence": "artifacts/cocos/zombie-fire/web-844-armor.json"
       }
     },
     {
-      "verifiedAt": "2026-10-19T18:59:13.522Z",
+      "verifiedAt": "2026-10-19T19:52:28.179Z",
       "target": "web",
       "viewport": {
         "width": 320,
         "height": 568
       },
       "flows": [
+        "six-hit-armor-block-break-and-pause",
         "enemy-traits-and-distinct-paralysis",
         "legal-first-clear",
         "three-choice-and-reroll",
@@ -309,47 +745,192 @@
       ],
       "evidence": "artifacts/cocos/zombie-fire/web-320-verification.json",
       "command": {
+        "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
         "target": "web",
         "width": 320,
-        "startedAt": "2026-10-19T18:51:50.580294+00:00",
-        "completedAt": "2026-10-19T18:59:13.652855+00:00",
+        "startedAt": "2026-10-19T19:47:20.093865+00:00",
+        "completedAt": "2026-10-19T19:52:28.310675+00:00",
         "exitCode": 0,
-        "log": "artifacts/zombie-fire-enemy-traits-web-320.log"
+        "log": "artifacts/zombie-fire-armor-web-320.log"
       },
-      "sourceHash": "1c6c3f3f82988f2223ca94e34b46c338416be23c157b48301718bcdd385e7886",
+      "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
+      "sourceHash": "625e35e3cd613fba44d243afb29002f309c093fb142fa7e3ab2e3cc485350a97",
       "traits": {
-        "verifiedAt": "2026-10-19T18:59:13.521Z",
+        "verifiedAt": "2026-10-19T19:52:28.178Z",
         "observedKinds": {
-          "runner": 3715,
-          "walker": 10892,
-          "brute": 6026,
-          "frostguard": 4,
-          "queen": 43,
-          "bomber": 2507,
-          "butcher": 413,
-          "spitter": 7847,
-          "armor": 11426,
-          "shield": 7933,
-          "mech": 783,
-          "splitter": 829,
-          "healer": 820
+          "runner": 2688,
+          "walker": 4524,
+          "brute": 3375,
+          "frostguard": 65,
+          "bat": 45,
+          "queen": 36,
+          "bomber": 1318,
+          "butcher": 227,
+          "spitter": 3241,
+          "armor": 4046,
+          "shield": 2156,
+          "mech": 159,
+          "splitter": 1077,
+          "healer": 1143
         },
-        "paralyzed": 1198,
-        "frozen": 3629,
-        "shieldWithoutExtraBarrier": 7933,
+        "paralyzed": 694,
+        "frozen": 2808,
+        "shieldWithoutExtraBarrier": 2156,
         "evidence": "artifacts/cocos/zombie-fire/web-320-enemy-traits.json"
+      },
+      "armor": {
+        "verifiedAt": "2026-10-19T19:52:26.438Z",
+        "intact": {
+          "attempt": 1,
+          "tick": 13176,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 596,
+            "hp": 246,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 4,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 5,
+            "blocked": 3,
+            "broken": 0
+          }
+        },
+        "broken": {
+          "attempt": 1,
+          "tick": 13398,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 562,
+            "hp": 112,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 0,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 6,
+            "blocked": 13,
+            "broken": 2
+          }
+        },
+        "paused": true,
+        "transitions": [
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 695,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 700,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13086,
+            "id": 695,
+            "before": 5,
+            "after": 4,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 695,
+            "before": 4,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 700,
+            "before": 5,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 711,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13368,
+            "id": 695,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13368,
+            "id": 700,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          }
+        ],
+        "evidence": "artifacts/cocos/zombie-fire/web-320-armor.json"
       }
     }
   ],
   "native": [
     {
-      "verifiedAt": "2026-10-19T18:40:45.382Z",
+      "verifiedAt": "2026-10-19T19:52:02.021Z",
       "target": "weixin",
       "viewport": {
         "width": 390,
         "height": 844
       },
       "flows": [
+        "six-hit-armor-block-break-and-pause",
         "enemy-traits-and-distinct-paralysis",
         "legal-first-clear",
         "three-choice-and-reroll",
@@ -391,56 +972,201 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 534,
+        "colors": 532,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
       "evidence": "artifacts/cocos/zombie-fire/weixin-390-verification.json",
       "command": {
+        "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
         "target": "weixin",
         "width": 390,
-        "startedAt": "2026-10-19T18:23:11.916343+00:00",
-        "completedAt": "2026-10-19T18:40:45.517689+00:00",
+        "startedAt": "2026-10-19T19:40:58.853698+00:00",
+        "completedAt": "2026-10-19T19:52:02.153690+00:00",
         "exitCode": 0,
-        "log": "artifacts/zombie-fire-enemy-traits-weixin-390.log"
+        "log": "artifacts/zombie-fire-armor-weixin-390.log"
       },
-      "sourceHash": "87b4dc83d0ead0b78ac2aba0e4f5053982478e2a26631c64227163c692497f80",
+      "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
+      "sourceHash": "1cb0b7a0006513f53f643894e5dad343979246cd2e27d376bf5a37cd9d82e58f",
       "traits": {
-        "verifiedAt": "2026-10-19T18:40:45.381Z",
+        "verifiedAt": "2026-10-19T19:52:02.020Z",
         "observedKinds": {
-          "runner": 3754,
-          "walker": 10810,
-          "brute": 5994,
-          "frostguard": 4,
-          "queen": 47,
-          "bomber": 2497,
-          "butcher": 415,
-          "spitter": 7793,
-          "armor": 11237,
-          "shield": 7863,
-          "mech": 781,
-          "splitter": 848,
-          "healer": 1007
+          "runner": 2638,
+          "walker": 4476,
+          "brute": 3315,
+          "frostguard": 64,
+          "bat": 46,
+          "queen": 36,
+          "bomber": 1285,
+          "butcher": 223,
+          "spitter": 3189,
+          "armor": 4115,
+          "shield": 2125,
+          "mech": 157,
+          "splitter": 1056,
+          "healer": 1118
         },
-        "paralyzed": 1258,
-        "frozen": 3553,
-        "shieldWithoutExtraBarrier": 7863,
+        "paralyzed": 682,
+        "frozen": 2735,
+        "shieldWithoutExtraBarrier": 2125,
         "evidence": "artifacts/cocos/zombie-fire/weixin-390-enemy-traits.json"
       },
+      "armor": {
+        "verifiedAt": "2026-10-19T19:51:59.353Z",
+        "intact": {
+          "attempt": 1,
+          "tick": 13179,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 596,
+            "hp": 246,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 4,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 5,
+            "blocked": 3,
+            "broken": 0
+          }
+        },
+        "broken": {
+          "attempt": 1,
+          "tick": 13409,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 561,
+            "hp": 112,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 0,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 6,
+            "blocked": 13,
+            "broken": 2
+          }
+        },
+        "paused": true,
+        "transitions": [
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 695,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13026,
+            "id": 700,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13087,
+            "id": 695,
+            "before": 5,
+            "after": 4,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13348,
+            "id": 695,
+            "before": 4,
+            "after": 2,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13348,
+            "id": 700,
+            "before": 5,
+            "after": 2,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13348,
+            "id": 711,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13378,
+            "id": 695,
+            "before": 2,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13378,
+            "id": 700,
+            "before": 2,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          }
+        ],
+        "evidence": "artifacts/cocos/zombie-fire/weixin-390-armor.json"
+      },
       "audio": {
-        "verifiedAt": "2026-10-19T18:23:18.196Z",
+        "verifiedAt": "2026-10-19T19:41:08.656Z",
         "target": "weixin",
         "playsBeforeRestart": 7
       }
     },
     {
-      "verifiedAt": "2026-10-19T18:57:38.192Z",
+      "verifiedAt": "2026-10-19T19:56:58.425Z",
       "target": "douyin",
       "viewport": {
         "width": 390,
         "height": 844
       },
       "flows": [
+        "six-hit-armor-block-break-and-pause",
         "enemy-traits-and-distinct-paralysis",
         "legal-first-clear",
         "three-choice-and-reroll",
@@ -482,44 +1208,188 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 534,
+        "colors": 533,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
       "evidence": "artifacts/cocos/zombie-fire/douyin-390-verification.json",
       "command": {
+        "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
         "target": "douyin",
         "width": 390,
-        "startedAt": "2026-10-19T18:41:01.318273+00:00",
-        "completedAt": "2026-10-19T18:57:38.312438+00:00",
+        "startedAt": "2026-10-19T19:49:15.250930+00:00",
+        "completedAt": "2026-10-19T19:56:58.534867+00:00",
         "exitCode": 0,
-        "log": "artifacts/zombie-fire-enemy-traits-douyin-390.log"
+        "log": "artifacts/zombie-fire-armor-douyin-390.log"
       },
-      "sourceHash": "18bfad76014393e731e9b3181b966263faed3b03e19f48b76db472b08bef500c",
+      "flowRevision": "199c2ff7329e498ab5cb07755f4f7e5842b7ea12",
+      "sourceHash": "98f0cfd285ac0fd5a8a0156666413a15f5031dfc20676550a761a80ec1659465",
       "traits": {
-        "verifiedAt": "2026-10-19T18:57:38.191Z",
+        "verifiedAt": "2026-10-19T19:56:58.424Z",
         "observedKinds": {
-          "runner": 3780,
-          "walker": 10776,
-          "brute": 5999,
-          "frostguard": 4,
-          "queen": 43,
-          "bomber": 2505,
-          "butcher": 416,
-          "spitter": 7705,
-          "armor": 11181,
-          "shield": 7764,
-          "mech": 789,
-          "splitter": 826,
-          "healer": 855
+          "runner": 2684,
+          "walker": 4507,
+          "brute": 3374,
+          "frostguard": 65,
+          "bat": 46,
+          "queen": 36,
+          "bomber": 1318,
+          "butcher": 229,
+          "spitter": 3227,
+          "armor": 4015,
+          "shield": 2142,
+          "mech": 164,
+          "splitter": 1060,
+          "healer": 1139
         },
-        "paralyzed": 1199,
-        "frozen": 3490,
-        "shieldWithoutExtraBarrier": 7764,
+        "paralyzed": 721,
+        "frozen": 2765,
+        "shieldWithoutExtraBarrier": 2142,
         "evidence": "artifacts/cocos/zombie-fire/douyin-390-enemy-traits.json"
       },
+      "armor": {
+        "verifiedAt": "2026-10-19T19:56:56.884Z",
+        "intact": {
+          "attempt": 1,
+          "tick": 13180,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 596,
+            "hp": 246,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 4,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 5,
+            "blocked": 3,
+            "broken": 0
+          }
+        },
+        "broken": {
+          "attempt": 1,
+          "tick": 13399,
+          "enemy": {
+            "id": 695,
+            "kind": "armor",
+            "x": 91,
+            "y": 562,
+            "hp": 112,
+            "maxHp": 246,
+            "shield": 0,
+            "armorHits": 0,
+            "freeze": 0,
+            "paralysis": 0,
+            "stun": 0,
+            "burn": 0,
+            "slow": 0,
+            "root": 0,
+            "bind": 0,
+            "haste": 0,
+            "hinder": 0,
+            "orbSlow": 0,
+            "fractures": 0,
+            "warning": 0
+          },
+          "progress": {
+            "spawned": 6,
+            "blocked": 13,
+            "broken": 2
+          }
+        },
+        "paused": true,
+        "transitions": [
+          {
+            "attempt": 1,
+            "tick": 13034,
+            "id": 695,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13034,
+            "id": 700,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13091,
+            "id": 695,
+            "before": 5,
+            "after": 4,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 695,
+            "before": 4,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 700,
+            "before": 5,
+            "after": 3,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13338,
+            "id": 711,
+            "before": 6,
+            "after": 5,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13369,
+            "id": 695,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          },
+          {
+            "attempt": 1,
+            "tick": 13369,
+            "id": 700,
+            "before": 3,
+            "after": 0,
+            "hp": 246,
+            "maxHp": 246
+          }
+        ],
+        "evidence": "artifacts/cocos/zombie-fire/douyin-390-armor.json"
+      },
       "audio": {
-        "verifiedAt": "2026-10-19T18:41:09.274Z",
+        "verifiedAt": "2026-10-19T19:49:24.305Z",
         "target": "douyin",
         "playsBeforeRestart": 3
       }
@@ -527,1115 +1397,313 @@
   ],
   "campaign": {
     "source": "local-stage-configurations",
-    "verifiedAt": "2026-10-19T18:17:48.035Z",
+    "verifiedAt": "2026-10-19T19:15:42.194Z",
     "stages": 36,
     "maps": 6,
     "attempts": 36,
     "allFirstAttempt": true,
     "legalInputOnly": true,
-    "log": "artifacts/zombie-fire-enemy-traits-campaign.log",
+    "log": "artifacts/zombie-fire-armor-campaign.log",
     "evidence": "games/zombie-fire/artifacts/campaign-audit.json"
   },
   "reference": {
-    "verifiedAt": "2026-10-19T18:19:22.503973+00:00",
-    "readerSha256": "984fbc835d35c83820592a9cd859f3714ec4220d1f0abc85661948d569b12e15",
-    "tables": 19,
-    "input": {
-      "sha256": "ce78e68f04d6dc3184dc7628711acab160b4be848f99bc681bc2e6c3ac890521",
-      "encoding": "plain",
-      "bytes": 17098,
-      "declaredRows": 266,
-      "completeRows": 266,
-      "decodedPrefixBytes": 17098,
-      "undecodedTailBytes": 0,
-      "declaredChecksum": "a7038780",
-      "checksumVerified": false,
-      "recordBoundariesReachFileEnd": true,
-      "incompleteRecordOffset": null
-    },
-    "traits": {
-      "definitionLayout": {
-        "idBytes": 4,
-        "stringCount": 1,
-        "tailBytes": 31
-      },
-      "definitionRows": 266,
-      "monsterRows": 3210,
-      "slots": 25680,
-      "nonzeroSlots": 10867,
-      "methodCounts": {
-        "0": 14813,
-        "1": 10867
-      },
-      "missingAttributeIds": [],
-      "selectedMonsters": [
-        {
-          "id": 10,
-          "name": "普通僵尸",
-          "description": "-没有脑子的弱小僵尸",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            }
-          ]
-        },
-        {
-          "id": 20,
-          "name": "迅捷鬣狗",
-          "description": "-移动时有概率提升50%移速\n-<color=#ae5500>被动</color>：额外受到50%的<color=#ae5500>冰系</color>伤害",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 304,
-              "method": 1,
-              "value": 0.5,
-              "label": "受到冰属性伤害"
-            },
-            {
-              "offset": 111,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            }
-          ]
-        },
-        {
-          "id": 30,
-          "name": "篮球僵尸",
-          "description": "-远程攻击\n-额外受到50%<color=#ae5500>火系/电系</color>伤害",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            },
-            {
-              "offset": 90,
-              "attribute": 302,
-              "method": 1,
-              "value": 0.5,
-              "label": "受到雷属性伤害"
-            },
-            {
-              "offset": 97,
-              "attribute": 303,
-              "method": 1,
-              "value": 0.5,
-              "label": "受到火属性伤害"
-            }
-          ]
-        },
-        {
-          "id": 40,
-          "name": "食腐鸟",
-          "description": "-飞行，拥有特殊移动路径，免疫地面技能",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 354,
-              "method": 1,
-              "value": 1,
-              "label": "免疫地面技能"
-            },
-            {
-              "offset": 111,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            }
-          ]
-        },
-        {
-          "id": 50,
-          "name": "火焰僵尸",
-          "description": "-免疫燃烧/冻结，减少60%火系伤害\n-额外受到100%<color=#ae5500>冰系</color>伤害",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 303,
-              "method": 1,
-              "value": -0.6000000238418579,
-              "label": "受到火属性伤害"
-            },
-            {
-              "offset": 90,
-              "attribute": 304,
-              "method": 1,
-              "value": 1,
-              "label": "受到冰属性伤害"
-            },
-            {
-              "offset": 111,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            }
-          ]
-        },
-        {
-          "id": 60,
-          "name": "雷电僵尸",
-          "description": "-减少60%电系伤害和50%麻痹时间\n-额外受到50%<color=#ae5500>火系</color>伤害",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 302,
-              "method": 1,
-              "value": -0.6000000238418579,
-              "label": "受到雷属性伤害"
-            },
-            {
-              "offset": 90,
-              "attribute": 303,
-              "method": 1,
-              "value": 0.5,
-              "label": "受到火属性伤害"
-            },
-            {
-              "offset": 97,
-              "attribute": 311,
-              "method": 1,
-              "value": -0.5,
-              "label": "受到麻痹异常状态时间"
-            },
-            {
-              "offset": 111,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            }
-          ]
-        },
-        {
-          "id": 70,
-          "name": "冰雪僵尸",
-          "description": "-减少50%冰系伤害/冻结时间\n-额外受到50%<color=#ae5500>火系</color>伤害，<color=#ae5500>燃烧</color>时间提高100%",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 303,
-              "method": 1,
-              "value": 1,
-              "label": "受到火属性伤害"
-            },
-            {
-              "offset": 90,
-              "attribute": 304,
-              "method": 1,
-              "value": -0.5,
-              "label": "受到冰属性伤害"
-            },
-            {
-              "offset": 97,
-              "attribute": 312,
-              "method": 1,
-              "value": -0.5,
-              "label": "受到冻结异常状态时间"
-            },
-            {
-              "offset": 104,
-              "attribute": 310,
-              "method": 1,
-              "value": 1,
-              "label": "受到燃烧异常状态时间"
-            },
-            {
-              "offset": 111,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            }
-          ]
-        },
-        {
-          "id": 80,
-          "name": "持盾僵尸",
-          "description": "-免疫燃烧/眩晕/击退，减少70%弹道伤害\n-额外受到50%<color=#ae5500>电系</color>伤害",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 306,
-              "method": 1,
-              "value": -0.699999988079071,
-              "label": "受到弹道技能伤害"
-            },
-            {
-              "offset": 90,
-              "attribute": 302,
-              "method": 1,
-              "value": 0.5,
-              "label": "受到雷属性伤害"
-            },
-            {
-              "offset": 97,
-              "attribute": 123,
-              "method": 1,
-              "value": -5,
-              "label": "受到击退力"
-            },
-            {
-              "offset": 104,
-              "attribute": 125,
-              "method": 1,
-              "value": -5,
-              "label": "受到牵引力"
-            },
-            {
-              "offset": 111,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            }
-          ]
-        },
-        {
-          "id": 90,
-          "name": "绷带僵尸",
-          "description": "-额外受到100%<color=#ae5500>火系</color>伤害，<color=#ae5500>燃烧</color>时间提高100%",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 303,
-              "method": 1,
-              "value": 1,
-              "label": "受到火属性伤害"
-            },
-            {
-              "offset": 90,
-              "attribute": 310,
-              "method": 1,
-              "value": 1,
-              "label": "受到燃烧异常状态时间"
-            },
-            {
-              "offset": 111,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            }
-          ]
-        },
-        {
-          "id": 100,
-          "name": "双头僵尸",
-          "description": "-免疫眩晕\n-额外受到50%<color=#ae5500>火系/电系</color>伤害\n-<color=#ae5500>被动</color>：死亡后将分裂为两个僵尸",
-          "attributes": [
-            {
-              "offset": 83,
-              "attribute": 157,
-              "method": 1,
-              "value": 1,
-              "label": "怪物给子弹的阻力"
-            },
-            {
-              "offset": 90,
-              "attribute": 302,
-              "method": 1,
-              "value": 0.5,
-              "label": "受到雷属性伤害"
-            },
-            {
-              "offset": 97,
-              "attribute": 303,
-              "method": 1,
-              "value": 0.5,
-              "label": "受到火属性伤害"
-            }
-          ]
-        }
-      ],
-      "statusDefinitions": [
-        {
-          "offset": 8477,
-          "id": 310,
-          "label": "受到燃烧异常状态时间"
-        },
-        {
-          "offset": 8547,
-          "id": 311,
-          "label": "受到麻痹异常状态时间"
-        },
-        {
-          "offset": 8617,
-          "id": 312,
-          "label": "受到冻结异常状态时间"
-        },
-        {
-          "offset": 8687,
-          "id": 313,
-          "label": "受到眩晕异常状态时间"
-        },
-        {
-          "offset": 8882,
-          "id": 316,
-          "label": "受到减速状态时间"
-        }
-      ],
-      "textAttributeConflicts": [
-        {
-          "monster": 70,
-          "attribute": 303,
-          "slotValue": 1,
-          "description": "-减少50%冰系伤害/冻结时间\n-额外受到50%<color=#ae5500>火系</color>伤害，<color=#ae5500>燃烧</color>时间提高100%",
-          "localChoice": "Use the description's +50%; raw +100% remains unresolved."
-        }
-      ],
-      "limits": [
-        "Attribute IDs and static values are verified; runtime merge order is not.",
-        "Method 1 is not assumed to mean the same operation for every attribute.",
-        "Burn/freeze/stun immunity uses descriptions; not all immunity comes from these eight slots.",
-        "Paralysis (311) and stun (313) are different statuses."
-      ]
-    },
-    "positiveLog": "artifacts/zombie-fire-enemy-traits-reference.log",
-    "invalidInputs": [
+    "verifiedAt": "2026-10-19T19:16:57.521635+00:00",
+    "report": "artifacts/research/zombie-fire/validated-tables.json",
+    "sha256": "3561dc2142020e4ffb9c1ea383fc1041d61cef1d32b21a3f09ab838bff40fedd",
+    "monsters": [
       {
-        "case": "missing-attributes",
-        "exitCode": 1,
-        "reportPreserved": true,
-        "log": "artifacts/zombie-fire-enemy-traits-reader-missing-attributes.log"
-      },
-      {
-        "case": "truncated-attributes",
-        "exitCode": 1,
-        "reportPreserved": true,
-        "log": "artifacts/zombie-fire-enemy-traits-reader-truncated-attributes.log"
-      },
-      {
-        "case": "changed-attributes",
-        "exitCode": 1,
-        "reportPreserved": true,
-        "log": "artifacts/zombie-fire-enemy-traits-reader-changed-attributes.log"
-      }
-    ],
-    "temporaryInputsRemoved": true
-  },
-  "campaignReference": {
-    "verifiedAt": "2026-10-19T18:36:57.705041+00:00",
-    "readerSha256": "0dae6e22f2f7d575607b0e6a07fa26d7e11a3f233ea21bc676101978fc3ad757",
-    "tables": 22,
-    "inputs": {
-      "BootyConfig": {
-        "sha256": "43fdfdd5f281ea3c9802a099045cb267edab3bc8f5a0fa51bcf875b58b2eaaac",
-        "encoding": "transformed-blocks",
-        "bytes": 5644596,
-        "declaredRows": 100796,
-        "completeRows": 100795,
-        "decodedPrefixBytes": 5644592,
-        "undecodedTailBytes": 4,
-        "declaredChecksum": "f62062e5",
-        "checksumVerified": false,
-        "recordBoundariesReachFileEnd": true,
-        "incompleteRecordOffset": null
-      },
-      "GoodsConfig": {
-        "sha256": "eeab422ac2eac80d9836f33f90b047fcfe756be2c564555dfef259c81247d013",
-        "encoding": "transformed-blocks",
-        "bytes": 1104317,
-        "declaredRows": 5685,
-        "completeRows": 5684,
-        "decodedPrefixBytes": 1104304,
-        "undecodedTailBytes": 13,
-        "declaredChecksum": "16dc6597",
-        "checksumVerified": false,
-        "recordBoundariesReachFileEnd": false,
-        "incompleteRecordOffset": 1104133
-      },
-      "CurrencyTypeConfig": {
-        "sha256": "6a6a4a5cf01660b5721798f591fae27cf55688c0cec8edafb4762811f67246d1",
-        "encoding": "plain",
-        "bytes": 4087,
-        "declaredRows": 97,
-        "completeRows": 97,
-        "decodedPrefixBytes": 4087,
-        "undecodedTailBytes": 0,
-        "declaredChecksum": "4aaa2a1d",
-        "checksumVerified": false,
-        "recordBoundariesReachFileEnd": true,
-        "incompleteRecordOffset": null
-      }
-    },
-    "links": {
-      "bootyRecordBytes": 56,
-      "completeBootyRows": 100795,
-      "uniqueBootyGroups": 33643,
-      "incompleteBootyGroupExcluded": 30840005,
-      "candidateLevels": 683,
-      "waveNumberSets": [
-        {
-          "numbers": [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            14,
-            15,
-            16,
-            17,
-            18,
-            19,
-            20
-          ],
-          "levels": 683
-        }
-      ],
-      "references": {
-        "89": {
-          "nonzeroWaveRows": 3415,
-          "distinctGroups": 2095,
-          "perLevelNonzeroCounts": {
-            "5": 683
+        "id": 110,
+        "name": "护甲僵尸",
+        "description": "-减少50%物理系伤害\n-出场时额外附带<color=#ae5500>护甲</color>\n护甲：格挡6次伤害及负面状态\n-额外受到50%<color=#ae5500>能量系</color>伤害",
+        "attributes": [
+          {
+            "offset": 83,
+            "attribute": 157,
+            "method": 1,
+            "value": 1,
+            "label": "怪物给子弹的阻力"
+          },
+          {
+            "offset": 90,
+            "attribute": 314,
+            "method": 1,
+            "value": 0.5,
+            "label": "受到能量属性伤害"
+          },
+          {
+            "offset": 97,
+            "attribute": 305,
+            "method": 1,
+            "value": -0.5,
+            "label": "受到物理属性伤害"
           }
-        },
-        "93": {
-          "nonzeroWaveRows": 13660,
-          "distinctGroups": 419,
-          "perLevelNonzeroCounts": {
-            "20": 683
-          }
-        },
-        "97": {
-          "nonzeroWaveRows": 683,
-          "distinctGroups": 419,
-          "perLevelNonzeroCounts": {
-            "1": 683
-          }
-        }
-      },
-      "parentNumberGroupPattern": "(1000+titleNumber)*100 + 1..5 / 51 / 11 for wave offsets 89 / 93 / 97",
-      "matchedGroups": 2933,
-      "matchedGroupRows": 17598,
-      "unresolvedGoodsReferencesAt20": [],
-      "selectedGroups": {
-        "100101": [
-          [
-            100101,
-            1,
-            1,
-            10000,
-            4,
-            99004,
-            15,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ],
-        "100111": [
-          [
-            100111,
-            1,
-            1,
-            10000,
-            1,
-            90002,
-            3,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0
-          ]
-        ],
-        "100151": [
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61001,
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61002,
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61003,
-            1,
-            0,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61004,
-            1,
-            0,
-            0,
-            0,
-            0,
-            6,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61005,
-            1,
-            0,
-            0,
-            0,
-            0,
-            3,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61006,
-            1,
-            0,
-            0,
-            0,
-            0,
-            32,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61007,
-            1,
-            0,
-            0,
-            0,
-            0,
-            27,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61008,
-            1,
-            0,
-            0,
-            0,
-            0,
-            9,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61009,
-            1,
-            0,
-            0,
-            0,
-            0,
-            13,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61010,
-            1,
-            0,
-            0,
-            0,
-            0,
-            17,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61011,
-            1,
-            0,
-            0,
-            0,
-            0,
-            22,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61012,
-            1,
-            0,
-            0,
-            0,
-            0,
-            38,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61013,
-            1,
-            0,
-            0,
-            0,
-            0,
-            35,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61014,
-            1,
-            0,
-            0,
-            0,
-            0,
-            40,
-            0,
-            0
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61015,
-            1,
-            0,
-            0,
-            0,
-            0,
-            43,
-            0,
-            3
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61016,
-            1,
-            0,
-            0,
-            0,
-            0,
-            45,
-            0,
-            3
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61017,
-            1,
-            0,
-            0,
-            0,
-            0,
-            47,
-            0,
-            1
-          ],
-          [
-            100151,
-            2,
-            1,
-            100,
-            9,
-            61018,
-            1,
-            0,
-            0,
-            0,
-            0,
-            47,
-            0,
-            2
-          ]
         ]
       },
-      "goodsLayout": {
-        "idAndNameBytes": 8,
-        "stringCount": 2,
-        "tailBytes": 152,
-        "predictedFinalRecordEnd": 1104317,
-        "incompleteIdExcluded": 6723109,
-        "nonemptySecondStrings": 983
+      {
+        "id": 3110,
+        "name": "护甲僵尸<color=#F735F9>精英</color>",
+        "description": "-减少50%物理系伤害\n-出场时额外附带<color=#ae5500>坚固护甲</color>\n坚固护甲：格挡18次伤害及负面状态\n-额外受到50%<color=#ae5500>能量系</color>伤害",
+        "attributes": [
+          {
+            "offset": 83,
+            "attribute": 157,
+            "method": 1,
+            "value": 1,
+            "label": "怪物给子弹的阻力"
+          },
+          {
+            "offset": 90,
+            "attribute": 314,
+            "method": 1,
+            "value": 0.5,
+            "label": "受到能量属性伤害"
+          },
+          {
+            "offset": 97,
+            "attribute": 305,
+            "method": 1,
+            "value": -0.5,
+            "label": "受到物理属性伤害"
+          }
+        ]
+      }
+    ],
+    "limits": [
+      "Static descriptions and attributes; original combat timing unobserved.",
+      "Elite 3110 is not implemented."
+    ],
+    "tables": 27,
+    "readerSha256": "4a5b6eae6f2dc0fd4f7cde125f34cfe9c2d82f991889e0dece9899010bd47a5a",
+    "waveFiles": 12987
+  },
+  "inputTimingFailure": {
+    "command": [
+      {
+        "target": "weixin",
+        "width": 390,
+        "startedAt": "2026-10-19T19:19:36.477911+00:00",
+        "completedAt": "2026-10-19T19:19:44.600968+00:00",
+        "exitCode": 1,
+        "log": "artifacts/zombie-fire-armor-weixin-390.log"
+      }
+    ],
+    "evidence": "artifacts/zombie-fire-armor-weixin-first-failure/weixin-390-failure.json",
+    "resolution": "A normal level choice opened while presenting touch cancel. The verifier now resolves visible choices before the separate aim tap. Runtime assets did not change."
+  },
+  "researchStrategyFailure": {
+    "command": [
+      {
+        "target": "web",
+        "width": 390,
+        "startedAt": "2026-10-19T19:17:27.760773+00:00",
+        "completedAt": "2026-10-19T19:30:18.420229+00:00",
+        "exitCode": 1,
+        "log": "artifacts/zombie-fire-armor-web-390.log"
+      }
+    ],
+    "evidence": "artifacts/zombie-fire-armor-web-first-failure/web-390-failure.json",
+    "resolution": "The initial eight normal runs did not select and exercise the required tide evolution. The verifier prioritizes preserving 21 luck and uses previously earned coins for visible weapon/wall purchases; acceptance assertions and runtime are unchanged."
+  },
+  "desktopInterruption": {
+    "observedAt": "2026-10-19T19:36:47.441615+00:00",
+    "target": "web",
+    "width": 1440,
+    "exitCode": 143,
+    "completedReport": false,
+    "reason": "Process terminated by signal; origin not established. No OOM event found in kernel log.",
+    "flowRevision": "7fdec0a",
+    "log": "artifacts/zombie-fire-armor-web-1440-interrupted/command.log"
+  },
+  "landscapeResearchFailure": {
+    "command": [
+      {
+        "target": "web",
+        "width": 844,
+        "startedAt": "2026-10-19T19:23:55.256442+00:00",
+        "completedAt": "2026-10-19T19:38:20.635860+00:00",
+        "exitCode": 1,
+        "log": "artifacts/zombie-fire-armor-web-844.log"
+      }
+    ],
+    "evidence": "artifacts/zombie-fire-armor-web-844-first-failure/web-844-failure.json",
+    "resolution": "Same required-evolution failure under the earlier selection strategy; rerun with legal growth and preservation of luck."
+  },
+  "supersededWeixinRun": {
+    "stoppedAt": "2026-10-19T19:40:58.605944+00:00",
+    "target": "weixin",
+    "width": 390,
+    "intentional": true,
+    "reason": "Superseded the still-running old selection strategy after the same strategy failed required tide evolution in two Web cases. Restart with the fully passed legal-growth strategy.",
+    "completedReport": false,
+    "flowRevision": "7fdec0a",
+    "driverPid": 3862510,
+    "browserProcessGroup": 3862522
+  },
+  "terrainReference": {
+    "verifiedAt": "2026-10-19T19:08:21.198567+00:00",
+    "readerSha256": "0c576fb28aa350fbb9887d11c1472c40bda90bce432ba2ace75e74c573abee0d",
+    "tables": 27,
+    "inputs": {
+      "LevelLandConfig": {
+        "sha256": "13d355fc6cc468449e76974db46f198462eef2ba0b765c72d5ac3fc0bedbd159",
+        "encoding": "plain",
+        "bytes": 54880,
+        "declaredRows": 2743,
+        "completeRows": 2743,
+        "decodedPrefixBytes": 54880,
+        "undecodedTailBytes": 0,
+        "declaredChecksum": "ec83d06b",
+        "checksumVerified": false,
+        "recordBoundariesReachFileEnd": true,
+        "incompleteRecordOffset": null
       },
-      "selectedGoods": [
-        {
-          "offset": 54737,
-          "id": 99004,
-          "nameReference": 430099004,
-          "firstString": "icon_common_exp_1",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440099004,
-          "name": "经验",
-          "description": "通过作战等方式获得的经验，用于人物升级"
-        },
-        {
-          "offset": 549717,
-          "id": 90002,
-          "nameReference": 430090002,
-          "firstString": "icon_zhuangbei_qiangxietuzhi",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440090002,
-          "name": "枪械图纸",
-          "description": "记载着枪械构造的图纸，使用后可以提升枪械等级"
-        },
-        {
-          "offset": 356547,
-          "id": 61001,
-          "nameReference": 430061001,
-          "firstString": "icon_kejishouce_wenyadan",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061001,
-          "name": "温压弹手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 356741,
-          "id": 61002,
-          "nameReference": 430061002,
-          "firstString": "icon_kejishouce_ganbingzimudan",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061002,
-          "name": "干冰弹手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 356941,
-          "id": 61003,
-          "nameReference": 430061003,
-          "firstString": "icon_kejishouce_diancichuanci",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061003,
-          "name": "电磁穿刺手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 357140,
-          "id": 61004,
-          "nameReference": 430061004,
-          "firstString": "icon_kejishouce_gaonengshexian",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061004,
-          "name": "高能射线手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 357340,
-          "id": 61005,
-          "nameReference": 430061005,
-          "firstString": "icon_kejishouce_gangtiehongliu",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061005,
-          "name": "装甲车手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 357540,
-          "id": 61006,
-          "nameReference": 430061006,
-          "firstString": "icon_kejishouce_yasuoqiren",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061006,
-          "name": "压缩气刃手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 357736,
-          "id": 61007,
-          "nameReference": 430061007,
-          "firstString": "icon_kejishouce_kongtouhongzha",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061007,
-          "name": "空投轰炸手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 357936,
-          "id": 61008,
-          "nameReference": 430061008,
-          "firstString": "icon_kejishouce_zhidaojiguang",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061008,
-          "name": "制导激光手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 358135,
-          "id": 61009,
-          "nameReference": 430061009,
-          "firstString": "icon_kejishouce_bingbao",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061009,
-          "name": "冰暴发生器手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 358328,
-          "id": 61010,
-          "nameReference": 430061010,
-          "firstString": "icon_kejishouce_yuedaodianzi",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061010,
-          "name": "跃迁电子手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 358526,
-          "id": 61011,
-          "nameReference": 430061011,
-          "firstString": "icon_kejishouce_xuanfengjianong",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061011,
-          "name": "旋风加农手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 358727,
-          "id": 61012,
-          "nameReference": 430061012,
-          "firstString": "icon_kejishouce_wurenji",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061012,
-          "name": "无人机冲击手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 358920,
-          "id": 61013,
-          "nameReference": 430061013,
-          "firstString": "icon_kejishouce_ranyoudan",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061013,
-          "name": "燃油弹手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 359115,
-          "id": 61014,
-          "nameReference": 430061014,
-          "firstString": "icon_kejishouce_dianjizhu",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061014,
-          "name": "电极柱手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 359310,
-          "id": 61015,
-          "nameReference": 430061015,
-          "firstString": "icon_kejishouce_duoweitanqiu",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061015,
-          "name": "多维弹球手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 359508,
-          "id": 61016,
-          "nameReference": 430061016,
-          "firstString": "icon_kejishouce_shikongliexi",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061016,
-          "name": "时空裂隙手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 359706,
-          "id": 61017,
-          "nameReference": 430061017,
-          "firstString": "icon_kejishouce_shenghuajuzhen",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061017,
-          "name": "生化矩阵手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        },
-        {
-          "offset": 359906,
-          "id": 61018,
-          "nameReference": 430061018,
-          "firstString": "icon_kejishouce_bingzhulongti",
-          "secondString": "",
-          "descriptionReferenceAtTail36": 440061018,
-          "name": "冰筑龙体手册",
-          "description": "用于升级对应的光图核心技能，提高该技能的基础等级"
-        }
-      ],
-      "currencyLayout": {
-        "prefixBytes": 16,
+      "LevelLandBaseConfig": {
+        "sha256": "eb64883d07c4b0bd24471f99e060a4e0b1800761577bc9fecc22b7a27f30fba8",
+        "encoding": "plain",
+        "bytes": 2193,
+        "declaredRows": 36,
+        "completeRows": 36,
+        "decodedPrefixBytes": 2193,
+        "undecodedTailBytes": 0,
+        "declaredChecksum": "f29f2a07",
+        "checksumVerified": false,
+        "recordBoundariesReachFileEnd": true,
+        "incompleteRecordOffset": null
+      }
+    },
+    "references": {
+      "baseLayout": {
+        "prefixBytes": 43,
         "stringCount": 1,
-        "tailBytes": 4
+        "completeRows": 36,
+        "recordByteCounts": {
+          "48": 11,
+          "63": 1,
+          "64": 2,
+          "65": 2,
+          "66": 18,
+          "68": 2
+        }
       },
-      "currencyGoodsReferences": {
-        "matched": 96,
+      "placementLayout": {
+        "recordBytes": 20,
+        "completeRows": 2743,
+        "groups": 213,
+        "referencedLandDefinitions": 26,
+        "unreferencedDefinitions": [
+          2001,
+          2003,
+          2014,
+          2015,
+          4001,
+          4002,
+          4003,
+          4004,
+          4005,
+          4006
+        ],
+        "coordinates": {
+          "floatAt12": [
+            -8,
+            8
+          ],
+          "floatAt16": [
+            -6,
+            13.5
+          ]
+        }
+      },
+      "numberedLinks": {
+        "candidates": 683,
+        "nonzeroBody4": 434,
+        "zeroBody4": 249,
+        "distinctGroups": 78,
+        "firstTitleNumberWithTerrain": 250,
+        "unresolved": []
+      },
+      "skillLinksAt18": {
+        "nonzero": 16,
+        "unresolved": []
+      },
+      "buffMatchesAt26": {
+        "matched": 23,
         "unresolved": [
           {
-            "offset": 4047,
-            "id": 225,
-            "valueAt4": 225,
-            "textReferenceAt8": 400900224,
-            "goodsReferenceAt12": 99222,
-            "iconReference": "icon_hxdjy_jsyb",
-            "tail": 0
+            "land": 1017,
+            "value": 6127
+          },
+          {
+            "land": 1018,
+            "value": 6128
+          },
+          {
+            "land": 2000,
+            "value": 8000
+          },
+          {
+            "land": 3001,
+            "value": 6131
+          },
+          {
+            "land": 3006,
+            "value": 6136
+          },
+          {
+            "land": 3007,
+            "value": 6137
+          },
+          {
+            "land": 3008,
+            "value": 6138
+          },
+          {
+            "land": 4001,
+            "value": 210600
+          },
+          {
+            "land": 4002,
+            "value": 210601
+          },
+          {
+            "land": 4003,
+            "value": 210602
+          },
+          {
+            "land": 4004,
+            "value": 210603
+          },
+          {
+            "land": 4005,
+            "value": 210604
+          },
+          {
+            "land": 4006,
+            "value": 210605
           }
         ]
       },
-      "selectedCurrencies": [
-        {
-          "offset": 20,
-          "id": 1,
-          "valueAt4": 5,
-          "textReferenceAt8": 400900001,
-          "goodsReferenceAt12": 99001,
-          "iconReference": "icon_common_tili",
-          "tail": 0,
-          "label": "体力"
-        },
-        {
-          "offset": 61,
-          "id": 2,
-          "valueAt4": 2,
-          "textReferenceAt8": 400900002,
-          "goodsReferenceAt12": 99002,
-          "iconReference": "icon_huobi_jinbi",
-          "tail": 0,
-          "label": "金币"
-        },
-        {
-          "offset": 102,
-          "id": 3,
-          "valueAt4": 3,
-          "textReferenceAt8": 400900003,
-          "goodsReferenceAt12": 99003,
-          "iconReference": "icon_huobi_zuanshi",
-          "tail": 0,
-          "label": "钻石"
-        },
-        {
-          "offset": 145,
-          "id": 4,
-          "valueAt4": 4,
-          "textReferenceAt8": 400900004,
-          "goodsReferenceAt12": 99004,
-          "iconReference": "icon_common_exp",
-          "tail": 0,
-          "label": "经验"
+      "levelLinks": {
+        "completeLevels": 13013,
+        "nonzeroBody4": 1295,
+        "matchedLevelRows": 784,
+        "unresolvedRows": 511,
+        "unresolvedValueCounts": {
+          "1": 104,
+          "2": 107,
+          "3": 74,
+          "4": 68,
+          "5": 41,
+          "6": 64,
+          "7": 32,
+          "8": 1,
+          "70001": 10,
+          "88501": 4,
+          "88502": 4,
+          "88701": 2
         }
-      ],
-      "limits": [
-        "Only the explicit numbered candidate series is checked here; live availability remains unknown.",
-        "These fields refer to loot groups, not proven monster multipliers.",
-        "Preserve repeated group rows, zero values and gating fields; dispatch/weights are unverified.",
-        "Experience item 99004 describes character leveling; this does not prove combat-XP timing.",
-        "Goods references may denote other item families; unresolved values are retained."
-      ]
+      }
     },
-    "positiveLog": "artifacts/zombie-fire-campaign-loot-reference.log",
+    "positiveLog": "artifacts/zombie-fire-terrain-reference.log",
     "positiveCommand": [
       "pnpm",
       "--filter",
@@ -1645,320 +1713,156 @@
     "positiveExitCode": 0,
     "invalidInputs": [
       {
-        "case": "missing-goods",
+        "case": "missing-land-base",
         "exitCode": 1,
         "reportPreserved": true,
-        "log": "artifacts/zombie-fire-campaign-loot-reader-missing-goods.log"
+        "log": "artifacts/zombie-fire-terrain-reader-missing-land-base.log"
       },
       {
-        "case": "truncated-goods",
+        "case": "truncated-placements",
         "exitCode": 1,
         "reportPreserved": true,
-        "log": "artifacts/zombie-fire-campaign-loot-reader-truncated-goods.log"
+        "log": "artifacts/zombie-fire-terrain-reader-truncated-placements.log"
       },
       {
-        "case": "changed-booty",
+        "case": "changed-land-base",
         "exitCode": 1,
         "reportPreserved": true,
-        "log": "artifacts/zombie-fire-campaign-loot-reader-changed-booty.log"
+        "log": "artifacts/zombie-fire-terrain-reader-changed-land-base.log"
       },
       {
-        "case": "changed-currency",
+        "case": "changed-placements",
         "exitCode": 1,
         "reportPreserved": true,
-        "log": "artifacts/zombie-fire-campaign-loot-reader-changed-currency.log"
+        "log": "artifacts/zombie-fire-terrain-reader-changed-placements.log"
       }
     ],
     "temporaryInputsRemoved": true,
-    "scope": "Offline reference reader; runtime exports remain those of 7f65e64."
-  },
-  "battlefieldReference": {
-    "verifiedAt": "2026-10-19T18:58:27.068229+00:00",
-    "readerSha256": "1ef2bd57f22ed015631a33e671bcbb1e37f31ca1fdc2cf90944531dbd5f2aaf2",
-    "tables": 25,
-    "inputs": {
-      "LevelDescTipConfig": {
-        "sha256": "cb7e56f06b94ca542941a286eaa3bbbb49784269d6c1a613523a82f8038fe1f2",
-        "encoding": "plain",
-        "bytes": 540,
-        "declaredRows": 10,
-        "completeRows": 10,
-        "decodedPrefixBytes": 540,
-        "undecodedTailBytes": 0,
-        "declaredChecksum": "5673c5e4",
-        "checksumVerified": false,
-        "recordBoundariesReachFileEnd": true,
-        "incompleteRecordOffset": null
-      },
-      "BattleEffectConfig": {
-        "sha256": "f4aedd7bc610e71fee58aacef7cc274a6928bb525c55af531ec9b5aebfbf1d1a",
-        "encoding": "plain",
-        "bytes": 8653,
-        "declaredRows": 112,
-        "completeRows": 112,
-        "decodedPrefixBytes": 8653,
-        "undecodedTailBytes": 0,
-        "declaredChecksum": "50e0523c",
-        "checksumVerified": false,
-        "recordBoundariesReachFileEnd": true,
-        "incompleteRecordOffset": null
-      },
-      "LevelEffectGroupConfig": {
-        "sha256": "5605be41ba8d5f0ac131d53f680cc3b5ed632dc364550af053cb07bd929f8191",
-        "encoding": "plain",
-        "bytes": 1460,
-        "declaredRows": 72,
-        "completeRows": 72,
-        "decodedPrefixBytes": 1460,
-        "undecodedTailBytes": 0,
-        "declaredChecksum": "560f7200",
-        "checksumVerified": false,
-        "recordBoundariesReachFileEnd": true,
-        "incompleteRecordOffset": null
-      }
-    },
-    "boundaries": {
-      "tipLayout": {
-        "prefixBytes": 28,
-        "stringCount": 1,
-        "completeRows": 10
-      },
-      "effectLayout": {
-        "prefixBytes": 44,
-        "stringCount": 2,
-        "tailBytes": 4,
-        "completeRows": 112,
-        "distinctIds": 99,
-        "recordByteCounts": {
-          "58": 7,
-          "71": 3,
-          "73": 21,
-          "74": 28,
-          "75": 33,
-          "76": 1,
-          "90": 1,
-          "94": 1,
-          "96": 4,
-          "97": 3,
-          "98": 2,
-          "99": 3,
-          "100": 1,
-          "101": 2,
-          "102": 2
-        },
-        "nonemptySecondStrings": 19
-      },
-      "groupLayout": {
-        "recordBytes": 20,
-        "completeRows": 72,
-        "distinctGroups": 57,
-        "matchedEffectReferencesAt4": 72
-      },
-      "repeatedEffectIds": [
-        {
-          "id": 4011,
-          "rows": 3
-        },
-        {
-          "id": 4012,
-          "rows": 2
-        },
-        {
-          "id": 4013,
-          "rows": 2
-        },
-        {
-          "id": 4014,
-          "rows": 4
-        },
-        {
-          "id": 4015,
-          "rows": 2
-        },
-        {
-          "id": 4016,
-          "rows": 2
-        },
-        {
-          "id": 4017,
-          "rows": 2
-        },
-        {
-          "id": 5011,
-          "rows": 2
-        },
-        {
-          "id": 5012,
-          "rows": 2
-        },
-        {
-          "id": 5013,
-          "rows": 2
-        }
-      ],
-      "repeatedIdAndValueAt4": [
-        {
-          "id": 4017,
-          "valueAt4": 1,
-          "rows": 2,
-          "offsets": [
-            6401,
-            6459
-          ]
-        }
-      ],
-      "buffReferences": {
-        "10": {
-          "matchedNonzeroRows": 99,
-          "distinctBuffs": 74
-        },
-        "14": {
-          "matchedNonzeroRows": 9,
-          "distinctBuffs": 9
-        }
-      }
-    },
-    "positiveLog": "artifacts/zombie-fire-battlefield-reference.log",
-    "positiveCommand": [
-      "pnpm",
-      "--filter",
-      "zombie-fire",
-      "reference:inspect"
-    ],
-    "positiveExitCode": 0,
-    "invalidInputs": [
-      {
-        "case": "missing-tip",
-        "exitCode": 1,
-        "reportPreserved": true,
-        "log": "artifacts/zombie-fire-battlefield-reader-missing-tip.log"
-      },
-      {
-        "case": "truncated-effect",
-        "exitCode": 1,
-        "reportPreserved": true,
-        "log": "artifacts/zombie-fire-battlefield-reader-truncated-effect.log"
-      },
-      {
-        "case": "changed-group",
-        "exitCode": 1,
-        "reportPreserved": true,
-        "log": "artifacts/zombie-fire-battlefield-reader-changed-group.log"
-      },
-      {
-        "case": "changed-tip",
-        "exitCode": 1,
-        "reportPreserved": true,
-        "log": "artifacts/zombie-fire-battlefield-reader-changed-tip.log"
-      }
-    ],
-    "temporaryInputsRemoved": true,
-    "scope": "Offline reference reader only. Runtime and flow files remain unchanged from 7f65e64; no game-service process was started by the reader."
-  },
-  "startupFailure": [
-    {
-      "target": "web",
-      "width": 390,
-      "startedAt": "2026-10-19T18:20:15.545499+00:00",
-      "completedAt": "2026-10-19T18:20:16.035055+00:00",
-      "exitCode": 1,
-      "log": "artifacts/zombie-fire-enemy-traits-web-390-launch-failed.log",
-      "reason": "Browser could not load libnspr4.so; game not entered."
+    "runtimeUnchangedFrom": "7f65e64e110f89a9159897dbdcb36a3d8b4e3148",
+    "scope": "Offline reference evidence only. Gameplay, stage availability and original terrain collision/trigger dispatch remain incomplete.",
+    "services": {
+      "startedGameServices": false,
+      "listenersMatchBaseline": true,
+      "baseline": "artifacts/zombie-fire-terrain-baseline/services-before.json"
     }
-  ],
+  },
   "visualReview": {
+    "reviewedAt": "2026-10-19T19:57:44.413253+00:00",
     "reviewed": [
       {
         "target": "web",
         "width": 390,
-        "screenshot": "artifacts/cocos/zombie-fire/web-390-enemy-traits-codex-1.png",
-        "sha256": "65699113177e3e9005e07173084a33e61fccf43dc5f40271232980306046419f",
-        "observations": "390px敌人图鉴完整显示火/冰/电抗性、燃烧与控制说明，分页和返回按钮清晰，文字未覆盖操作。"
+        "screenshot": "artifacts/cocos/zombie-fire/web-390-armor-active.png",
+        "sha256": "a4b39504064a7901e1aa50b911ade84be41a90ef67c0db91a86dacb91524faa8",
+        "observations": "390×844正常无尽实战：头顶护甲格数和格挡文字可见，敌群、技能栏与底部防线界面完整。"
       },
       {
         "target": "web",
         "width": 390,
-        "screenshot": "artifacts/cocos/zombie-fire/web-390-passive-arc.png",
-        "sha256": "82239f5ca0bca379cbaae3b685f614b3623b1edf959f61fc75c57792ba8b678e",
-        "observations": "电磁战斗中的电场、实际伤害数字、底部衣装触发次数和技能栏可见，无布局遮挡。"
-      },
-      {
-        "target": "weixin",
-        "width": 390,
-        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-enemy-traits-codex-1.png",
-        "sha256": "95aff6fcd7d4c675c9a465662560679729d2e6cde3ad3b8cdbd3f463b34d8a51",
-        "observations": "微信宿主安全区内的敌人图鉴分页完整；燃烧/冻结免疫、减半时长和元素倍率文字清晰，内容与返回、翻页操作无重叠。"
-      },
-      {
-        "target": "weixin",
-        "width": 390,
-        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-enemy-traits-codex-2.png",
-        "sha256": "8357ab6d1ad3ec4e1d34f006c27d777c9c5f0d5076adb288f0621e4dc7c3dd07",
-        "observations": "微信宿主安全区内的敌人图鉴分页完整；燃烧/冻结免疫、减半时长和元素倍率文字清晰，内容与返回、翻页操作无重叠。"
+        "screenshot": "artifacts/cocos/zombie-fire/web-390-armor-broken.png",
+        "sha256": "fe3ce9be267502a00fac90878767a20360cec4f636d9d814df70cbf8c7f28269",
+        "observations": "破甲后正常扣血的实战截图已查看；保留敌群内的受损护甲表现。此帧未清楚捕捉到瞬时破甲文字，不将截图当作该瞬时特效的直接证明。"
       },
       {
         "target": "web",
-        "width": 1440,
-        "screenshot": "artifacts/cocos/zombie-fire/web-1440-enemy-traits-codex-1.png",
-        "sha256": "5849b2f62283deca162fc263d66701554480f9f49b614d4b2444f70bdf8f4916",
-        "observations": "已查看1440px截图：图鉴宽面板居中，新增抗性和控制文字完整，导航及返回操作清晰，无重叠。"
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/web-390-enemy-traits-codex-0.png",
+        "sha256": "6148d78b8e16b8c0d1c4130fe1aae24e340fd40c101bf9a223833cb2e14b3f6d",
+        "observations": "图鉴中的六次格挡、物理减半与能量增伤说明完整换行；分页和返回按钮无重叠。"
+      },
+      {
+        "target": "web",
+        "width": 844,
+        "screenshot": "artifacts/cocos/zombie-fire/web-844-armor-active.png",
+        "sha256": "34364b1ac56b70f1e948499be234a642c17601dff7cfde90e6d7dbabc61e1ac6",
+        "observations": "844×390横屏实战已查看：中央战场与右侧技能栏分开，格挡提示可见，暂停与底部状态没有遮挡。入场敌群较密，护甲标记随目标位于顶部。"
+      },
+      {
+        "target": "web",
+        "width": 844,
+        "screenshot": "artifacts/cocos/zombie-fire/web-844-armor-broken.png",
+        "sha256": "045cc213aceac35ee6b995c88d92e8e2470ab3ee1c133679c4f19345b48dd212",
+        "observations": "横屏破甲后扣血截图已查看，场景、防线与技能效果保持在战场范围；此帧未直接捕获瞬时破甲文字。"
       },
       {
         "target": "web",
         "width": 844,
         "screenshot": "artifacts/cocos/zombie-fire/web-844-enemy-traits-codex-2.png",
-        "sha256": "516e034fc940f481207b817dc0b000b610afd5ac63ab42b387eda2915f33ef2d",
-        "observations": "实际查看844×390横屏截图，图鉴按两条一页排布；抗性说明完整可见，顶栏分类、返回和底部翻页按钮无重叠。"
+        "sha256": "566f5abf9cc031f4bb4f10cba92def6941f7b57d1a057d509d389b2eeb7b8a51",
+        "observations": "横屏图鉴两项一页，持盾免疫与六层护甲说明完整，返回、分页按钮保持可用。"
       },
       {
         "target": "web",
-        "width": 844,
-        "screenshot": "artifacts/cocos/zombie-fire/web-844-enemy-traits-codex-5.png",
-        "sha256": "0e5428dd8fc2f71ea6add0d100cd21f9f63bf1b416da178850311cdf1153eec3",
-        "observations": "实际查看844×390横屏截图，图鉴按两条一页排布；抗性说明完整可见，顶栏分类、返回和底部翻页按钮无重叠。"
+        "width": 1440,
+        "screenshot": "artifacts/cocos/zombie-fire/web-1440-armor-broken.png",
+        "sha256": "fd82333a03b4e68ce12964bf70d7682736e6d9869758c867bf0cef3ae9076dc0",
+        "observations": "1440×900桌面实战已查看：战场居中，护甲标记、格挡文字、技能栏和防线状态可见；受损胸甲与血条显示正常。瞬时破甲文字未在本帧直接捕获。"
       },
       {
-        "target": "douyin",
-        "width": 390,
-        "screenshot": "artifacts/cocos/zombie-fire/douyin-390-enemy-traits-codex-1.png",
-        "sha256": "95aff6fcd7d4c675c9a465662560679729d2e6cde3ad3b8cdbd3f463b34d8a51",
-        "observations": "实际查看抖音390×844宿主截图：图鉴的元素抗性、免疫和麻痹/冻结时长完整显示，长说明换行位于各条目内；顶部安全区、返回及底部分页按钮没有遮挡。"
+        "target": "web",
+        "width": 1440,
+        "screenshot": "artifacts/cocos/zombie-fire/web-1440-enemy-traits-codex-0.png",
+        "sha256": "1c4a3d52a7ace73d180e8d31153427d0a7789fb316486eb9ebf65b5265e0eb56",
+        "observations": "桌面图鉴居中，普通护甲六次格挡和元素倍率完整显示；导航与分页没有重叠。"
       },
       {
-        "target": "douyin",
+        "target": "weixin",
         "width": 390,
-        "screenshot": "artifacts/cocos/zombie-fire/douyin-390-enemy-traits-codex-2.png",
-        "sha256": "8357ab6d1ad3ec4e1d34f006c27d777c9c5f0d5076adb288f0621e4dc7c3dd07",
-        "observations": "实际查看抖音390×844宿主截图：图鉴的元素抗性、免疫和麻痹/冻结时长完整显示，长说明换行位于各条目内；顶部安全区、返回及底部分页按钮没有遮挡。"
+        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-armor-broken.png",
+        "sha256": "6d6a270a8441fdb9c7e06a370112ead7c1d94e66379f3faa05da48819bca7fbd",
+        "observations": "微信390×844实际导出截图已查看：金色破甲文字与蓝色格挡文字清晰可见，护甲标记和受损胸甲同屏呈现；上下安全区及操作区域完整。"
+      },
+      {
+        "target": "weixin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-enemy-traits-codex-0.png",
+        "sha256": "4ebe1459aef6a391691b093d208821b6362bc75e1c868a7897e7449f806f3564",
+        "observations": "微信图鉴的护甲六次格挡和元素倍率完整换行，返回与分页按钮位于安全区内。"
       },
       {
         "target": "web",
         "width": 320,
-        "screenshot": "artifacts/cocos/zombie-fire/web-320-enemy-traits-codex-2.png",
-        "sha256": "90babba550fca652ebfd44321ce811e55d3d2cb6acea30061fb91db3ac0a8ec3",
-        "observations": "实际查看320×568小屏截图：火/冰/电抗性、免疫与时长说明可在条目内完整换行，分类按钮、返回和分页操作均保持可见，无文字与操作重叠。"
+        "screenshot": "artifacts/cocos/zombie-fire/web-320-armor-broken.png",
+        "sha256": "9d2b1404a02520cff78048e4f46cbb62a6df00e5f1ba09856b6ea213b7379d1d",
+        "observations": "320×568小屏实战已查看：护甲标记、格挡、技能栏及底部防线状态可见，操作区域未被遮挡；此帧未直接捕获瞬时破甲文字。"
       },
       {
         "target": "web",
         "width": 320,
-        "screenshot": "artifacts/cocos/zombie-fire/web-320-enemy-traits-codex-3.png",
-        "sha256": "33891d500e6f82fad6ec26cd9373cc176302d3920fc9b2b7185e1a9edc4a1767",
-        "observations": "实际查看320×568小屏截图：火/冰/电抗性、免疫与时长说明可在条目内完整换行，分类按钮、返回和分页操作均保持可见，无文字与操作重叠。"
+        "screenshot": "artifacts/cocos/zombie-fire/web-320-enemy-traits-codex-1.png",
+        "sha256": "f0208734160dfce4631c3ea60c83706ab2b4dbf51505988686b2a920783957b4",
+        "observations": "320px图鉴护甲说明完整显示为两行，条目、分类、返回与分页均无重叠。"
+      },
+      {
+        "target": "douyin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/douyin-390-armor-broken.png",
+        "sha256": "ac0beb537b35f1202145781c0ab81f06694c527b6d3698ae05b398c7d080f406",
+        "observations": "抖音390×844实际导出截图已查看：护甲格数、格挡文字、受损胸甲和技能栏可见，上下安全区完整；此帧未直接捕获瞬时破甲文字。"
+      },
+      {
+        "target": "douyin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/douyin-390-enemy-traits-codex-0.png",
+        "sha256": "4ebe1459aef6a391691b093d208821b6362bc75e1c868a7897e7449f806f3564",
+        "observations": "抖音图鉴六次格挡和物理/能量说明完整，返回及分页按钮没有重叠。"
       }
-    ],
-    "reviewedAt": "2026-10-19T19:00:01.281747+00:00"
+    ]
   },
   "services": {
-    "checkedAt": "2026-10-19T18:59:42.307170+00:00",
+    "checkedAt": "2026-10-19T19:57:18.474829+00:00",
     "ownVerificationProcesses": 0,
     "ownCreatorBuildProcesses": 0,
     "preservedExistingServices": true,
     "listeners": "State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                  \nLISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*                                            \nLISTEN 0      511        127.0.0.1:41095      0.0.0.0:*    users:((\"MainThread\",pid=1247,fd=41))   \nLISTEN 0      511          0.0.0.0:5173       0.0.0.0:*    users:((\"node\",pid=197353,fd=34))       \nLISTEN 0      511        127.0.0.1:36871      0.0.0.0:*    users:((\"MainThread\",pid=3040365,fd=36))\nLISTEN 0      128        127.0.0.1:37663      0.0.0.0:*    users:((\"codex\",pid=68733,fd=39))       \nLISTEN 0      511        127.0.0.1:37487      0.0.0.0:*    users:((\"MainThread\",pid=976,fd=22))    \nLISTEN 0      128        127.0.0.1:38323      0.0.0.0:*    users:((\"codex\",pid=4367,fd=39))        \nLISTEN 0      4096      127.0.0.54:53         0.0.0.0:*                                            \n",
     "creatorProcessCount": 0,
-    "evidence": "artifacts/zombie-fire-enemy-traits-services-closed.json"
+    "evidence": "artifacts/zombie-fire-armor-services-closed.json",
+    "ownBrowserProcesses": 0,
+    "browserCheckedAt": "2026-10-19T19:57:44.422911+00:00"
   },
   "limits": [
     "The original client has not been played; original campaign, complete progression and visual parity remain incomplete.",
+    "Armor status-only timing, hit-derived effects and critical RNG order are local interpretations; elite 18-hit armor is not implemented.",
     "Skill delivery and modifier stacking are local mappings; frost fire-vulnerability data conflict is preserved.",
     "Native audio is checked through host stubs; software GPU is not phone performance evidence.",
     "Official platform developer tools, real devices, platform upload and review have not been executed.",
