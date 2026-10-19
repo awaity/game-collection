@@ -119,7 +119,7 @@ function segmentGeometry(segment:Segment,hazards:Hazard[],quality:string){
 function character(g:Geometry,skin:Skin,time:number,run:Run,menu:boolean){
   const moving=run.phase==='running',stride=moving?Math.sin(time*16):0,jump=run.jumpAge>=0,slide=run.sliding;
   const dying=run.phase==='dying'||run.phase==='dead',fall=dying&&run.deathKind==='fall',age=run.deathTime;
-  const height=fall?-Math.min(8,age*age*9):run.height+(run.wind>0?.65:0),lean=run.wind>0?-22:slide?-65:dying?Math.min(75,age*95):jump?10:0;
+  const height=fall?-Math.min(8,age*age*9):run.height+(run.wind>0?.65:run.landing/.25*.65),lean=run.wind>0?-22:slide?-65:dying?Math.min(75,age*95):jump?10:0;
   const scale=slide?.82:1;
   g.at(0,height+(slide?.3:0),0,1,scale,1,lean,menu?180:0,(run.targetLane-run.x)*-9,()=>{
     for(const side of [-1,1]){

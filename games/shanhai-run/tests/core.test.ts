@@ -43,7 +43,7 @@ test('same seed and player inputs produce the same route and result',()=>{
   assert.notDeepEqual(new Run({seed:415}).hazards,new Run({seed:416}).hazards);
 });
 test('long endless runs cover all four areas with bounded generated entities',()=>{
-  for(const seed of [7,42,145,941,2026]){
+  for(const seed of [7,42,145,941,2026,2090825472,...Array.from({length:24},(_,i)=>Math.imul(i+1,2654435761)>>>0)]){
     const run=new Run({seed}),areas=new Set<number>();run.start();
     for(let i=0;i<42000&&run.phase==='running';i++){pilot(run);run.step();areas.add(run.area);
       assert.ok(run.segments.length<10);assert.ok(run.hazards.length<24);assert.ok(run.pickups.length<210);
@@ -66,4 +66,14 @@ test('one rescue resumes safely and cannot be used repeatedly',()=>{
   while(run.phase==='dying')run.step();assert.equal(run.phase,'dead');assert.ok(run.revive());assert.equal(run.revive(),false);
   for(let n=0;n<600;n++){pilot(run);run.step();}assert.equal(run.phase,'running');
   assert.equal(DT,1/60);
+});
+test('boost lands on safe ground with jump available instead of forcing an unsafe arc',()=>{
+  const run=new Run({seed:2090825472});run.start();let landings=0;
+  for(let n=0;n<16000&&run.phase==='running';n++){
+    const flying=run.wind>0;pilot(run);run.step();
+    if(flying&&run.wind===0){landings++;assert.equal(run.jumpAge,-1);assert.equal(run.sliding,false);
+      assert.ok(!run.hazards.some(h=>h.kind==='gap'&&h.d-h.half<=run.distance+run.speed*.65&&h.d+h.half>=run.distance));
+    }
+  }
+  assert.ok(landings>0);assert.equal(run.phase,'running');assert.ok(run.distance>3500);
 });

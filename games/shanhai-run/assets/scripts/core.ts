@@ -67,6 +67,7 @@ export class Run {
   magnet=0;
   shield=0;
   wind=0;
+  landing=0;
   spirit=0;
   combo=0;
   bestCombo=0;
@@ -117,6 +118,7 @@ export class Run {
     if(action==='left'||action==='right') {
       const direction=action==='left'?-1:1;
       if(this.canTurn) {
+        if(this.wind>0){this.queuedTurn=true;return true;}
         if(this.queuedTurn)return true;
         if(direction!==this.turnDirection){this.fatal('turn','转错了方向，前方没有古道');return false;}
         this.queuedTurn=true;return true;
@@ -124,11 +126,11 @@ export class Run {
       this.targetLane=clamp(this.targetLane+direction,-1,1);return true;
     }
     if(action==='jump') {
-      if(this.jumpAge>=0||this.sliding)return false;
+      if(this.wind>0||this.jumpAge>=0||this.sliding)return false;
       this.jumpAge=0;this.stats.jumps++;this.events.push({type:'jump'});return true;
     }
     if(action==='slide') {
-      if(this.jumpAge>=0||this.sliding)return false;
+      if(this.wind>0||this.jumpAge>=0||this.sliding)return false;
       this.slideRemaining=SLIDE_TIME;this.stats.slides++;this.events.push({type:'slide'});return true;
     }
     if(action==='wind'&&this.spirit>=100&&this.wind<=0) {
@@ -146,8 +148,14 @@ export class Run {
     if(this.jumpAge>=0){this.jumpAge+=DT;if(this.jumpAge>=JUMP_TIME)this.jumpAge=-1;}
     const wasFlying=this.wind>0;
     if(wasFlying&&this.canTurn)this.queuedTurn=true;
-    for(const field of ['slideRemaining','stumbleRemaining','invincible','magnet','shield','wind','comboRemaining'] as const)this[field]=Math.max(0,this[field]-DT);
-    if(wasFlying&&this.wind<=0){this.jumpAge=JUMP_TIME*.3;this.invincible=1.1;}
+    for(const field of ['slideRemaining','stumbleRemaining','invincible','magnet','shield','wind','landing','comboRemaining'] as const)this[field]=Math.max(0,this[field]-DT);
+    if(wasFlying&&this.wind<=0){
+      // A power must not force a jump that ends over the next gap. Cross an
+      // imminent gap first, otherwise land with actions immediately available.
+      const gap=this.hazards.find(h=>h.kind==='gap'&&h.d+h.half>=this.distance&&h.d-h.half<=this.distance+this.speed*.7+1);
+      if(gap)this.wind=Math.max(DT,(gap.d+gap.half+1-this.distance)/(this.speed+5));
+      else{this.jumpAge=-1;this.slideRemaining=0;this.landing=.25;this.invincible=1.1;}
+    }
     if(!this.comboRemaining)this.combo=0;
     if(this.time-this.lastHit>2)this.pressure=Math.max(.08,this.pressure-DT*.07);
     const before=this.distance;
