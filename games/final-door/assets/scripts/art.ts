@@ -1,4 +1,4 @@
-import { BufferAsset, Color, Material, Mesh, Texture2D, Vec4, gfx, primitives, resources, utils } from 'cc';
+import { BufferAsset, Color, EffectAsset, Material, Mesh, Texture2D, Vec4, gfx, primitives, resources, utils } from 'cc';
 import { GameView } from 'db://assets/collection/runtime';
 
 interface MeshHeader { name: string; vertices: number; indices: number; offset: number; indexOffset: number }
@@ -21,7 +21,7 @@ export class SceneArt {
   readonly bossMaterial: Material;
   readonly hitMaterial: Material;
   readonly effects = new Map<string,Material>();
-  private constructor(ui: GameView, buffer: ArrayBuffer, joints: ArrayBuffer, atlas: Texture2D, shadow: Texture2D) {
+  private constructor(ui: GameView, buffer: ArrayBuffer, joints: ArrayBuffer, atlas: Texture2D, shadow: Texture2D, skinEffect: EffectAsset) {
     const bytes = new DataView(buffer), length = bytes.getUint32(0,true);
     // The header contains ASCII names only; no browser TextDecoder dependency.
     const header: MeshHeader[] = JSON.parse(String.fromCharCode(...new Uint8Array(buffer,4,length)));
@@ -57,7 +57,7 @@ export class SceneArt {
       return value;
     };
     this.modelMaterial = material('#ffffff'); this.gateBlue = material('#118ef0'); this.gateRed = material('#ed2857');
-    this.actorMaterial = material('#ffffff', atlas); this.shadowMaterial = material('#09111a40', shadow);
+    this.actorMaterial = material('#ffffff', atlas); this.playerMaterial=new Material();this.playerMaterial.initialize({effectAsset:skinEffect});this.playerMaterial.setProperty('mainTexture',atlas); this.shadowMaterial = material('#09111a40', shadow);
     // Original atlas stores premultiplied RGB; applying alpha twice darkens its edges.
     this.actorMaterial.overridePipelineStates({depthStencilState:{depthWrite:true},blendState:{targets:[{blend:true,blendSrc:gfx.BlendFactor.ONE,blendDst:gfx.BlendFactor.ONE_MINUS_SRC_ALPHA}]}});
     this.bossMaterial=new Material();this.bossMaterial.initialize({effectAsset:ui.effect,defines:{USE_BOSS:true,USE_FLASH:true,USE_VERTEX_COLOR:true}});
@@ -75,8 +75,8 @@ export class SceneArt {
     }
   }
   static async load(ui: GameView) {
-    const [,buffer,joints,atlas,shadow] = await Promise.all([ui.ready,loadBuffer(),loadBuffer('boss-joints'),loadTexture('atlas'),loadTexture('silhouette')]);
-    return new SceneArt(ui,buffer.buffer(),joints.buffer(),atlas,shadow);
+    const [,buffer,joints,atlas,shadow,skinEffect] = await Promise.all([ui.ready,loadBuffer(),loadBuffer('boss-joints'),loadTexture('atlas'),loadTexture('silhouette'),new Promise<EffectAsset>((resolve,reject)=>resources.load('skin',EffectAsset,(e,a)=>e?reject(e):resolve(a)))]);
+    return new SceneArt(ui,buffer.buffer(),joints.buffer(),atlas,shadow,skinEffect);
   }
   fx(ui:GameView,id:string,kind:number,x:number,y:number,z:number,sx:number,sz:number,rgba:number[],vertical=false){
     let material=this.effects.get(id);
@@ -85,14 +85,17 @@ export class SceneArt {
     const node=ui.meshNode(id,this.models.get(vertical?'effect-vertical':'effect-flat')!,material,x,y,z,sx,vertical?sz:1,vertical?1:sz);
     if(vertical)node.setRotation(ui.camera.node.rotation);
   }
+  skinColor='#ffffff';private playerMaterial:Material|null=null;
   actor(ui: GameView, id: string, frame: number, x: number, z: number, scale = 2, flash=false) {
-    const node = ui.meshNode(id,this.actorFrames[frame],flash?this.hitMaterial:this.actorMaterial,x,.83,z,scale,scale,1);
+    if(id.startsWith('member')){this.playerMaterial!.setProperty('mainColor',new Color().fromHEX(this.skinColor));}
+    const node = ui.meshNode(id,this.actorFrames[frame],flash?this.hitMaterial:id.startsWith('member')?this.playerMaterial!:this.actorMaterial,x,.83,z,scale,scale,1);
     node.setRotation(ui.camera.node.rotation);
     const shadow = ui.meshNode(`shadow:${id}`,this.actorFrames[frame],this.shadowMaterial,x,.025,z,3,3,1);
     shadow.setRotationFromEuler(-90,0,0);
     return node;
   }
   destroy() {
+    this.playerMaterial?.destroy();
     for (const mesh of Array.from(this.models.values()).concat(this.actorFrames)) mesh.destroy();
     for (const mat of [this.modelMaterial,this.gateBlue,this.gateRed,this.actorMaterial,this.shadowMaterial,this.roadMaterial,this.projectionMaterial,this.bossMaterial,this.hitMaterial,...Array.from(this.effects.values())]) mat.destroy();
   }

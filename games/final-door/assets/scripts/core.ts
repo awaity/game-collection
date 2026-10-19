@@ -4,14 +4,18 @@ export interface Gate { id: number; s: number; x: number; kind: '门' | '补给'
 export interface Enemy { id: number; x: number; s: number; hp: number; maxHp: number; deadAt: number; hitAt: number; speed: number }
 export interface Boss { hp: number; maxHp: number; x: number; s: number; phase: '等待' | '倒地' | '追击' | '蓄力' | '重击'; nextAttack: number; windupAt: number; impactAt: number; attackX: number; attackS: number; deathAt: number; hitAt: number; strikes: number; entryCount: number }
 export interface BattleEvent { tick: number; type: string; x: number; s: number; value: number; id: number; detail?: string }
-export interface Replay { 作品: string; 版本: string; 种子: number; 路线: number; 输入: { 步: number; 动作: '定位' | '方向'; 数值: number }[] }
+export interface Loadout {power:number;haste:number;guard:number;pressure?:number;carry?:number}
+export interface Replay { 成长?:Loadout; 作品: string; 版本: string; 种子: number; 路线: number; 输入: { 步: number; 动作: '定位' | '方向'; 数值: number }[] }
 /** 唯一权威仿真。渲染器只能读取；输入、回放和自动演示走相同的入口。 */
 export const VERSION = '1.5.0', DT = 1 / 60, CAPACITY = 144, BULLET_CAPACITY = 2048;
 export const clamp = (x: number, a: number, b: number) => Math.min(b, Math.max(a, x));
 export const ROUTES = [
     { name: '蓝湾前哨', tag: '初战', start: 10, bossHP: 5600, enemies: 1, crateHP: 105, theme: 0, intro: '先增员，再击破补给。' },
     { name: '风暴航道', tag: '进阶', start: 12, bossHP: 6800, enemies: 1.35, crateHP: 160, theme: 1, intro: '绕开地刺，为重击留出躲避空间。' },
-    { name: '赤潮封锁', tag: '挑战', start: 14, bossHP: 8100, enemies: 1.7, crateHP: 195, theme: 2, intro: '射击门值，决定这场硬仗的人数。' }
+    { name: '赤潮封锁', tag: '挑战', start: 14, bossHP: 8100, enemies: 1.7, crateHP: 195, theme: 2, intro: '射击门值，决定这场硬仗的人数。' },
+    {name:'冰川栈桥',tag:'冰川',start:12,bossHP:6200,enemies:1.3,crateHP:130,theme:3,intro:'冰面敌群更慢，补给位置发生变化。'},
+    {name:'暮砂遗迹',tag:'遗迹',start:14,bossHP:7200,enemies:1.5,crateHP:150,theme:4,intro:'分岔障碍逼迫走位，留意第二次增员。'},
+    {name:'星港长廊',tag:'星港',start:16,bossHP:7800,enemies:1.8,crateHP:175,theme:5,intro:'额外装甲补给，迎战星港守卫。'}
 ];
 /** 种子仅决定敌群间距和相位；不以随机数代替真实伤害。 */
 export class Random {
@@ -106,6 +110,7 @@ export class Projectiles {
 }
 export function defaultInputs(route = 0): Input[] {
     const points = [[0, -3.65], [6.65, 0], [7.8, .3], [8.6, 3.55], [12.1, 0], [18.3, 3.55], [21.0, -3.35], [25.2, 0], [29.2, 0], [33, 0], [33.9, 3.4], [34.95, 0], [36.3, -3.4], [37.4, 0], [38.68, 3.4], [39.8, 0], [41.07, -3.4], [42.2, 0], [43.5, 3.4]];
+    if(route===3){points[4]=[12.1,-1.3];points.push([44.2,0]);}
     if (route === 2) {
         points[8] = [29.2, 1.5];
     }
@@ -118,7 +123,8 @@ export class Assault {
     endedAt: number; losses: number; kills: number; shots: number; hits: number; gateApplications: number;
     upgrades: number; rejects: number; distance: number; entryAt: number; collected: number; warning: string;
     seed: number; route: number; rng: Random; inputs: Input[]; boss: Boss;
-    constructor(seed = 42, route = 0, inputs: Input[] = defaultInputs(route)) {
+    loadout:Loadout={power:0,haste:0,guard:0};
+    constructor(seed = 42, route = 0, inputs: Input[] = defaultInputs(route),loadout?:Loadout) {
         this.tick = 0;
         this.progress = 0;
         this.x = 0;
@@ -145,12 +151,12 @@ export class Assault {
         this.entryAt = -1;
         this.collected = 0;
         this.warning = '';
-        if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295 || !Number.isInteger(route) || route < 0 || route > 2)
+        if (!Number.isInteger(seed) || seed < 0 || seed > 4294967295 || !Number.isInteger(route) || route < 0 || route >= ROUTES.length)
             throw new Error('种子必须是无符号三十二位整数，路线必须为零、一或二');
         if (!Array.isArray(inputs) || inputs.length > 12000 || inputs.some(i => !i || !Number.isInteger(i.tick) || i.tick < 0 || i.tick > 2700 || !['target', 'axis'].includes(i.kind) || !Number.isFinite(i.value) || Math.abs(i.value) > (i.kind === 'axis' ? 1 : 5.5)))
             throw new Error('初始化输入序列无效');
         this.seed = seed >>> 0;
-        this.route = clamp(Math.floor(route), 0, 2);
+        this.route = clamp(Math.floor(route), 0, ROUTES.length-1);
         this.rng = new Random(this.seed);
         this.inputs = inputs.map(x => ({ ...x })).sort((a, b) => a.tick - b.tick);
         this.crowd.add(ROUTES[this.route].start);
@@ -171,8 +177,20 @@ export class Assault {
                 const col = i % 8, rr = Math.floor(i / 8);
                 this.enemies.push({ id: this.enemies.length + 1, x: (col - 3.5) * .70 + (this.rng.next() - .5) * .20, s: s + rr * .66 + (this.rng.next() - .5) * .2, hp: health, maxHp: health, deadAt: -1, hitAt: -100, speed: .58 + this.rng.next() * .26 });
             }
+        if(route===3){for(const e of this.enemies)e.speed*=.65;this.gates[4].x=-1.3;}
+        if(route===4){row(64,4.5,'障碍',0,0,0,'加',.8);row(65,-4.5,'门',5);}
+        if(route===5)row(63,4.05,'补给',0,120,3);
         const hp = ROUTES[this.route].bossHP;
         this.boss = { hp, maxHp: hp, x: 0, s: 128, phase: '等待', nextAttack: 0, windupAt: -1, impactAt: -1, attackX: 0, attackS: 0, deathAt: -1, hitAt: -100, strikes: 0, entryCount: 0 };
+        if(loadout)this.configure(loadout);
+    }
+    configure(loadout:Loadout){
+      for(const key of ['power','haste','guard'] as const)if(!Number.isInteger(loadout[key])||loadout[key]<0||loadout[key]>5)throw Error('成长等级无效');
+      if(loadout.pressure!==undefined&&(!Number.isInteger(loadout.pressure)||loadout.pressure<0||loadout.pressure>30))throw Error('无尽压力无效');
+      if(loadout.carry!==undefined&&(!Number.isInteger(loadout.carry)||loadout.carry<0||loadout.carry>144))throw Error('接战队员无效');
+      this.loadout={...loadout};this.crowd.add(Math.max(loadout.guard*2,(loadout.carry??0)-this.crowd.count));
+      const scale=1+(loadout.pressure??0)*.08;this.boss.hp*=scale;this.boss.maxHp*=scale;
+      for(const e of this.enemies){e.hp*=scale;e.maxHp*=scale;}
     }
     get time() { return this.tick / 60; }
     member(i: number) { const slot = this.crowd.slots[i], p = SLOTS[slot]; return { id: this.crowd.ids[i], x: this.x + p.x, s: this.progress - p.z, slot }; }
@@ -304,10 +322,11 @@ export class Assault {
                     this.event('敌人离场', e.x, e.s, 0, e.id);
                 }
             }
-        const firePeriod = this.level === 1 ? 18 : 13;
+        const firePeriod = (this.level === 1 ? 18 : 13)*(1-this.loadout.haste*.04);
         for (let i = 0; i < this.crowd.count; i++) {
             const m = this.member(i);
-            if ((this.tick + m.id * 7) % firePeriod === 0) {
+            const shotTick=this.tick+m.id*7;
+            if (Math.floor(shotTick/firePeriod)>Math.floor((shotTick-1)/firePeriod)) {
                 this.bullets.add(m.id, m.x + .16, m.s + .86, this.level === 1 ? 1 : 3, this.tick);
                 this.shots++;
             }
@@ -346,7 +365,7 @@ export class Assault {
                 candidate(this.boss.s, 1.7, this.boss.x, this.boss, '首领');
             if (target) {
                 this.hits++;
-                const damage = p.damage[i];
+                const damage = p.damage[i]*(1+this.loadout.power*.12);
                 if (type === '门') {
                     const g = target as Gate;
                     g.hits++;
@@ -470,7 +489,7 @@ export class Assault {
             if (!this.bullets.ids[i] || !this.bullets.owner[i] || !Number.isFinite(this.bullets.x[i]) || !Number.isFinite(this.bullets.s[i]))
                 throw new Error('弹丸数据不变量失败');
     }
-    snapshot() { return { 版本: VERSION, 种子: this.seed, 路线: this.route, 随机状态: this.rng.state, 下一成员编号: this.crowd.nextId, 下一弹丸编号: this.bullets.nextId, 输入游标: this.inputIndex, 门应用次数: this.gateApplications, 升级次数: this.upgrades, 容量拒绝次数: this.rejects, 入场步: this.entryAt, 步: this.tick, 进度: this.progress, 横向: this.x, 目标: this.target, 轴: this.axis, 人数: this.crowd.count, 成员: Array.from(this.crowd.ids.subarray(0, this.crowd.count)), 槽位: Array.from(this.crowd.slots.subarray(0, this.crowd.count)), 等级: this.level, 装甲: this.armor, 损失: this.losses, 击杀: this.kills, 射击: this.shots, 命中: this.hits, 结果: this.outcome, 结束步: this.endedAt, 已拾取: this.collected, 警告: this.warning, 输入: this.inputs.map(i => ({ ...i })), 门: this.gates.map(g => ({ ...g })), 敌人: this.enemies.map(e => ({ ...e })), 首领: { ...this.boss }, 弹丸: { 编号: Array.from(this.bullets.ids.subarray(0, this.bullets.count)), 横向: Array.from(this.bullets.x.subarray(0, this.bullets.count)), 进度: Array.from(this.bullets.s.subarray(0, this.bullets.count)), 伤害: Array.from(this.bullets.damage.subarray(0, this.bullets.count)), 发射者: Array.from(this.bullets.owner.subarray(0, this.bullets.count)), 出生步: Array.from(this.bullets.born.subarray(0, this.bullets.count)), 上一进度: Array.from(this.bullets.previous.subarray(0, this.bullets.count)) } }; }
+    snapshot() { return { ...(Object.values(this.loadout).some(v=>v>0)?{成长:{...this.loadout}}:{}), 版本: VERSION, 种子: this.seed, 路线: this.route, 随机状态: this.rng.state, 下一成员编号: this.crowd.nextId, 下一弹丸编号: this.bullets.nextId, 输入游标: this.inputIndex, 门应用次数: this.gateApplications, 升级次数: this.upgrades, 容量拒绝次数: this.rejects, 入场步: this.entryAt, 步: this.tick, 进度: this.progress, 横向: this.x, 目标: this.target, 轴: this.axis, 人数: this.crowd.count, 成员: Array.from(this.crowd.ids.subarray(0, this.crowd.count)), 槽位: Array.from(this.crowd.slots.subarray(0, this.crowd.count)), 等级: this.level, 装甲: this.armor, 损失: this.losses, 击杀: this.kills, 射击: this.shots, 命中: this.hits, 结果: this.outcome, 结束步: this.endedAt, 已拾取: this.collected, 警告: this.warning, 输入: this.inputs.map(i => ({ ...i })), 门: this.gates.map(g => ({ ...g })), 敌人: this.enemies.map(e => ({ ...e })), 首领: { ...this.boss }, 弹丸: { 编号: Array.from(this.bullets.ids.subarray(0, this.bullets.count)), 横向: Array.from(this.bullets.x.subarray(0, this.bullets.count)), 进度: Array.from(this.bullets.s.subarray(0, this.bullets.count)), 伤害: Array.from(this.bullets.damage.subarray(0, this.bullets.count)), 发射者: Array.from(this.bullets.owner.subarray(0, this.bullets.count)), 出生步: Array.from(this.bullets.born.subarray(0, this.bullets.count)), 上一进度: Array.from(this.bullets.previous.subarray(0, this.bullets.count)) } }; }
     hash() {
         const s = JSON.stringify(this.snapshot());
         let h = 2166136261;
@@ -479,8 +498,8 @@ export class Assault {
         return (h >>> 0).toString(16).padStart(8, '0');
     }
 }
-export function exportReplay(s: Assault): Replay { return { 作品: '最后一道门', 版本: VERSION, 种子: s.seed, 路线: s.route, 输入: s.inputs.map(i => ({ 步: i.tick, 动作: i.kind === 'target' ? '定位' : '方向', 数值: i.value })) }; }
-export function importReplay(raw: string): {seed: number; route: number; inputs: Input[]} {
+export function exportReplay(s: Assault): Replay { return { 作品: '最后一道门', 版本: s.route>=3||Object.values(s.loadout).some(v=>v>0)?'1.6.0':VERSION, 成长:{...s.loadout}, 种子: s.seed, 路线: s.route, 输入: s.inputs.map(i => ({ 步: i.tick, 动作: i.kind === 'target' ? '定位' : '方向', 数值: i.value })) }; }
+export function importReplay(raw: string): {seed: number; route: number; inputs: Input[];loadout?:Loadout} {
     let r: Replay;
     try {
         r = JSON.parse(raw);
@@ -488,9 +507,9 @@ export function importReplay(raw: string): {seed: number; route: number; inputs:
     catch {
         throw new Error('回放文件不是有效的数据文本');
     }
-    if (!r || typeof r !== 'object' || r.作品 !== '最后一道门' || r.版本 !== VERSION)
+    if (!r || typeof r !== 'object' || r.作品 !== '最后一道门' || ![VERSION,'1.6.0'].includes(r.版本))
         throw new Error('回放版本不匹配；经典回放请进入经典远征');
-    if (!Number.isInteger(r.种子) || r.种子 < 0 || r.种子 > 4294967295 || !Number.isInteger(r.路线) || r.路线 < 0 || r.路线 > 2 || !Array.isArray(r.输入) || r.输入.length > 12000)
+    if (!Number.isInteger(r.种子) || r.种子 < 0 || r.种子 > 4294967295 || !Number.isInteger(r.路线) || r.路线 < 0 || r.路线 > (r.版本==='1.6.0'?ROUTES.length-1:2) || !Array.isArray(r.输入) || r.输入.length > 12000)
         throw new Error('回放参数无效');
     let prev = -1;
     const inputs = r.输入.map(i => {
@@ -499,5 +518,6 @@ export function importReplay(raw: string): {seed: number; route: number; inputs:
         prev = i.步;
         return { tick: i.步, kind: i.动作 === '定位' ? 'target' as const : 'axis' as const, value: i.数值 };
     });
-    return { seed: r.种子, route: r.路线, inputs };
+    if(r.成长)new Assault(r.种子,r.路线,[],r.成长);
+    return { seed: r.种子, route: r.路线, inputs,loadout:r.成长 };
 }

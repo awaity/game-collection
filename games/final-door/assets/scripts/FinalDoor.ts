@@ -1,3 +1,4 @@
+import {loadCareer,drawCareer,Career,CareerPanel} from 'db://assets/collection/career';
 import { _decorator, AudioClip, AudioSource, Component, KeyCode, Label, MeshRenderer, Rect, UITransform, Vec3, Vec4, resources, sys } from 'cc';
 import { GameView } from 'db://assets/collection/runtime';
 import { Assault, ROUTES, clamp, defaultInputs, exportReplay, importReplay } from './core';
@@ -9,6 +10,7 @@ interface Save { version: 1; best: number[]; sound: boolean; quality: '精细' |
 
 @ccclass('FinalDoor')
 export class FinalDoor extends Component {
+  private career!:Career;private careerPanel!:CareerPanel;private rewardRun=0;private rewardEligible=false;private endless=false;private wave=1;private bankKills=0;private bankTime=0;
   private ui!: GameView;
   private art: SceneArt | null = null;
   private sim = new Assault();
@@ -38,15 +40,17 @@ export class FinalDoor extends Component {
       this.pause();for(let i=0;i<ticks;i++)this.sim.step();this.update(0);
     };
     const raw = this.ui.platform.load<Partial<Save>>({});
-    this.save = {version: 1, best: [0,1,2].map(i => Number.isFinite(raw.best?.[i]) ? clamp(raw.best![i],0,144) : 0), sound: raw.sound === true, quality: raw.quality === '流畅' ? '流畅' : '精细', reduced: typeof raw.reduced === 'boolean' ? raw.reduced : this.ui.services.reducedMotion};
+    this.save = {version: 1, best: ROUTES.map((_,i)=>i).map(i => Number.isFinite(raw.best?.[i]) ? clamp(raw.best![i],0,144) : 0), sound: raw.sound === true, quality: raw.quality === '流畅' ? '流畅' : '精细', reduced: typeof raw.reduced === 'boolean' ? raw.reduced : this.ui.services.reducedMotion};
+    this.career=loadCareer('final-door');this.careerPanel=new CareerPanel(this.career,()=>ROUTES.map(r=>({name:r.name,description:r.intro})),(map,endless)=>this.restart(map,false,this.sim.seed,endless),'蓝焰军需库');
     const query=this.ui.services.launchQuery(), seed=Number(query.seed??42), route=Number(query.route??0);
     this.automatic=query.mode!=='interactive';
     this.recording=query.mode==='capture';
-    this.sim=new Assault(Number.isInteger(seed)&&seed>=0&&seed<=4294967295?seed:42,Number.isInteger(route)&&route>=0&&route<=2?route:0,this.automatic?defaultInputs(Number.isInteger(route)&&route>=0&&route<=2?route:0):[]);
+    this.sim=new Assault(Number.isInteger(seed)&&seed>=0&&seed<=4294967295?seed:42,Number.isInteger(route)&&route>=0&&route<ROUTES.length?route:0,this.automatic?defaultInputs(Number.isInteger(route)&&route>=0&&route<ROUTES.length?route:0):[]);
     this.sound = this.node.addComponent(AudioSource);
     resources.loadDir('audio', AudioClip, (error, clips) => { if (!error) for (const clip of clips) this.clips.set(clip.name,clip); });
     this.ui.onHide = () => this.pause();
     this.ui.onKey = (e, down) => {
+      if(this.careerPanel.active){if(down&&e.keyCode===KeyCode.ESCAPE)this.careerPanel.active=false;this.held.clear();return;}
       if (down) this.held.add(e.keyCode); else this.held.delete(e.keyCode);
       if (down && e.keyCode === KeyCode.SPACE) this.toggle();
       if (down && e.keyCode === KeyCode.KEY_R) this.restart();
@@ -55,7 +59,7 @@ export class FinalDoor extends Component {
       if (down && [KeyCode.ARROW_LEFT,KeyCode.ARROW_RIGHT,KeyCode.KEY_A,KeyCode.KEY_D].includes(e.keyCode) && !this.menu) this.takeControl();
     };
     this.ui.onTouch = (e, phase) => {
-      if (this.menu || !this.art || this.ended) return;
+      if (this.careerPanel.active || this.menu || !this.art || this.ended) return;
       const p = e.getUILocation();
       if (phase === 'end') { this.pointer = null; return; }
       if (phase === 'start' && p.y > 105 && p.y < this.ui.height - 155) {
@@ -70,7 +74,8 @@ export class FinalDoor extends Component {
   private get ended() { return this.sim.outcome !== '进行中' || this.sim.tick >= 2700; }
   private persist() { if (!this.ui.platform.save(this.save)) this.notify('本机存储不可用，本次对局仍可继续。'); }
   private notify(text: string) { this.notice = text; this.noticeTime = 4; }
-  private pause() { this.running = false; this.accumulator = 0; this.held.clear(); this.pointer = null; this.sound?.stop(); }
+  private reward(){if(this.rewardEligible)this.career.checkpoint(this.rewardRun,{kills:this.bankKills+this.sim.kills,seconds:this.bankTime+this.sim.time,waves:this.endless?this.wave-(this.sim.outcome==='胜利'?0:1):0,clear:!this.endless&&this.sim.outcome==='胜利'?String(this.sim.route):undefined});}
+  private pause() { this.reward(); this.running = false; this.accumulator = 0; this.held.clear(); this.pointer = null; this.sound?.stop(); }
   private toggle() { if (!this.ended && !this.menu) { this.running = !this.running; this.accumulator = 0; if(this.running)this.recording=false; } }
   private takeControl() {
     if (this.ended || this.menu) return;
@@ -78,8 +83,12 @@ export class FinalDoor extends Component {
     this.running = true;
     this.recording = false;
   }
-  private restart(route = this.sim.route, auto = this.automatic, seed = this.sim.seed) {
-    this.sim = new Assault(seed, route, auto ? defaultInputs(route) : []);
+  private restart(route = this.sim.route, auto = this.automatic, seed = this.sim.seed,endless=this.endless,continuing=false) {
+    const survivors=this.sim.crowd.count;
+    if(!continuing){this.endless=endless;this.wave=1;this.bankKills=0;this.bankTime=0;this.rewardEligible=!auto;this.rewardRun=auto?0:this.career.begin(endless?'endless':'stage');}
+
+    this.sim = new Assault(seed, route, auto ? defaultInputs(route) : [],auto?undefined:{...this.career.data.upgrades,pressure:this.endless?Math.min(30,this.wave-1):0,carry:continuing?survivors:0});
+
     this.automatic = auto; this.running = true; this.menu = ''; this.accumulator = 0;
     this.saved = false; this.eventCursor = 0; this.held.clear(); this.pointer = null; this.sound.stop(); this.lastSound=0; this.recording=false;
   }
@@ -110,7 +119,7 @@ export class FinalDoor extends Component {
       const data = await this.ui.services.importText(); if (data === null) return;
       if (data.length > 1024 * 1024) throw Error('回放文件过大。');
       const replay = importReplay(data);
-      this.sim = new Assault(replay.seed,replay.route,replay.inputs);
+      this.sim = new Assault(replay.seed,replay.route,replay.inputs,replay.loadout);this.rewardEligible=false;this.endless=false;
       this.automatic = true; this.running = false; this.saved = false; this.menu = '';
       this.accumulator = 0; this.eventCursor = 0; this.notify('回放已导入，点击播放。');
     } catch (e) { this.notify(e instanceof Error ? e.message : '回放无法读取。'); }
@@ -124,6 +133,7 @@ export class FinalDoor extends Component {
       ui.platform.state('menu'); ui.text('loading',this.failure || '正在铺好海桥…',0,0,20);
       ui.end({slug:'final-door',phase:'loading'}); return;
     }
+    if(this.careerPanel.active){drawCareer(ui,this.careerPanel);return;}
     if (this.running && !this.menu && !this.ended) {
       const left = this.held.has(KeyCode.ARROW_LEFT) || this.held.has(KeyCode.KEY_A);
       const right = this.held.has(KeyCode.ARROW_RIGHT) || this.held.has(KeyCode.KEY_D);
@@ -132,10 +142,11 @@ export class FinalDoor extends Component {
       this.accumulator += Math.min(.1,Math.max(0,dt));
       while (this.accumulator >= 1/60 && !this.ended) { this.sim.step(); this.accumulator -= 1/60; }
     }
+    if(this.sim.tick%60===0||this.ended)this.reward();
     if (this.ended) {
       this.running = false;
       if (!this.saved) {
-        if (!this.automatic && this.sim.outcome === '胜利') { this.save.best[this.sim.route] = Math.max(this.save.best[this.sim.route],this.sim.crowd.count); this.persist(); }
+        if (this.rewardEligible&&!this.endless && this.sim.outcome === '胜利') { this.save.best[this.sim.route] = Math.max(this.save.best[this.sim.route],this.sim.crowd.count); this.persist(); }
         this.saved = true;
       }
     }
@@ -147,7 +158,9 @@ export class FinalDoor extends Component {
       }
     }
     ui.platform.state(this.menu==='main'?'menu':this.menu || (!this.running && this.sim.tick > 0 && !this.ended) ? 'paused' : this.ended ? 'result' : this.automatic && this.sim.tick === 0 ? 'menu' : 'playing');
+    this.art.skinColor=this.career.data.skin==='classic'?'#ffffff':this.career.skin.color;
     this.renderWorld(); this.renderHud();
+    if(!this.menu)ui.button('career:open',`军需 · ${this.career.data.coins} 金币`,this.portrait?0:-ui.width*.37,ui.height/2-(this.portrait?178:142)-ui.insets.top,170,()=>{this.pause();this.careerPanel.open()},false,34);
     if (this.menu) this.renderMenu(); else if (this.ended) this.renderResult();
     const recent=this.sim.events.slice(-400).reverse().find(e=>['过门','装备升级','首领重击','容量拒绝'].includes(e.type)&&this.sim.tick-e.tick<100);
     if(recent&&!this.ended&&!this.menu&&this.noticeTime<=0){
@@ -159,7 +172,7 @@ export class FinalDoor extends Component {
       ui.panel('notice',0,-ui.height/2+132,Math.min(360,ui.width-24),58,'#0d2c47ef');
       ui.text('notice-text',this.notice,0,-ui.height/2+132,13,'#e6f5ff',Math.min(340,ui.width-42));
     }
-    ui.end({slug:'final-door',phase:this.menu ? 'menu' : this.ended ? 'result' : this.running ? 'playing' : 'paused',menu:this.menu,automatic:this.automatic,tick:this.sim.tick,count:this.sim.crowd.count,shots:this.sim.shots,hits:this.sim.hits,route:this.sim.route,outcome:this.sim.outcome,bossHP:this.sim.boss.hp,checksum:(globalThis as unknown as {__COLLECTION_TEST__?:boolean}).__COLLECTION_TEST__?this.sim.hash():undefined,sound:this.save.sound,quality:this.save.quality});
+    ui.end({slug:'final-door',career:{skin:this.career.data.skin,upgrades:this.career.data.upgrades},skinColor:this.art.skinColor,endless:this.endless,wave:this.wave,coins:this.career.data.coins,loadout:this.sim.loadout,phase:this.menu ? 'menu' : this.ended ? 'result' : this.running ? 'playing' : 'paused',menu:this.menu,automatic:this.automatic,tick:this.sim.tick,count:this.sim.crowd.count,shots:this.sim.shots,hits:this.sim.hits,route:this.sim.route,outcome:this.sim.outcome,bossHP:this.sim.boss.hp,checksum:(globalThis as unknown as {__COLLECTION_TEST__?:boolean}).__COLLECTION_TEST__?this.sim.hash():undefined,sound:this.save.sound,quality:this.save.quality});
   }
 
   private renderWorld() {
@@ -186,9 +199,10 @@ export class FinalDoor extends Component {
       if(safe)break;
       fov+=.018;
     }
-    ui.shape('sea','box','#183452',0,-.78,-45,350,.1,350);
+    ui.shape('sea','box',['#183452','#183452','#183452','#568799','#806045','#32274f'][s.route],0,-.78,-45,350,.1,350);
     ui.shape('road','box','#737f96',0,-.19,-61,13.25,.32,220).getComponent(MeshRenderer)!.setSharedMaterial(a.roadMaterial,0);
     a.roadMaterial.setProperty('roadParams',new Vec4(scroll,0,0,0));
+    if(s.route>=3)for(let k=0;k<12;k++)for(const side of[-1,1])ui.shape('landmark'+k+'/'+side,s.route===3?'cone':s.route===4?'cylinder':'box',['#a4d4df','#c19c61','#9285ce'][s.route-3],side*(10+k%2),1.5,-((k*14-scroll)%170),3,3+k%3,3);
     for (let k=-4;k<17;k++) {
       const z=scroll%6-k*6;
       for (const side of [-1,1]) {
@@ -205,6 +219,7 @@ export class FinalDoor extends Component {
         }
       }
     }
+    if(this.career.data.skin!=='classic')for(let i=0;i<s.crowd.count;i++){const m=s.member(i);ui.shape('skin-badge'+i,'sphere',this.career.skin.color,m.x,1.5,scroll-m.s,.23,.14,.23);}
     for(const gate of s.gates) {
       const z=scroll-gate.s; if(z< -58 || z>9)continue;
       const label = ui.camera.convertToUINode(new Vec3(gate.x,.88,z),ui.canvas);
@@ -219,7 +234,7 @@ export class FinalDoor extends Component {
           const prop=ui.meshNode(`weapon${gate.id}`,a.models.get(gate.level===3?'droneGeometry':'rifleGeometry')!,a.modelMaterial,gate.x,gate.hp>0?2.62:.72,z,.73,.73,.73);
           prop.setRotationFromEuler(0,14+Math.sin(t*1.8+gate.id)*3,0);
           a.fx(ui,`supply-ring${gate.id}`,2,gate.x,gate.hp>0?1.74:.035,z,2.67,1.67,[.28,.86,1,.72]);
-          if(visibleLabel)ui.worldText(`crate-label${gate.id}`,gate.hp>0?String(gate.hp):'拾取',new Vec3(gate.x,.83,z),26);
+          if(visibleLabel)ui.worldText(`crate-label${gate.id}`,gate.hp>0?String(Math.ceil(gate.hp)):'拾取',new Vec3(gate.x,.83,z),26);
           const p=ui.camera.convertToUINode(new Vec3(gate.x,gate.hp>0?3.1:1.36,z),ui.canvas);
           if(visibleLabel&&p.y<ui.height/2-(this.portrait?153:82))ui.text(`caption${gate.id}`,gate.level===3?'装甲补给':'脉冲步枪',p.x,p.y,8,'#d0eeff',100);
         }
@@ -282,7 +297,7 @@ export class FinalDoor extends Component {
     const head=u.camera.convertToUINode(new Vec3(b.x,5.69,s.progress-b.s),u.canvas),headTop=u.height/2-head.y;
     const edge=headTop-height-12<safeTop,top=edge?safeTop:Math.min(headTop-height-12,u.height*.53);
     const x=edge?u.width/2-width/2-12:clamp(head.x,-u.width/2+12+width/2,u.width/2-width/2-12),y=u.height/2-top-height/2;
-    u.text('boss-title',String(b.hp),x,y+17,this.portrait?27:26,'#f2f7ff',width-14).isBold=true;
+    u.text('boss-title',String(Math.ceil(b.hp)),x,y+17,this.portrait?27:26,'#f2f7ff',width-14).isBold=true;
     u.panel('boss-bar',x,y-1,width,9,'#152540');u.panel('boss-inner',x,y-1,width-4,5,'#0c1b31');const fill=(width-4)*clamp(b.hp/b.maxHp,0,1);
     if(fill>0)u.panel('boss-fill',x-(width-4-fill)/2,y-1,fill,5,'#f64b75');
     u.text('boss-state',b.phase==='蓄力'?'红圈锁定 · 立即侧移':b.phase==='重击'?'重击落地':s.progress<108?'即将交锋':'持续射击 · 保住队伍',x,y-20,10,'#ffc6d1',width+70);
@@ -381,7 +396,7 @@ export class FinalDoor extends Component {
     u.text('menu-title',this.menu==='main'?'下一次，换个打法。':this.menu==='settings'?'画面与声音':this.menu==='replay'?'输入与实际结果':'本次真实战报',0,top-42,23,'#eaf6ff',w-28);
     if(height<540){this.renderCompactMenu(w,height);return;}
     if(this.menu==='main') {
-      ROUTES.forEach((r,i)=>u.button(`route${i}`,`0${i+1}  ${r.name}  ·  ${r.tag}`,0,top-104-i*55,w-44,()=>this.restart(i,false),i===this.sim.route));
+      ROUTES.slice(0,3).forEach((r,i)=>u.button(`route${i}`,`0${i+1}  ${r.name}  ·  ${r.tag}`,0,top-104-i*55,w-44,()=>this.restart(i,false),i===this.sim.route));
       u.button('seed',`挑战种子：${this.sim.seed}`,0,top-278,w-44,()=>void this.seedPrompt());
       u.button('demo','观看 45 秒演示',-w/4+9,top-334,w/2-28,()=>this.restart(this.sim.route,true));
       u.button('manual','手动开始',w/4-9,top-334,w/2-28,()=>this.restart(this.sim.route,false),true);
@@ -401,7 +416,7 @@ export class FinalDoor extends Component {
       u.button('copy-link','复制挑战链接',0,top-364,w-44,()=>void this.copyChallenge());
       u.button('share-result','分享真实结果',0,top-426,w-44,()=>void this.shareResult());
     } else {
-      u.text('report-body',`${ROUTES[this.sim.route].name} · 种子 ${this.sim.seed}\n\n真实队伍 ${this.sim.crowd.count}    损失 ${this.sim.losses}\n\n击杀 ${this.sim.kills}    射击 ${this.sim.shots}\n\n命中 ${this.sim.hits}    装备升级 ${this.sim.upgrades}\n\n首领剩余耐久 ${this.sim.boss.hp}\n\n${this.sim.outcome} · ${this.sim.time.toFixed(1)} 秒`,0,top-235,16,'#d8edff',w-36).node.getComponent(UITransform)!.setContentSize(w-36,350);
+      u.text('report-body',`${ROUTES[this.sim.route].name} · 种子 ${this.sim.seed}\n\n真实队伍 ${this.sim.crowd.count}    损失 ${this.sim.losses}\n\n击杀 ${this.sim.kills}    射击 ${this.sim.shots}\n\n命中 ${this.sim.hits}    装备升级 ${this.sim.upgrades}\n\n首领剩余耐久 ${Math.ceil(this.sim.boss.hp)}\n\n${this.sim.outcome} · ${this.sim.time.toFixed(1)} 秒`,0,top-235,16,'#d8edff',w-36).node.getComponent(UITransform)!.setContentSize(w-36,350);
     }
     if(this.menu!=='main')u.button('menu-back','返回更多',0,-top+98,w-44,()=>this.open('main'));
     u.button('close-menu','关闭',0,-top+42,w-44,()=>this.menu='');
@@ -418,7 +433,7 @@ export class FinalDoor extends Component {
     text('menu-title','下一次，换个打法。',left,top-72,20,'#e9f5ff',content-72).isBold=true;
     button('close-menu','关闭',width/2-53,top-41,68,()=>this.menu='');
     const card=(content-12)/3;
-    ROUTES.forEach((route,i)=>{
+    ROUTES.slice(0,3).forEach((route,i)=>{
       const x=left+card/2+i*(card+6);
       button(`route${i}`,`0${i+1} ${route.name}`,x,top-149,card,()=>this.restart(i,false),86);
       const b=u.buttons.get(`route${i}`)!;b.label.node.active=false;
@@ -468,7 +483,7 @@ export class FinalDoor extends Component {
       {id:'export-report',label:sys.isBrowser?'导出真实战报':'复制真实战报',action:()=>void this.export(true)},
       {id:'copy-link',label:'复制挑战链接',action:()=>void this.copyChallenge()},
       {id:'share-result',label:'分享真实结果',action:()=>void this.shareResult()}];
-    else u.text('compact-report',`${ROUTES[s.route].name} · ${s.outcome}\n种子 ${s.seed} · ${s.time.toFixed(1)} 秒\n队伍 ${s.crowd.count} · 损失 ${s.losses}\n射击 ${s.shots} · 命中 ${s.hits}\n击杀 ${s.kills} · 首领耐久 ${s.boss.hp}`,0,5,14,'#d8edff',width-36).node.getComponent(UITransform)!.setContentSize(width-36,height-150);
+    else u.text('compact-report',`${ROUTES[s.route].name} · ${s.outcome}\n种子 ${s.seed} · ${s.time.toFixed(1)} 秒\n队伍 ${s.crowd.count} · 损失 ${s.losses}\n射击 ${s.shots} · 命中 ${s.hits}\n击杀 ${s.kills} · 首领耐久 ${Math.ceil(s.boss.hp)}`,0,5,14,'#d8edff',width-36).node.getComponent(UITransform)!.setContentSize(width-36,height-150);
     const count=Math.max(2,Math.floor((height-150)/54)),pages=Math.max(1,Math.ceil(options.length/count));
     this.menuPage=clamp(this.menuPage,0,pages-1);
     options.slice(this.menuPage*count,(this.menuPage+1)*count).forEach((option,i)=>u.button(option.id,option.label,0,top-102-i*54,width-40,option.action,option.accent));
@@ -488,12 +503,12 @@ export class FinalDoor extends Component {
     const line=(id:string,value:string,dy:number,size=12,hex='#aacbe4')=>{const label=u.text(id,value,x,y+height/2-dy,size,hex,w-38);label.horizontalAlign=Label.HorizontalAlign.LEFT;return label;};
     u.panel('result',x,y,w,height,'#0d2a44f2');
     line('result-kicker',s.outcome==='胜利'?'真实突破':'真实战报',24,10,'#80c5ec');
-    line('result-title',s.outcome==='胜利'?'突破封锁':s.outcome==='失败'?'队伍全灭':'尚未突破',54,24,'#ecf8ff').isBold=true;
-    line('result-summary',s.outcome==='胜利'?`统领倒下，${s.crowd.count} 名队员活着抵达。`:s.outcome==='失败'?`队伍已耗尽，统领剩余 ${s.boss.hp} 点耐久。`:`四十五秒内尚未击败统领，剩余耐久 ${s.boss.hp}。`,91,12);
+    line('result-title',s.outcome==='胜利'?(this.endless?`无尽第 ${this.wave} 波突破`:'突破封锁'):s.outcome==='失败'?'队伍全灭':'尚未突破',54,24,'#ecf8ff').isBold=true;
+    line('result-summary',s.outcome==='胜利'?`统领倒下，${s.crowd.count} 名队员活着抵达。`:s.outcome==='失败'?`队伍已耗尽，统领剩余 ${Math.ceil(s.boss.hp)} 点耐久。`:`四十五秒内尚未击败统领，剩余耐久 ${Math.ceil(s.boss.hp)}。`,91,12);
     u.panel('result-line',x,y+height/2-110,w-38,1,'#6a83933b');
     line('result-detail',`击败 ${s.kills} 人　损失 ${s.losses} 人　${s.level===2?'已获得脉冲装备':'未获得脉冲装备'}`,126,10);
     line('result-best',this.save.best[s.route]?`本地最佳：${this.save.best[s.route]} 人幸存`:'本地最佳：尚无手动通关记录',151,10,'#87b4d4');
-    u.button('retry','同种子再战',x,y-height/2+37,w-38,()=>this.restart(s.route,false),true,40);
+    u.button('retry',this.endless&&s.outcome==='胜利'?'下一波 · 保留队员':'同种子再战',x,y-height/2+37,w-38,()=>{if(this.endless&&s.outcome==='胜利'){this.bankKills+=s.kills;this.bankTime+=s.time;this.wave++;this.restart((s.route+1)%ROUTES.length,false,(s.seed+7919)>>>0,true,true)}else this.restart(s.route,false,s.seed,this.endless)},true,40);
   }
   onDestroy() { this.art?.destroy(); this.ui?.destroy(); }
 }

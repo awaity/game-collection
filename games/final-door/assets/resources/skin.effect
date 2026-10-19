@@ -1,0 +1,45 @@
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: skin-vs:vert
+      frag: skin-fs:frag
+      rasterizerState: { cullMode: none }
+      depthStencilState: { depthTest: true, depthWrite: true }
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: one
+          blendDst: one_minus_src_alpha
+          blendSrcAlpha: one
+          blendDstAlpha: one_minus_src_alpha
+      properties:
+        mainColor: { value: [1, 1, 1, 1], editor: { type: color } }
+        mainTexture: { value: white }
+}%
+CCProgram skin-vs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/uniforms/cc-local>
+  in vec3 a_position;
+  in vec2 a_texCoord;
+  out vec2 uv;
+  vec4 vert () {
+    uv=a_texCoord;
+    return cc_matViewProj*cc_matWorld*vec4(a_position,1.);
+  }
+}%
+CCProgram skin-fs %{
+  precision highp float;
+  in vec2 uv;
+  uniform sampler2D mainTexture;
+  uniform Params { vec4 mainColor; };
+  vec4 frag () {
+    vec4 c=texture(mainTexture,uv);
+    if(c.a<.02)discard;
+    // Recolour blue uniforms while preserving the atlas's shading and faces.
+    if(length(mainColor.rgb-vec3(1.))>.01 && c.b>c.r*1.2 && c.b>c.g*.95){
+      c.rgb=mainColor.rgb*max(c.r,max(c.g,c.b));
+    }
+    return c;
+  }
+}%
