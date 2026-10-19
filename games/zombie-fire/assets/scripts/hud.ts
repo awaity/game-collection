@@ -51,12 +51,13 @@ export class BattlefieldUI {
   this.ui.panel('xp:bg',0,top-43,w,8,'#283f4b');this.ui.panel('xp:fill',-(1-b.xp/b.xpNeeded)*w/2,top-43,Math.max(1,w*b.xp/b.xpNeeded),8,blue);
   const compact=this.ui.width>this.ui.height&&this.ui.height-this.ui.insets.top-this.ui.insets.bottom<500;
   const splitFooter=compact&&!!b.learned.orb;
-  this.text('wall',`防线 ${Math.ceil(b.hp)} / ${b.maxHp}    ${b.reload>0?'装填中':`弹匣 ${b.ammo}`}`,splitFooter?-w/4:0,bottom+28,13,paper,splitFooter?w/2-12:w);
+  const footerWidth=splitFooter?Math.min(480,this.ui.width-84):w;
+  this.text('wall',`防线 ${Math.ceil(b.hp)} / ${b.maxHp}    ${b.reload>0?'装填中':`弹匣 ${b.ammo}`}`,splitFooter?-footerWidth/4:0,bottom+28,13,paper,splitFooter?footerWidth/2-12:w);
   if(this.session.saveFailed)this.text('save:warning','奖励等待保存 · 暂停后可重试',0,bottom+6,12,orange,w);
   else if(b.skinProgress){const s=b.skinProgress;this.text('skin:charge',`${s.name} ${s.hits}/${s.threshold} · 已触发 ${s.triggers} 次`,0,bottom+6,11,skillById[s.skill].color,w);}
   const learned=Object.entries(b.learned),skillX=Math.min(480,this.ui.width-84)/2+12,spacing=Math.min(67,(top-bottom-98)/Math.max(1,learned.length));
   learned.forEach(([id,rank],i)=>{const y=top-91-i*spacing,size=Math.min(42,spacing-17);this.icon('skill:icon'+i,id as SkillId,skillX,y,size);const caption=id==='orb'?`幸${b.orbLuck}/21`:id==='dragon'&&b.dragon?`${Math.floor(b.dragon.energy)}/${b.dragon.maxEnergy}`:'Lv.'+rank;this.text('skill:'+i,caption,skillX,y-size/2-8,10,skillById[id as SkillId].color,56);});
-  if(b.learned.orb){const progress=b.luckyProgress,quality=LUCKY_ORB.qualities.find(q=>q.id===progress.quality);this.text('orb:charge',`幸运弹球 ${progress.charge}/${progress.required}${quality?' · 上次'+quality.name:''}`,splitFooter?w/4:0,bottom+(splitFooter?28:55),11,quality?.color??skillById.orb.color,splitFooter?w/2-12:Math.min(350,w-24));}
+  if(b.learned.orb){const progress=b.luckyProgress,quality=LUCKY_ORB.qualities.find(q=>q.id===progress.quality);this.text('orb:charge',`幸运弹球 ${progress.charge}/${progress.required}${quality?' · 上次'+quality.name:''}`,splitFooter?footerWidth/4:0,bottom+(splitFooter?28:55),11,quality?.color??skillById.orb.color,splitFooter?footerWidth/2-12:Math.min(350,w-24));}
   if(b.time<12&&b.phase==='playing')this.text('aim:hint','自动射击 · 轻触敌人可优先集火',0,compact?top-55:bottom+(b.learned.orb?77:55),11,paper,Math.min(350,w-24));
   if(b.phase==='choice')this.choices();
   if(b.phase==='paused'){
