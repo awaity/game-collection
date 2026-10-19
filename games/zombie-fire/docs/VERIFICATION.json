@@ -1,17 +1,17 @@
 {
-  "verifiedAt": "2026-10-19T16:04:16.636Z",
-  "milestone": "ordinary-orb-boundary-budgets-and-continuous-collision-corrected-not-full-reference-parity",
+  "verifiedAt": "2026-10-19T16:50:18.736Z",
+  "milestone": "base-cooldowns-and-sixth-research-rise-corrected-not-full-reference-parity",
   "creator": "3.8.8",
-  "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
-  "rulesAndCampaignRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
-  "unitTests": 72,
-  "ruleLog": "artifacts/zombie-fire-orb-reflection-rules-final.log",
+  "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+  "rulesAndCampaignRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+  "unitTests": 76,
+  "ruleLog": "artifacts/zombie-fire-research-cooldown-rules-final.log",
   "localCampaign": {
     "configuredStages": 36,
     "successfulClears": 36,
     "maps": 6,
-    "verifiedAt": "2026-10-19T15:45:01.156Z",
-    "log": "artifacts/zombie-fire-orb-reflection-campaign.log"
+    "verifiedAt": "2026-10-19T16:25:09.018Z",
+    "log": "artifacts/zombie-fire-research-cooldown-campaign.log"
   },
   "localContent": {
     "weapons": 19,
@@ -51,41 +51,55 @@
       "card-pool-and-research-eligibility"
     ]
   },
+  "ordinaryOrbReflection": {
+    "targetRedirects": 3,
+    "maxBaseContacts": 4,
+    "boundariesPreserveTargetBudget": true,
+    "childRadiusRatio": 0.7,
+    "childSpeedRatio": 0.7777777777777778,
+    "wallEventInterval": 0.5,
+    "collision": "continuous-circle-surface-and-boundary-time-order",
+    "targetSearch": "nearest-living-across-field",
+    "originalClientObserved": false
+  },
   "sourceFiles": {
-    "assets/scripts/core.ts": "46937b91ae0a8c8d6a26dda1966a4990b0d089a4188a1c68fd9594e02a30eb35",
-    "assets/scripts/content.ts": "f6c282bace77a37d92d557a1446a3f9c4bf5e88dc74f5a9e9e3608211e526057",
-    "assets/scripts/profile.ts": "b9a361d69840ba0af5e2bab2c29833e36dba942c351c69e7a84cbbcb684c2c8b",
+    "assets/scripts/core.ts": "f123f04c05799a30bedcb0f9551df52a7de31d5a9048013e1c9b8f987e4041ee",
+    "assets/scripts/content.ts": "b1497b9d6d1a0a90a3389a35382bd4ae974f93036b680215e5413862d4c490a6",
+    "assets/scripts/hud.ts": "749b2866a9844994f6a392ffa24770df8efc7e993597ba92e42700e528470a6a",
+    "assets/scripts/profile.ts": "d2e204e0d0c67e8a5b2f9b89c6d7b43c14c0a8d5b2bc391bf3d6dfe463b977e1",
     "assets/scripts/session.ts": "6b752e283a19a7291cde8326a5d2c87ac76b62bec31b689909e590edb115b86f",
     "assets/scripts/art.ts": "12535f0a17a39e7e0a7c93a8010eceb437d3c68c19644b81e8eddd9caa808aee",
-    "tests/core.test.ts": "d40740ef684d8cd7c0ae09cc735ad5130fc0d546cb0a4b898f74a2fc19012a74",
-    "tests/flows.mjs": "2236232488445a15784b47924fe8c5ce82b0ba1a3493cb74de723a994d54914e"
+    "tests/core.test.ts": "481cb08cdb4d42de653b9757775e60824aa0cf3f0d558a7f0d16ee76b3fda59d",
+    "tests/profile.test.ts": "67b7a9904889754d2e592108fec28eb16e2e9750a290cec1ce26effa15f1d713",
+    "tests/flows.mjs": "c1087624e0c658ae04b41f17249eae2850194da975e443697699dcc4cd6bcea2",
+    "tools/inspect-reference-tables.py": "76592be0d5caea4973aac82006d2ba0d9221b311dd14916227f3de20256409f1"
   },
   "exports": {
     "web": {
       "target": "web-mobile",
-      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
-      "builtAt": "2026-10-19T15:45:34.093Z",
+      "sourceHash": "45363e2e28b3d362112efbbc8a5c045e3aa36c6c32dcb484ca01e2292a39f417",
+      "builtAt": "2026-10-19T16:25:40.940Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "weixin": {
       "target": "wechatgame",
-      "sourceHash": "58e08c6371ce75368abe94edadfecc16a473e019333ae0d9438396ecdaca4996",
-      "builtAt": "2026-10-19T15:47:20.919Z",
+      "sourceHash": "748ade745a1430b96e1aad78bf9e92f2a1ef153557e712e088a94be357cc786b",
+      "builtAt": "2026-10-19T16:26:52.528Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "douyin": {
       "target": "bytedance-mini-game",
-      "sourceHash": "3939d2e5a0ce951531ea2ddbadc6c051b5e9e78862cf47dae44796569b441150",
-      "builtAt": "2026-10-19T15:48:22.719Z",
+      "sourceHash": "79ad2e5ff95952da505dad0576d557530583d4887afe707ddc872f3d5f2f8035",
+      "builtAt": "2026-10-19T16:27:53.983Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     }
   },
   "web": [
     {
-      "verifiedAt": "2026-10-19T15:50:14.083Z",
+      "verifiedAt": "2026-10-19T16:30:49.821Z",
       "target": "web",
       "viewport": {
         "width": 390,
@@ -100,6 +114,7 @@
         "checkin-and-free-supply",
         "actual-weapon-and-wall-upgrades",
         "research",
+        "research-six-replaces-rise-with-real-damage",
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
@@ -125,28 +140,48 @@
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
       "orbReflection": {
-        "verifiedAt": "2026-10-19T15:49:27.154Z",
-        "attempt": 4,
-        "tick": 432,
-        "id": 10,
+        "verifiedAt": "2026-10-19T16:28:39.064Z",
+        "attempt": 1,
+        "tick": 6031,
+        "id": 244,
         "source": "weapon",
         "before": {
-          "walls": 0,
-          "hits": 0,
-          "remaining": 3
+          "walls": 1,
+          "hits": 3,
+          "remaining": 0
         },
         "after": {
-          "walls": 1,
-          "hits": 0,
-          "remaining": 3
+          "walls": 2,
+          "hits": 3,
+          "remaining": 0
         }
       },
-      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
-      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
-      "log": "artifacts/zombie-fire-orb-reflection-web-390.log"
+      "researchRise": {
+        "verifiedAt": "2026-10-19T16:30:44.869Z",
+        "attempt": 2,
+        "research": 6,
+        "beforeDamage": 50.79536,
+        "afterDamage": 54.891760000000005,
+        "selectedAt": 826,
+        "luck": {
+          "before": 4,
+          "change": 10,
+          "after": 14,
+          "overflow": false
+        },
+        "tick": 1519,
+        "projectile": 49,
+        "hits": 2,
+        "projectileDamage": 54.891760000000005
+      },
+      "sourceHash": "45363e2e28b3d362112efbbc8a5c045e3aa36c6c32dcb484ca01e2292a39f417",
+      "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+      "startedAt": "2026-10-19T16:25:52.852751+00:00",
+      "completedAt": "2026-10-19T16:30:49.924325+00:00",
+      "log": "artifacts/zombie-fire-research-cooldown-web-390.log"
     },
     {
-      "verifiedAt": "2026-10-19T15:55:52.989Z",
+      "verifiedAt": "2026-10-19T16:36:34.633Z",
       "target": "web",
       "viewport": {
         "width": 1440,
@@ -161,6 +196,7 @@
         "checkin-and-free-supply",
         "actual-weapon-and-wall-upgrades",
         "research",
+        "research-six-replaces-rise-with-real-damage",
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
@@ -184,28 +220,48 @@
       "errors": [],
       "diagnostics": [],
       "orbReflection": {
-        "verifiedAt": "2026-10-19T15:54:41.084Z",
-        "attempt": 4,
-        "tick": 432,
-        "id": 10,
+        "verifiedAt": "2026-10-19T16:34:12.784Z",
+        "attempt": 1,
+        "tick": 6031,
+        "id": 244,
         "source": "weapon",
         "before": {
-          "walls": 0,
-          "hits": 0,
-          "remaining": 3
+          "walls": 1,
+          "hits": 3,
+          "remaining": 0
         },
         "after": {
-          "walls": 1,
-          "hits": 0,
-          "remaining": 3
+          "walls": 2,
+          "hits": 3,
+          "remaining": 0
         }
       },
-      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
-      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
-      "log": "artifacts/zombie-fire-orb-reflection-web-1440.log"
+      "researchRise": {
+        "verifiedAt": "2026-10-19T16:36:27.858Z",
+        "attempt": 2,
+        "research": 6,
+        "beforeDamage": 50.79536,
+        "afterDamage": 54.891760000000005,
+        "selectedAt": 826,
+        "luck": {
+          "before": 4,
+          "change": 10,
+          "after": 14,
+          "overflow": false
+        },
+        "tick": 1519,
+        "projectile": 49,
+        "hits": 2,
+        "projectileDamage": 54.891760000000005
+      },
+      "sourceHash": "45363e2e28b3d362112efbbc8a5c045e3aa36c6c32dcb484ca01e2292a39f417",
+      "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+      "startedAt": "2026-10-19T16:30:49.924653+00:00",
+      "completedAt": "2026-10-19T16:36:34.763125+00:00",
+      "log": "artifacts/zombie-fire-research-cooldown-web-1440.log"
     },
     {
-      "verifiedAt": "2026-10-19T15:59:31.032Z",
+      "verifiedAt": "2026-10-19T16:45:15.953Z",
       "target": "web",
       "viewport": {
         "width": 844,
@@ -220,6 +276,7 @@
         "checkin-and-free-supply",
         "actual-weapon-and-wall-upgrades",
         "research",
+        "research-six-replaces-rise-with-real-damage",
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
@@ -245,28 +302,48 @@
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
       "orbReflection": {
-        "verifiedAt": "2026-10-19T15:58:36.601Z",
-        "attempt": 4,
-        "tick": 432,
-        "id": 10,
+        "verifiedAt": "2026-10-19T16:43:37.356Z",
+        "attempt": 1,
+        "tick": 6031,
+        "id": 244,
         "source": "weapon",
         "before": {
-          "walls": 0,
-          "hits": 0,
-          "remaining": 3
+          "walls": 1,
+          "hits": 3,
+          "remaining": 0
         },
         "after": {
-          "walls": 1,
-          "hits": 0,
-          "remaining": 3
+          "walls": 2,
+          "hits": 3,
+          "remaining": 0
         }
       },
-      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
-      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
-      "log": "artifacts/zombie-fire-orb-reflection-web-844.log"
+      "researchRise": {
+        "verifiedAt": "2026-10-19T16:45:11.713Z",
+        "attempt": 2,
+        "research": 6,
+        "beforeDamage": 50.79536,
+        "afterDamage": 54.891760000000005,
+        "selectedAt": 826,
+        "luck": {
+          "before": 4,
+          "change": 10,
+          "after": 14,
+          "overflow": false
+        },
+        "tick": 1519,
+        "projectile": 49,
+        "hits": 2,
+        "projectileDamage": 54.891760000000005
+      },
+      "sourceHash": "45363e2e28b3d362112efbbc8a5c045e3aa36c6c32dcb484ca01e2292a39f417",
+      "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+      "startedAt": "2026-10-19T16:40:43.307477+00:00",
+      "completedAt": "2026-10-19T16:45:16.067354+00:00",
+      "log": "artifacts/zombie-fire-research-cooldown-web-844.log"
     },
     {
-      "verifiedAt": "2026-10-19T16:03:04.059Z",
+      "verifiedAt": "2026-10-19T16:47:26.226Z",
       "target": "web",
       "viewport": {
         "width": 320,
@@ -281,6 +358,7 @@
         "checkin-and-free-supply",
         "actual-weapon-and-wall-upgrades",
         "research",
+        "research-six-replaces-rise-with-real-damage",
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
@@ -306,30 +384,50 @@
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
       "orbReflection": {
-        "verifiedAt": "2026-10-19T16:02:10.754Z",
-        "attempt": 4,
-        "tick": 432,
-        "id": 10,
+        "verifiedAt": "2026-10-19T16:46:09.357Z",
+        "attempt": 1,
+        "tick": 6031,
+        "id": 244,
         "source": "weapon",
         "before": {
-          "walls": 0,
-          "hits": 0,
-          "remaining": 3
+          "walls": 1,
+          "hits": 3,
+          "remaining": 0
         },
         "after": {
-          "walls": 1,
-          "hits": 0,
-          "remaining": 3
+          "walls": 2,
+          "hits": 3,
+          "remaining": 0
         }
       },
-      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
-      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
-      "log": "artifacts/zombie-fire-orb-reflection-web-320.log"
+      "researchRise": {
+        "verifiedAt": "2026-10-19T16:47:23.143Z",
+        "attempt": 2,
+        "research": 6,
+        "beforeDamage": 50.79536,
+        "afterDamage": 54.891760000000005,
+        "selectedAt": 826,
+        "luck": {
+          "before": 4,
+          "change": 10,
+          "after": 14,
+          "overflow": false
+        },
+        "tick": 1519,
+        "projectile": 49,
+        "hits": 2,
+        "projectileDamage": 54.891760000000005
+      },
+      "sourceHash": "45363e2e28b3d362112efbbc8a5c045e3aa36c6c32dcb484ca01e2292a39f417",
+      "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+      "startedAt": "2026-10-19T16:44:23.360163+00:00",
+      "completedAt": "2026-10-19T16:47:26.322542+00:00",
+      "log": "artifacts/zombie-fire-research-cooldown-web-320.log"
     }
   ],
   "native": [
     {
-      "verifiedAt": "2026-10-19T15:57:34.123Z",
+      "verifiedAt": "2026-10-19T16:37:35.678Z",
       "target": "weixin",
       "viewport": {
         "width": 390,
@@ -344,6 +442,7 @@
         "checkin-and-free-supply",
         "actual-weapon-and-wall-upgrades",
         "research",
+        "research-six-replaces-rise-with-real-damage",
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
@@ -373,34 +472,54 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 529,
+        "colors": 530,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
       "orbReflection": {
-        "verifiedAt": "2026-10-19T15:56:07.306Z",
-        "attempt": 4,
-        "tick": 443,
-        "id": 10,
+        "verifiedAt": "2026-10-19T16:32:56.832Z",
+        "attempt": 1,
+        "tick": 6034,
+        "id": 244,
         "source": "weapon",
         "before": {
-          "walls": 0,
-          "hits": 0,
-          "remaining": 3
+          "walls": 1,
+          "hits": 3,
+          "remaining": 0
         },
         "after": {
-          "walls": 1,
-          "hits": 0,
-          "remaining": 3
+          "walls": 2,
+          "hits": 3,
+          "remaining": 0
         }
       },
-      "sourceHash": "58e08c6371ce75368abe94edadfecc16a473e019333ae0d9438396ecdaca4996",
-      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
-      "log": "artifacts/zombie-fire-orb-reflection-weixin-390.log",
+      "researchRise": {
+        "verifiedAt": "2026-10-19T16:37:29.787Z",
+        "attempt": 2,
+        "research": 6,
+        "beforeDamage": 50.79536,
+        "afterDamage": 54.891760000000005,
+        "selectedAt": 8174,
+        "luck": {
+          "before": 0,
+          "change": 8,
+          "after": 8,
+          "overflow": false
+        },
+        "tick": 9426,
+        "projectile": 359,
+        "hits": 1,
+        "projectileDamage": 54.891760000000005
+      },
+      "sourceHash": "748ade745a1430b96e1aad78bf9e92f2a1ef153557e712e088a94be357cc786b",
+      "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+      "startedAt": "2026-10-19T16:28:07.236781+00:00",
+      "completedAt": "2026-10-19T16:37:35.807583+00:00",
+      "log": "artifacts/zombie-fire-research-cooldown-weixin-390.log",
       "audioBeforeRestart": 7
     },
     {
-      "verifiedAt": "2026-10-19T16:03:53.788Z",
+      "verifiedAt": "2026-10-19T16:43:51.572Z",
       "target": "douyin",
       "viewport": {
         "width": 390,
@@ -415,6 +534,7 @@
         "checkin-and-free-supply",
         "actual-weapon-and-wall-upgrades",
         "research",
+        "research-six-replaces-rise-with-real-damage",
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
@@ -444,30 +564,50 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 531,
+        "colors": 526,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
       "orbReflection": {
-        "verifiedAt": "2026-10-19T16:02:59.385Z",
-        "attempt": 4,
-        "tick": 434,
-        "id": 10,
+        "verifiedAt": "2026-10-19T16:42:33.458Z",
+        "attempt": 1,
+        "tick": 6044,
+        "id": 244,
         "source": "weapon",
         "before": {
-          "walls": 0,
-          "hits": 0,
-          "remaining": 3
+          "walls": 1,
+          "hits": 3,
+          "remaining": 0
         },
         "after": {
-          "walls": 1,
-          "hits": 0,
-          "remaining": 3
+          "walls": 2,
+          "hits": 3,
+          "remaining": 0
         }
       },
-      "sourceHash": "3939d2e5a0ce951531ea2ddbadc6c051b5e9e78862cf47dae44796569b441150",
-      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
-      "log": "artifacts/zombie-fire-orb-reflection-douyin-390.log",
+      "researchRise": {
+        "verifiedAt": "2026-10-19T16:43:46.566Z",
+        "attempt": 1,
+        "research": 6,
+        "beforeDamage": 58.98816,
+        "afterDamage": 63.08456000000001,
+        "selectedAt": 4277,
+        "luck": {
+          "before": 12,
+          "change": 9,
+          "after": 21,
+          "overflow": false
+        },
+        "tick": 4630,
+        "projectile": 275,
+        "hits": 1,
+        "projectileDamage": 63.08456000000001
+      },
+      "sourceHash": "79ad2e5ff95952da505dad0576d557530583d4887afe707ddc872f3d5f2f8035",
+      "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+      "startedAt": "2026-10-19T16:37:35.807964+00:00",
+      "completedAt": "2026-10-19T16:43:51.674003+00:00",
+      "log": "artifacts/zombie-fire-research-cooldown-douyin-390.log",
       "audioBeforeRestart": 3
     }
   ],
@@ -477,212 +617,212 @@
       {
         "target": "web",
         "width": 390,
-        "verifiedAt": "2026-10-19T15:50:10.066Z",
+        "verifiedAt": "2026-10-19T16:29:46.677Z",
         "evidence": [
+          {
+            "attempt": 1,
+            "quality": "mid",
+            "casts": 6,
+            "triggers": 1,
+            "hits": 3,
+            "tick": 3317
+          },
           {
             "attempt": 1,
             "quality": "low",
             "casts": 12,
             "triggers": 2,
-            "hits": 1,
-            "tick": 4296
+            "hits": 2,
+            "tick": 6059
           },
           {
-            "attempt": 1,
-            "quality": "mid",
-            "casts": 19,
-            "triggers": 3,
-            "hits": 4,
-            "tick": 6120
-          },
-          {
-            "attempt": 1,
+            "attempt": 2,
             "quality": "high",
-            "casts": 54,
-            "triggers": 9,
-            "hits": 1,
-            "tick": 18540
+            "casts": 60,
+            "triggers": 10,
+            "hits": 2,
+            "tick": 29236
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
+        "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d"
       },
       {
         "target": "web",
         "width": 1440,
-        "verifiedAt": "2026-10-19T15:55:47.039Z",
+        "verifiedAt": "2026-10-19T16:35:15.217Z",
         "evidence": [
+          {
+            "attempt": 1,
+            "quality": "mid",
+            "casts": 6,
+            "triggers": 1,
+            "hits": 3,
+            "tick": 3317
+          },
           {
             "attempt": 1,
             "quality": "low",
             "casts": 12,
             "triggers": 2,
-            "hits": 1,
-            "tick": 4296
+            "hits": 2,
+            "tick": 6059
           },
           {
-            "attempt": 1,
-            "quality": "mid",
-            "casts": 19,
-            "triggers": 3,
-            "hits": 4,
-            "tick": 6120
-          },
-          {
-            "attempt": 1,
+            "attempt": 2,
             "quality": "high",
-            "casts": 54,
-            "triggers": 9,
-            "hits": 1,
-            "tick": 18540
+            "casts": 60,
+            "triggers": 10,
+            "hits": 2,
+            "tick": 29236
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
+        "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d"
       },
       {
         "target": "web",
         "width": 844,
-        "verifiedAt": "2026-10-19T15:59:26.275Z",
+        "verifiedAt": "2026-10-19T16:44:27.029Z",
         "evidence": [
+          {
+            "attempt": 1,
+            "quality": "mid",
+            "casts": 6,
+            "triggers": 1,
+            "hits": 3,
+            "tick": 3317
+          },
           {
             "attempt": 1,
             "quality": "low",
             "casts": 12,
             "triggers": 2,
-            "hits": 1,
-            "tick": 4296
+            "hits": 2,
+            "tick": 6059
           },
           {
-            "attempt": 1,
-            "quality": "mid",
-            "casts": 19,
-            "triggers": 3,
-            "hits": 4,
-            "tick": 6120
-          },
-          {
-            "attempt": 1,
+            "attempt": 2,
             "quality": "high",
-            "casts": 54,
-            "triggers": 9,
-            "hits": 1,
-            "tick": 18540
+            "casts": 60,
+            "triggers": 10,
+            "hits": 2,
+            "tick": 29236
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
+        "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d"
       },
       {
         "target": "web",
         "width": 320,
-        "verifiedAt": "2026-10-19T16:03:00.445Z",
+        "verifiedAt": "2026-10-19T16:46:51.882Z",
         "evidence": [
+          {
+            "attempt": 1,
+            "quality": "mid",
+            "casts": 6,
+            "triggers": 1,
+            "hits": 3,
+            "tick": 3317
+          },
           {
             "attempt": 1,
             "quality": "low",
             "casts": 12,
             "triggers": 2,
-            "hits": 1,
-            "tick": 4296
+            "hits": 2,
+            "tick": 6059
           },
           {
-            "attempt": 1,
-            "quality": "mid",
-            "casts": 19,
-            "triggers": 3,
-            "hits": 4,
-            "tick": 6120
-          },
-          {
-            "attempt": 1,
+            "attempt": 2,
             "quality": "high",
-            "casts": 54,
-            "triggers": 9,
-            "hits": 1,
-            "tick": 18540
+            "casts": 60,
+            "triggers": 10,
+            "hits": 2,
+            "tick": 29236
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
+        "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d"
       },
       {
         "target": "weixin",
         "width": 390,
-        "verifiedAt": "2026-10-19T15:57:28.094Z",
+        "verifiedAt": "2026-10-19T16:35:16.792Z",
         "evidence": [
+          {
+            "attempt": 1,
+            "quality": "mid",
+            "casts": 6,
+            "triggers": 1,
+            "hits": 3,
+            "tick": 3317
+          },
           {
             "attempt": 1,
             "quality": "low",
             "casts": 12,
             "triggers": 2,
-            "hits": 1,
-            "tick": 4296
+            "hits": 2,
+            "tick": 6059
           },
           {
-            "attempt": 1,
-            "quality": "mid",
-            "casts": 19,
-            "triggers": 3,
-            "hits": 3,
-            "tick": 6119
-          },
-          {
-            "attempt": 1,
+            "attempt": 2,
             "quality": "high",
-            "casts": 54,
-            "triggers": 9,
-            "hits": 1,
-            "tick": 18547
+            "casts": 60,
+            "triggers": 10,
+            "hits": 2,
+            "tick": 29238
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
+        "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d"
       },
       {
         "target": "douyin",
         "width": 390,
-        "verifiedAt": "2026-10-19T16:03:49.685Z",
+        "verifiedAt": "2026-10-19T16:43:25.197Z",
         "evidence": [
+          {
+            "attempt": 1,
+            "quality": "mid",
+            "casts": 6,
+            "triggers": 1,
+            "hits": 3,
+            "tick": 3316
+          },
           {
             "attempt": 1,
             "quality": "low",
             "casts": 12,
             "triggers": 2,
-            "hits": 1,
-            "tick": 4295
+            "hits": 2,
+            "tick": 6061
           },
           {
-            "attempt": 1,
-            "quality": "mid",
-            "casts": 19,
-            "triggers": 3,
-            "hits": 3,
-            "tick": 6119
-          },
-          {
-            "attempt": 1,
+            "attempt": 2,
             "quality": "high",
-            "casts": 54,
-            "triggers": 9,
-            "hits": 1,
-            "tick": 18539
+            "casts": 60,
+            "triggers": 10,
+            "hits": 2,
+            "tick": 29238
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
+        "testedImplementationRevision": "3fdefdb0014444dd12db3614d5475d484513d92d"
       }
     ],
     "localChoices": [
@@ -697,102 +837,365 @@
   "realDevices": false,
   "catalogIntegrated": false,
   "newGamePublished": false,
-  "flowSourceHash": "2236232488445a15784b47924fe8c5ce82b0ba1a3493cb74de723a994d54914e",
-  "referenceEvidence": {
-    "serializedBehaviorIdentities": 2804,
-    "selectedBehaviors": 16,
-    "clientExecution": false,
-    "log": "artifacts/zombie-fire-orb-reflection-reference-final.log",
-    "retainedOwnBuffGates": true,
-    "researchRevision": "4839ebf5d9daccbfca48c16e7ed4335f0b05a79e",
-    "tableLog": "artifacts/zombie-fire-orb-reflection-skill-level-reference.log",
-    "baseTableLog": "artifacts/zombie-fire-orb-reflection-skill-base-reference.log",
-    "validatedTables": 14,
-    "skillBase": {
-      "sha256": "051c0e6e78db28d0ced63ca276cd3852ac26bc79235f5273d2f42a0fe6bb5651",
-      "encoding": "transformed-blocks",
-      "bytes": 860619,
-      "declaredRows": 2154,
-      "completeRows": 2153,
-      "decodedPrefixBytes": 860608,
-      "undecodedTailBytes": 11,
-      "declaredChecksum": "503b209f",
-      "checksumVerified": false,
-      "recordBoundariesReachFileEnd": false,
-      "incompleteRecordOffset": 860232,
-      "selectedMainSkills": 18,
-      "prefixBytes": 26,
-      "stringLengthBytes": 4,
-      "bodyBytes": 356,
-      "predictedFinalRecordEnd": 860619,
-      "incompleteBodyExcluded": true,
-      "missingMagicSkillBases": [],
-      "runtimeFieldSemanticsVerified": false
+  "flowSourceHash": "c1087624e0c658ae04b41f17249eae2850194da975e443697699dcc4cd6bcea2",
+  "caseCommands": [
+    {
+      "target": "web",
+      "width": 390,
+      "startedAt": "2026-10-19T16:25:52.852751+00:00",
+      "completedAt": "2026-10-19T16:30:49.924325+00:00",
+      "exitCode": 0,
+      "log": "artifacts/zombie-fire-research-cooldown-web-390.log"
     },
-    "skillLevels": {
-      "sha256": "d348f5fea6211c06e6b617798bd94ec925a910bad32bd858a4b5b3bcbaa1a22a",
-      "encoding": "plain",
-      "bytes": 145748,
-      "declaredRows": 828,
-      "completeRows": 828,
-      "decodedPrefixBytes": 145748,
-      "undecodedTailBytes": 0,
-      "declaredChecksum": "c37a35f5",
-      "checksumVerified": false,
-      "recordBoundariesReachFileEnd": true,
-      "incompleteRecordOffset": null,
-      "recordBytes": 176,
-      "skillFamilies": 18,
-      "levelsPerFamily": 46,
-      "selectedRows": 42,
-      "cooldownDisplayComparisons": 17,
-      "missingDisplayTexts": [
-        407700146
-      ],
-      "originalClientObserved": false,
-      "gameplayApplied": false
+    {
+      "target": "web",
+      "width": 1440,
+      "startedAt": "2026-10-19T16:30:49.924653+00:00",
+      "completedAt": "2026-10-19T16:36:34.763125+00:00",
+      "exitCode": 0,
+      "log": "artifacts/zombie-fire-research-cooldown-web-1440.log"
+    },
+    {
+      "target": "web",
+      "width": 844,
+      "startedAt": "2026-10-19T16:40:43.307477+00:00",
+      "completedAt": "2026-10-19T16:45:16.067354+00:00",
+      "exitCode": 0,
+      "log": "artifacts/zombie-fire-research-cooldown-web-844.log"
+    },
+    {
+      "target": "web",
+      "width": 320,
+      "startedAt": "2026-10-19T16:44:23.360163+00:00",
+      "completedAt": "2026-10-19T16:47:26.322542+00:00",
+      "exitCode": 0,
+      "log": "artifacts/zombie-fire-research-cooldown-web-320.log"
+    },
+    {
+      "target": "weixin",
+      "width": 390,
+      "startedAt": "2026-10-19T16:28:07.236781+00:00",
+      "completedAt": "2026-10-19T16:37:35.807583+00:00",
+      "exitCode": 0,
+      "log": "artifacts/zombie-fire-research-cooldown-weixin-390.log"
+    },
+    {
+      "target": "douyin",
+      "width": 390,
+      "startedAt": "2026-10-19T16:37:35.807964+00:00",
+      "completedAt": "2026-10-19T16:43:51.674003+00:00",
+      "exitCode": 0,
+      "log": "artifacts/zombie-fire-research-cooldown-douyin-390.log"
     }
-  },
-  "finalBuildLogs": [
-    "artifacts/zombie-fire-orb-reflection-web-build.log",
-    "artifacts/zombie-fire-orb-reflection-mini-build.log",
-    "artifacts/zombie-fire-orb-reflection-mini-verify.log"
   ],
-  "visualEvidence": {
-    "actualCombat": "artifacts/cocos/zombie-fire/*-advanced-orb.png",
-    "luckyEffects": "artifacts/cocos/zombie-fire/*-lucky-{low,mid,high}-{prepare,combat}.png",
-    "luckyDerivatives": "artifacts/cocos/zombie-fire/*-lucky-{light-hit,high-burst}.png",
-    "reviewedScreens": [
-      "artifacts/cocos/zombie-fire/web-390-lucky-light-hit.png",
-      "artifacts/cocos/zombie-fire/web-1440-advanced-orb.png",
-      "artifacts/cocos/zombie-fire/web-844-advanced-orb-lucky-choice.png",
-      "artifacts/cocos/zombie-fire/web-844-lucky-high-burst.png",
-      "artifacts/cocos/zombie-fire/web-320-first-choice.png",
-      "artifacts/cocos/zombie-fire/web-320-lucky-high-burst.png",
-      "artifacts/cocos/zombie-fire/weixin-390-advanced-orb.png",
-      "artifacts/cocos/zombie-fire/douyin-390-lucky-high-burst.png"
-    ],
-    "reviewScope": "Reviewed current-export combat and choice screenshots for clipping and overlap; not a visual-parity claim against an interactive original client."
+  "referenceEvidence": {
+    "researchRevision": "14eafbe51379d7072313a855889e49438f84a84c",
+    "tableLog": "artifacts/zombie-fire-level-base-reference.log",
+    "validatedTables": 16,
+    "completeChapters": 50,
+    "matchedChapterLevelReferences": 100,
+    "completeLevelBases": 13013,
+    "declaredLevelBases": 13014,
+    "incompleteLevelBaseBodyExcluded": true,
+    "levelBaseDispatchVerified": false,
+    "completeSkillBases": 2153,
+    "completeSkillLevels": 828,
+    "skillFamilies": 18,
+    "baseCooldownComparisons": 17,
+    "riseGroupRows": 18,
+    "riseAttributeRows": 2,
+    "orbReplacementRows": 9,
+    "level31ConflictRetained": true,
+    "clientExecution": false
   },
-  "verificationScope": "All six complete gameplay flows rerun after official exports of cc7f28e. No card-choice, RNG, health, currency or victory fixtures in runtime acceptance; QA advances real fixed-step rules.",
-  "ordinaryOrbReflection": {
-    "targetRedirects": 3,
-    "maxBaseContacts": 4,
-    "boundariesPreserveTargetBudget": true,
-    "childRadiusRatio": 0.7,
-    "childSpeedRatio": 0.7777777777777778,
-    "wallEventInterval": 0.5,
-    "collision": "continuous-circle-surface-and-boundary-time-order",
-    "targetSearch": "nearest-living-across-field",
+  "cooldownAndResearch": {
+    "baseCooldowns": {
+      "1000": 6.199999809265137,
+      "2000": 4.099999904632568,
+      "3000": 3.799999952316284,
+      "4000": 7.5,
+      "5000": 17.399999618530273,
+      "6000": 6.5,
+      "7000": 7.699999809265137,
+      "8000": 10.300000190734863,
+      "9000": 6.199999809265137,
+      "10000": 6.099999904632568,
+      "11000": 17.100000381469727,
+      "12000": 10,
+      "13000": 4,
+      "14000": 15,
+      "15000": 8,
+      "16000": 7.5,
+      "17000": 7.5
+    },
+    "rise": {
+      "researchLevel": 6,
+      "beforeDamageModifier": -0.1,
+      "afterDamageModifier": 0.1,
+      "luckyRange": [
+        8,
+        10
+      ],
+      "stableCardId": "orb:rise",
+      "battleCapturesResearch": true
+    },
+    "airdropElement": "physical",
+    "reference": "RESEARCH-COOLDOWN.md",
+    "localChoices": [
+      "research-level-range-and-costs",
+      "research-per-level-damage",
+      "haste-stacking-and-floor",
+      "mode-selection-and-card-rank-caps"
+    ],
     "originalClientObserved": false
   },
+  "profileShape": {
+    "canonicalZeroLevelResearchEntries": 19,
+    "strictResearchReloadEquality": true
+  },
+  "validationFailures": [
+    {
+      "kind": "unit-test-old-cooldown-wait",
+      "log": "artifacts/zombie-fire-research-cooldown-rules.log",
+      "resolved": true
+    },
+    {
+      "kind": "fresh-versus-reloaded-research-shape",
+      "log": "artifacts/zombie-fire-research-cooldown-first-attempt/web-390-failure.json",
+      "fixRevision": "3fdefdb0014444dd12db3614d5475d484513d92d",
+      "resolved": true
+    },
+    {
+      "kind": "native-runner-interrupted",
+      "exitCode": 143,
+      "cause": "unknown",
+      "log": "artifacts/zombie-fire-research-cooldown-first-attempt/native-interruption.json",
+      "rerunCompleted": true
+    },
+    {
+      "kind": "web-844-runner-interrupted",
+      "exitCode": 143,
+      "cause": "unknown",
+      "log": "artifacts/zombie-fire-research-cooldown-web-844-interruption/interruption.json",
+      "completedWebCasesRetained": [
+        390,
+        1440
+      ],
+      "rerunCompleted": true
+    }
+  ],
+  "finalBuildLogs": [
+    "artifacts/zombie-fire-research-cooldown-web-build.log",
+    "artifacts/zombie-fire-research-cooldown-mini-build.log",
+    "artifacts/zombie-fire-research-cooldown-mini-verify.log"
+  ],
+  "visualEvidence": {
+    "research": "artifacts/cocos/zombie-fire/*-research-{orb-six,rise-choice,rise-hit}.png",
+    "lucky": "artifacts/cocos/zombie-fire/*-lucky-{low,mid,high}-combat.png"
+  },
+  "visualReview": {
+    "reviewedAt": "2026-10-19T16:50:18.683796+00:00",
+    "method": "manual inspection of actual screenshots",
+    "reviewed": [
+      {
+        "target": "web",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/web-390-research.png",
+        "sha256": "74d566f5966536f387e6b96c9f0d9215c947c5343e509809d0ebe1cc0f7a5263",
+        "observations": "研究说明和分页完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/web-390-research-orb-six.png",
+        "sha256": "709a1104a4554d44e01342153a1c986ca58a4e20bdff747eefccf96227c65079",
+        "observations": "多维弹球Lv.6、研究花费与下次出战生效提示可见。"
+      },
+      {
+        "target": "web",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/web-390-research-rise-choice.png",
+        "sha256": "86f122121294a8a1ec89ae7192cce1f353d0e78707fdb27dda1d883f7050b19d",
+        "observations": "升维+名称、10%增伤及幸运增减完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/web-390-research-rise-hit.png",
+        "sha256": "a7d9ae54cb68f14e06dca2d8d360af6d9d2d21f735a6a76ce2cca4cbfef4e557",
+        "observations": "普通弹球、伤害数字、防线与技能栏可辨认。"
+      },
+      {
+        "target": "web",
+        "width": 1440,
+        "screenshot": "artifacts/cocos/zombie-fire/web-1440-research.png",
+        "sha256": "ef3e6eacd380d7c7959ef452e7262ec594f1edc473b9e2b80ee6783ee49fe80c",
+        "observations": "研究说明、正文和分页在桌面宽度内完整可见。"
+      },
+      {
+        "target": "weixin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-research.png",
+        "sha256": "5fbe2280186df49026fd16ec2483e602b27c28613e40556a6d4f38ef12a92da4",
+        "observations": "原生安全区内研究说明与翻页按钮完整可见。"
+      },
+      {
+        "target": "weixin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-research-orb-six.png",
+        "sha256": "6f6fe027758ca8298942ef19f7c691cd4728ab724d802b1540925ae02603098b",
+        "observations": "安全区内Lv.6、花费与下次出战生效提示完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 1440,
+        "screenshot": "artifacts/cocos/zombie-fire/web-1440-research-orb-six.png",
+        "sha256": "14d20aedb7f0c6ae5a801b9d056b529db2e1cc6205a6fbbc046c86ccf90305aa",
+        "observations": "桌面布局内研究等级、花费和生效提示完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 1440,
+        "screenshot": "artifacts/cocos/zombie-fire/web-1440-research-rise-choice.png",
+        "sha256": "81da20c02452d53d6bd1d7ecb0c868fa3119fdfc4d04d2c93a2d18a49abbaf37",
+        "observations": "桌面三选一中升维+、伤害提高10%和幸运结果可读。"
+      },
+      {
+        "target": "web",
+        "width": 1440,
+        "screenshot": "artifacts/cocos/zombie-fire/web-1440-research-rise-hit.png",
+        "sha256": "3ca8a3ee380f2e4949b2a4342e6ce713b322c027b04532825c832b0492f59794",
+        "observations": "桌面战场中弹球、伤害数字和技能栏可辨认。"
+      },
+      {
+        "target": "weixin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-research-rise-choice.png",
+        "sha256": "653bf574669f7777600a3856b12d584854a15295ea6d6a50c7288bb14c2c016a",
+        "observations": "三张原生卡片中升维+名称、10%增伤与幸运结果完整可见。"
+      },
+      {
+        "target": "weixin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-research-rise-hit.png",
+        "sha256": "cd7b556c51e9b6a65df79be03567a4dc8a3713c5ed1f8b2f51dd1284df9983a2",
+        "observations": "原生战场的弹球、伤害数字、技能列和防线完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/web-390-codex-skills.png",
+        "sha256": "5921f9b189bbddebdac7a556d9eb149896c719ade3c8dbf7f73beeacf2adcb9a",
+        "observations": "图鉴技能说明、基础冷却与分页均完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 1440,
+        "screenshot": "artifacts/cocos/zombie-fire/web-1440-codex-skills.png",
+        "sha256": "81aa916d790964ca12ac8b966a2a3f44f3f56cc637aa0598833a081c54bfe0c2",
+        "observations": "图鉴技能说明、基础冷却与分页均完整可见。"
+      },
+      {
+        "target": "weixin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/weixin-390-codex-skills.png",
+        "sha256": "acff09729040f7f5b814cd729700d444944f064dce1f75d5093df7657b9e9593",
+        "observations": "图鉴技能说明、基础冷却与分页均完整可见。"
+      },
+      {
+        "target": "douyin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/douyin-390-codex-skills.png",
+        "sha256": "acff09729040f7f5b814cd729700d444944f064dce1f75d5093df7657b9e9593",
+        "observations": "图鉴技能说明、基础冷却与分页均完整可见。"
+      },
+      {
+        "target": "douyin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/douyin-390-research-rise-choice.png",
+        "sha256": "03699869ddbbfb1083fb4902964953bcd433161af61b3ebdea3700e4d8b3059b",
+        "observations": "升维+的增伤说明和幸运达到21的结果完整可见。"
+      },
+      {
+        "target": "douyin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/douyin-390-research-rise-hit.png",
+        "sha256": "a4c69a07fe0572ffe142d9b766476bc94fcfabd95fd9fa63684a38c7c5ab447f",
+        "observations": "抖音原生战场中的弹球、目标、技能栏和防线完整可见。"
+      },
+      {
+        "target": "douyin",
+        "width": 390,
+        "screenshot": "artifacts/cocos/zombie-fire/douyin-390-research.png",
+        "sha256": "5fbe2280186df49026fd16ec2483e602b27c28613e40556a6d4f38ef12a92da4",
+        "observations": "抖音原生安全区内研究说明与分页完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 844,
+        "screenshot": "artifacts/cocos/zombie-fire/web-844-research.png",
+        "sha256": "48bf5bbb58c262430e3c6c188470a82ffb06421a19ebc5dd40a48e7f78ff2f91",
+        "observations": "横屏最终运行的研究说明和分页无裁切。"
+      },
+      {
+        "target": "web",
+        "width": 844,
+        "screenshot": "artifacts/cocos/zombie-fire/web-844-research-rise-choice.png",
+        "sha256": "9238735eb5c4f77112c16f7f1d8fcc59d8d3a85eb8ee78a9ba72799923c42159",
+        "observations": "横屏三选一的标题、10%增伤、幸运结果与刷新按钮完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 844,
+        "screenshot": "artifacts/cocos/zombie-fire/web-844-research-rise-hit.png",
+        "sha256": "c87f65bb54b58c926f0b0f4ccc0cad673a11c0b1ca865066839e61e64714264b",
+        "observations": "横屏战场内弹球、伤害数字、防线和技能列完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 844,
+        "screenshot": "artifacts/cocos/zombie-fire/web-844-codex-skills.png",
+        "sha256": "5e237dd668444aa00a3bede2cfe6aa2d93175f735aa938b0ef6cdccaaabcf04f",
+        "observations": "横屏图鉴正文、基础冷却、分类与分页完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 320,
+        "screenshot": "artifacts/cocos/zombie-fire/web-320-research.png",
+        "sha256": "2c4d4ca02dc6b33b200123946fcddb382b815e0c39e15799ae44887235eb32c7",
+        "observations": "320像素研究说明和分页完整可见；费用文字与按钮间距较紧。"
+      },
+      {
+        "target": "web",
+        "width": 320,
+        "screenshot": "artifacts/cocos/zombie-fire/web-320-research-rise-choice.png",
+        "sha256": "4792c4fa25718cc28c934b09f059ee3158f27471a13fbc35dfdd89b3ffba34c8",
+        "observations": "320像素三选一卡片的名称、增伤说明和幸运结果均显示，正文折行。"
+      },
+      {
+        "target": "web",
+        "width": 320,
+        "screenshot": "artifacts/cocos/zombie-fire/web-320-research-rise-hit.png",
+        "sha256": "fe7a48ebb15d6bf78d63705779fccc80bd1e9e82026c25e2d26e14edb80753eb",
+        "observations": "320像素战场内弹球、技能栏、防线和状态文字完整可见。"
+      },
+      {
+        "target": "web",
+        "width": 320,
+        "screenshot": "artifacts/cocos/zombie-fire/web-320-codex-skills.png",
+        "sha256": "9b2b28705f00f04820d324f823db06b747847d0cc2d05ed21bede3ead9361d6f",
+        "observations": "320像素图鉴正文、基础冷却和分类/分页完整可见。"
+      }
+    ]
+  },
+  "verificationScope": "All six full flows rerun after the current official exports; original 27 flows retained plus research purchase/choice/actual-hit. QA advances rules without grants or RNG rewrites.",
   "localServices": {
-    "checkedAt": "2026-10-19T16:04:04.802382+00:00",
+    "checkedAt": "2026-10-19T16:48:16.290683+00:00",
     "ownVerificationProcesses": 0,
     "ownCreatorBuildProcesses": 0,
     "preservedExistingServices": true,
     "listeners": "State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                  \nLISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*                                            \nLISTEN 0      511        127.0.0.1:41095      0.0.0.0:*    users:((\"MainThread\",pid=1247,fd=41))   \nLISTEN 0      511          0.0.0.0:5173       0.0.0.0:*    users:((\"node\",pid=197353,fd=34))       \nLISTEN 0      511        127.0.0.1:36871      0.0.0.0:*    users:((\"MainThread\",pid=3040365,fd=36))\nLISTEN 0      128        127.0.0.1:37663      0.0.0.0:*    users:((\"codex\",pid=68733,fd=39))       \nLISTEN 0      511        127.0.0.1:37487      0.0.0.0:*    users:((\"MainThread\",pid=976,fd=22))    \nLISTEN 0      128        127.0.0.1:38323      0.0.0.0:*    users:((\"codex\",pid=4367,fd=39))        \nLISTEN 0      4096      127.0.0.54:53         0.0.0.0:*                                            \n",
     "creatorProcessCount": 0,
-    "evidence": "artifacts/zombie-fire-orb-reflection-services-closed.json"
+    "evidence": "artifacts/zombie-fire-research-cooldown-services-closed.json"
   }
 }
