@@ -1,38 +1,46 @@
 {
-  "verifiedAt": "2026-10-19T11:17:21.857041+00:00",
-  "milestone": "independent-reconstruction-not-full-reference-parity",
+  "verifiedAt": "2026-10-19T11:45:45.087869+00:00",
+  "milestone": "independent-reconstruction-with-official-outfit-triggers-not-full-reference-parity",
   "creator": "3.8.8",
-  "unitTests": 31,
+  "unitTests": 37,
   "localCampaign": {
     "configuredStages": 36,
     "successfulClears": 36,
-    "maps": 6
+    "maps": 6,
+    "verifiedAt": "2026-10-19T11:42:46.022Z"
   },
+  "outfitAbilities": [
+    "thermo-volley-after-12-hits",
+    "ice-storm-after-32-hits",
+    "triple-blade-after-36-hits",
+    "plasma-after-2-hits-on-same-target"
+  ],
   "exports": {
     "web": {
       "target": "web-mobile",
-      "sourceHash": "c81e0d3cf609d1e3cb305fc66186991770846d9802c886dc6c849a1ffbf80299",
-      "builtAt": "2026-10-19T11:12:58.909Z",
+      "sourceHash": "2b48a894ffb407de0603610ffe1920b162de8dfd74f29d9ecd58b7cfc1e041a4",
+      "builtAt": "2026-10-19T11:38:33.675Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "weixin": {
       "target": "wechatgame",
-      "sourceHash": "f35d9df3725087125814bc1603456dfd1ca4b3af1ed5c00f6cdbaa60934c7c4c",
-      "builtAt": "2026-10-19T11:13:42.220Z",
+      "sourceHash": "154493ea00bdc9e28539b538697b1660b0097fd03bea0d906c2f5b826c65a192",
+      "builtAt": "2026-10-19T11:39:53.335Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "douyin": {
       "target": "bytedance-mini-game",
-      "sourceHash": "cf242d731b69f522ce594eec9a6ce164c8a159365380fe150d539faef46374d5",
-      "builtAt": "2026-10-19T11:14:29.018Z",
+      "sourceHash": "a6fd3781504e11be177443c022aaada0f21ddbde69bff8485a3b021af228f483",
+      "builtAt": "2026-10-19T11:41:02.568Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     }
   },
   "web": [
     {
+      "verifiedAt": "2026-10-19T11:39:47.189Z",
       "target": "web",
       "viewport": {
         "width": 390,
@@ -49,9 +57,10 @@
         "research",
         "mercenary-upgrade",
         "five-skins",
+        "four-hit-triggered-outfits",
         "gem-equip",
         "idempotent-rewards",
-        "codex",
+        "codex-with-outfit-rules",
         "sound-motion-quality-volume",
         "daily-seed",
         "persistent-restart"
@@ -62,6 +71,7 @@
       ]
     },
     {
+      "verifiedAt": "2026-10-19T11:41:12.085Z",
       "target": "web",
       "viewport": {
         "width": 1440,
@@ -78,9 +88,10 @@
         "research",
         "mercenary-upgrade",
         "five-skins",
+        "four-hit-triggered-outfits",
         "gem-equip",
         "idempotent-rewards",
-        "codex",
+        "codex-with-outfit-rules",
         "sound-motion-quality-volume",
         "daily-seed",
         "persistent-restart"
@@ -89,6 +100,7 @@
       "diagnostics": []
     },
     {
+      "verifiedAt": "2026-10-19T11:42:16.623Z",
       "target": "web",
       "viewport": {
         "width": 844,
@@ -105,9 +117,10 @@
         "research",
         "mercenary-upgrade",
         "five-skins",
+        "four-hit-triggered-outfits",
         "gem-equip",
         "idempotent-rewards",
-        "codex",
+        "codex-with-outfit-rules",
         "sound-motion-quality-volume",
         "daily-seed",
         "persistent-restart"
@@ -118,6 +131,7 @@
       ]
     },
     {
+      "verifiedAt": "2026-10-19T11:43:17.297Z",
       "target": "web",
       "viewport": {
         "width": 320,
@@ -134,9 +148,10 @@
         "research",
         "mercenary-upgrade",
         "five-skins",
+        "four-hit-triggered-outfits",
         "gem-equip",
         "idempotent-rewards",
-        "codex",
+        "codex-with-outfit-rules",
         "sound-motion-quality-volume",
         "daily-seed",
         "persistent-restart"
@@ -149,6 +164,7 @@
   ],
   "native": [
     {
+      "verifiedAt": "2026-10-19T11:42:51.622Z",
       "target": "weixin",
       "viewport": {
         "width": 390,
@@ -165,9 +181,10 @@
         "research",
         "mercenary-upgrade",
         "five-skins",
+        "four-hit-triggered-outfits",
         "gem-equip",
         "idempotent-rewards",
-        "codex",
+        "codex-with-outfit-rules",
         "sound-motion-quality-volume",
         "daily-seed",
         "persistent-restart"
@@ -181,13 +198,14 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 528,
+        "colors": 527,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
       "audioBeforeRestart": 7
     },
     {
+      "verifiedAt": "2026-10-19T11:44:15.988Z",
       "target": "douyin",
       "viewport": {
         "width": 390,
@@ -204,9 +222,10 @@
         "research",
         "mercenary-upgrade",
         "five-skins",
+        "four-hit-triggered-outfits",
         "gem-equip",
         "idempotent-rewards",
-        "codex",
+        "codex-with-outfit-rules",
         "sound-motion-quality-volume",
         "daily-seed",
         "persistent-restart"
@@ -220,7 +239,7 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 528,
+        "colors": 527,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
