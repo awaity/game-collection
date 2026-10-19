@@ -1,0 +1,207 @@
+{
+  "verifiedAt": "2026-10-19T19:08:21.198567+00:00",
+  "readerSha256": "0c576fb28aa350fbb9887d11c1472c40bda90bce432ba2ace75e74c573abee0d",
+  "tables": 27,
+  "inputs": {
+    "LevelLandConfig": {
+      "sha256": "13d355fc6cc468449e76974db46f198462eef2ba0b765c72d5ac3fc0bedbd159",
+      "encoding": "plain",
+      "bytes": 54880,
+      "declaredRows": 2743,
+      "completeRows": 2743,
+      "decodedPrefixBytes": 54880,
+      "undecodedTailBytes": 0,
+      "declaredChecksum": "ec83d06b",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": true,
+      "incompleteRecordOffset": null
+    },
+    "LevelLandBaseConfig": {
+      "sha256": "eb64883d07c4b0bd24471f99e060a4e0b1800761577bc9fecc22b7a27f30fba8",
+      "encoding": "plain",
+      "bytes": 2193,
+      "declaredRows": 36,
+      "completeRows": 36,
+      "decodedPrefixBytes": 2193,
+      "undecodedTailBytes": 0,
+      "declaredChecksum": "f29f2a07",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": true,
+      "incompleteRecordOffset": null
+    }
+  },
+  "references": {
+    "baseLayout": {
+      "prefixBytes": 43,
+      "stringCount": 1,
+      "completeRows": 36,
+      "recordByteCounts": {
+        "48": 11,
+        "63": 1,
+        "64": 2,
+        "65": 2,
+        "66": 18,
+        "68": 2
+      }
+    },
+    "placementLayout": {
+      "recordBytes": 20,
+      "completeRows": 2743,
+      "groups": 213,
+      "referencedLandDefinitions": 26,
+      "unreferencedDefinitions": [
+        2001,
+        2003,
+        2014,
+        2015,
+        4001,
+        4002,
+        4003,
+        4004,
+        4005,
+        4006
+      ],
+      "coordinates": {
+        "floatAt12": [
+          -8.0,
+          8.0
+        ],
+        "floatAt16": [
+          -6.0,
+          13.5
+        ]
+      }
+    },
+    "numberedLinks": {
+      "candidates": 683,
+      "nonzeroBody4": 434,
+      "zeroBody4": 249,
+      "distinctGroups": 78,
+      "firstTitleNumberWithTerrain": 250,
+      "unresolved": []
+    },
+    "skillLinksAt18": {
+      "nonzero": 16,
+      "unresolved": []
+    },
+    "buffMatchesAt26": {
+      "matched": 23,
+      "unresolved": [
+        {
+          "land": 1017,
+          "value": 6127
+        },
+        {
+          "land": 1018,
+          "value": 6128
+        },
+        {
+          "land": 2000,
+          "value": 8000
+        },
+        {
+          "land": 3001,
+          "value": 6131
+        },
+        {
+          "land": 3006,
+          "value": 6136
+        },
+        {
+          "land": 3007,
+          "value": 6137
+        },
+        {
+          "land": 3008,
+          "value": 6138
+        },
+        {
+          "land": 4001,
+          "value": 210600
+        },
+        {
+          "land": 4002,
+          "value": 210601
+        },
+        {
+          "land": 4003,
+          "value": 210602
+        },
+        {
+          "land": 4004,
+          "value": 210603
+        },
+        {
+          "land": 4005,
+          "value": 210604
+        },
+        {
+          "land": 4006,
+          "value": 210605
+        }
+      ]
+    },
+    "levelLinks": {
+      "completeLevels": 13013,
+      "nonzeroBody4": 1295,
+      "matchedLevelRows": 784,
+      "unresolvedRows": 511,
+      "unresolvedValueCounts": {
+        "1": 104,
+        "2": 107,
+        "3": 74,
+        "4": 68,
+        "5": 41,
+        "6": 64,
+        "7": 32,
+        "8": 1,
+        "70001": 10,
+        "88501": 4,
+        "88502": 4,
+        "88701": 2
+      }
+    }
+  },
+  "positiveLog": "artifacts/zombie-fire-terrain-reference.log",
+  "positiveCommand": [
+    "pnpm",
+    "--filter",
+    "zombie-fire",
+    "reference:inspect"
+  ],
+  "positiveExitCode": 0,
+  "invalidInputs": [
+    {
+      "case": "missing-land-base",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-terrain-reader-missing-land-base.log"
+    },
+    {
+      "case": "truncated-placements",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-terrain-reader-truncated-placements.log"
+    },
+    {
+      "case": "changed-land-base",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-terrain-reader-changed-land-base.log"
+    },
+    {
+      "case": "changed-placements",
+      "exitCode": 1,
+      "reportPreserved": true,
+      "log": "artifacts/zombie-fire-terrain-reader-changed-placements.log"
+    }
+  ],
+  "temporaryInputsRemoved": true,
+  "runtimeUnchangedFrom": "7f65e64e110f89a9159897dbdcb36a3d8b4e3148",
+  "scope": "Offline reference evidence only. Gameplay, stage availability and original terrain collision/trigger dispatch remain incomplete.",
+  "services": {
+    "startedGameServices": false,
+    "listenersMatchBaseline": true,
+    "baseline": "artifacts/zombie-fire-terrain-baseline/services-before.json"
+  }
+}

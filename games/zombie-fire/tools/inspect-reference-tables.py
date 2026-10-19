@@ -42,6 +42,8 @@ FINGERPRINTS = {
     "LevelDescTipConfig": "cb7e56f06b94ca542941a286eaa3bbbb49784269d6c1a613523a82f8038fe1f2",
     "BattleEffectConfig": "f4aedd7bc610e71fee58aacef7cc274a6928bb525c55af531ec9b5aebfbf1d1a",
     "LevelEffectGroupConfig": "5605be41ba8d5f0ac131d53f680cc3b5ed632dc364550af053cb07bd929f8191",
+    "LevelLandConfig": "13d355fc6cc468449e76974db46f198462eef2ba0b765c72d5ac3fc0bedbd159",
+    "LevelLandBaseConfig": "eb64883d07c4b0bd24471f99e060a4e0b1800761577bc9fecc22b7a27f30fba8",
     "BuffConfig": "0136a02f0f803ffe939b5d083ce4d904a46b071f50e87581a6be69f935fad7c8",
     "BuffAttrConfig": "3d9628a5f2c3e50e2b150d79865b289ec3d30cde113dcb6633d037ca7def8f24",
     "BuffFuncSkillAttrConfig": "80e70aebc621e0f6420b279ef3ea05a81af8c19e8c567ea43e9e252ba2487423",
@@ -382,6 +384,85 @@ def battlefield_references(tip_table: Table, effect_table: Table, group_table: T
                    "Preserve repeated effect IDs and repeated ID/u16 pairs in source order.",
                    "Group references resolve to effect definitions, not to a proven playable stage scheduler.",
                    "Effect application, stacking, reset rules and client/server overrides remain unverified."],
+    }
+
+
+def land_base_row(table: Table) -> dict:
+    start = table.offset
+    (prefix,) = table.unpack(">43s")
+    icon = table.string()
+    return {"id": struct.unpack_from(">I", prefix)[0], "byteAt4": prefix[4],
+            "valueAt18": struct.unpack_from(">I", prefix, 18)[0],
+            "valueAt26": struct.unpack_from(">I", prefix, 26)[0],
+            "textReferencesAt35And39": [struct.unpack_from(">I", prefix, offset)[0]
+                                        for offset in (35, 39)],
+            "prefixHex": prefix.hex(), "iconReference": icon, "recordBytes": table.offset - start}
+
+
+def terrain_references(land_table: Table, base_table: Table, levels: list, candidates: list,
+                       texts: dict, skill_bases: list, buffs: list) -> dict:
+    bases = read_variable(base_table, land_base_row, lambda row: row["id"])
+    by_id = {row["id"]: row for row in bases}
+    require(all(value in texts for row in bases for value in row["textReferencesAt35And39"]),
+            "LevelLandBaseConfig: unresolved text reference")
+    skill_ids, buff_ids = {row["id"] for row in skill_bases}, {row["id"] for row in buffs}
+    require(all(row["valueAt18"] == 0 or row["valueAt18"] in skill_ids for row in bases),
+            "LevelLandBaseConfig: unresolved skill reference at 18")
+    groups, keys = defaultdict(list), set()
+    for index, raw in enumerate(read_fixed(land_table, 20)):
+        group, identity, land, x, y = struct.unpack(">3I2f", raw)
+        require((group, identity) not in keys, "LevelLandConfig: duplicate group/placement identity")
+        require(land in by_id, "LevelLandConfig: unresolved terrain definition")
+        require(math.isfinite(x) and math.isfinite(y), "LevelLandConfig: nonfinite coordinates")
+        keys.add((group, identity))
+        groups[group].append({"offset": 20 + index * 20, "idAt4": identity,
+                              "landReferenceAt8": land, "floatAt12": x, "floatAt16": y})
+    candidate_by_id = {row["id"]: row for row in candidates}
+    all_nonzero, selected_nonzero = [], []
+    for row in levels:
+        value = struct.unpack_from(">I", bytes.fromhex(row["bodyHex"]), 4)[0]
+        if value:
+            link = {"level": row["id"], "valueAtBody4": value}
+            all_nonzero.append(link)
+            if row["id"] in candidate_by_id:
+                selected_nonzero.append({**link, **candidate_by_id[row["id"]]})
+    require(all(row["valueAtBody4"] in groups for row in selected_nonzero),
+            "Numbered levels: unresolved terrain group at body4")
+    def text_row(row):
+        return {**row, "name": texts[row["textReferencesAt35And39"][0]]["text"],
+                "description": texts[row["textReferencesAt35And39"][1]]["text"]}
+    referenced = {row["landReferenceAt8"] for rows in groups.values() for row in rows}
+    coordinates = [(row["floatAt12"], row["floatAt16"]) for rows in groups.values() for row in rows]
+    return {
+        "baseLayout": {"prefixBytes": 43, "stringCount": 1, "completeRows": len(bases),
+                       "recordByteCounts": dict(sorted(Counter(row["recordBytes"] for row in bases).items()))},
+        "placementLayout": {"recordBytes": 20, "completeRows": len(keys), "groups": len(groups),
+                            "referencedLandDefinitions": len(referenced), "unreferencedDefinitions": sorted(by_id.keys() - referenced),
+                            "coordinates": {"floatAt12": [min(x for x, _ in coordinates), max(x for x, _ in coordinates)],
+                                            "floatAt16": [min(y for _, y in coordinates), max(y for _, y in coordinates)]}},
+        "levelLinks": {"completeLevels": len(levels), "nonzeroBody4": len(all_nonzero),
+                       "matchedLevelRows": sum(row["valueAtBody4"] in groups for row in all_nonzero),
+                       "unresolved": [row for row in all_nonzero if row["valueAtBody4"] not in groups]},
+        "numberedLinks": {"candidates": len(candidates), "nonzeroBody4": len(selected_nonzero),
+                          "zeroBody4": len(candidates) - len(selected_nonzero),
+                          "distinctGroups": len({row["valueAtBody4"] for row in selected_nonzero}),
+                          "firstTitleNumberWithTerrain": min(row["number"] for row in selected_nonzero),
+                          "unresolved": []},
+        "skillLinksAt18": {"nonzero": sum(bool(row["valueAt18"]) for row in bases),
+                           "unresolved": []},
+        "buffMatchesAt26": {"matched": sum(row["valueAt26"] in buff_ids for row in bases),
+                            "unresolved": [{"land": row["id"], "value": row["valueAt26"]}
+                                           for row in bases if row["valueAt26"] not in buff_ids]},
+        "selectedDefinitions": [text_row(row) for row in bases
+                                if row["id"] in (1001, 1002, 1003, 1004, 1015, 1016, 1017, 1018, 2004, 2005, 2006)],
+        "selectedLevelPlacements": [{**row, "placements": groups[row["valueAtBody4"]]}
+                                    for row in selected_nonzero if row["level"] in (1250, 1299, 13001, 13991, 14001, 14191)],
+        "limits": ["All numbered body4 references match terrain groups; other mode values have unresolved dispatch.",
+                   "Terrain is present in the candidate series from title250; the split-stage introduction is a separate description.",
+                   "Signed coordinates are preserved; world-to-screen mapping, shape, lifetime and collision dispatch are unverified.",
+                   "Definition offset18 matches skill records; this does not establish trigger or attribute application.",
+                   "Only23 definition values at26 match buff records; the other13 remain unresolved, not dropped.",
+                   "Reference placements and descriptions are not yet imported into the local playable campaign."],
     }
 
 
@@ -893,6 +974,8 @@ def inspect(directory: Path) -> dict:
     buff_attrs = read_variable(tables["BuffAttrConfig"], buff_attr_row, lambda r: (r["id"], r["rank"]))
     battlefield = battlefield_references(tables["LevelDescTipConfig"], tables["BattleEffectConfig"],
                                          tables["LevelEffectGroupConfig"], texts, buffs, buff_attrs)
+    terrain = terrain_references(tables["LevelLandConfig"], tables["LevelLandBaseConfig"],
+                                 level_bases, numbered["candidateIdentities"], texts, skill_bases, buffs)
     skill_attrs = read_skill_attributes(tables["BuffFuncSkillAttrConfig"])
     selected = {}
     for key in [*range(1401, 1421), *range(1501, 1530), 1532, *range(1549, 1555), *range(1560, 1564)]:
@@ -928,6 +1011,7 @@ def inspect(directory: Path) -> dict:
         "numberedLevelCandidates": numbered,
         "campaignLootLinks": loot,
         "battlefieldReferences": battlefield,
+        "terrainReferences": terrain,
         "levelLibraryCandidates": library_candidates,
         "orbGroupComparisons": orb_group_comparisons(groups),
         "skillLevelBoundaries": {"recordBytes": 176, "completeRecords": len(levels),
