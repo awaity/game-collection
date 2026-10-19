@@ -195,8 +195,11 @@ try {
           await tap('上一页');
           await tap('无尽守卫');
           await tap('开始种植');
-          assert.ok(has('1 / 2 袋 · 可用 14 种'));
+          assert.ok(has('1 / 3 袋 · 可用 18 种'));
           await tap('下一袋 E');
+          await tap('下一袋 E');
+          assert.ok(has('仙人掌'));
+          await tap('上一袋 Q');
           await page.screenshot({ path: path.join(artifacts, `${game.slug}-${target}-all-plants.png`) });
           await tap('三线射手');
           await tap([131, 536]); // Safe-area layout, row 3 / column 3.

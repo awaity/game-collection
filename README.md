@@ -17,15 +17,17 @@
 
 八款游戏均提供独立原生小游戏 `game.js` 工程。平台包纳入构建和无 DOM 模拟宿主验证；四款复杂游戏由官方 Cocos Creator 导出，弹幕小队使用实际 WebGL 和本地 GLB 模型。**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
 
+五款游戏新增独立金币、签到、每日任务、成就、五套皮肤和三项永久强化。无尽模式提供双倍击破金币与波次奖金。具体内容与存档规则见 [本轮扩展说明](docs/EXPANSION-2026-10.md)。
+
 ## 目录与边界
 
 ```text
 apps/portal/                  Vue 3 + Vite + TS 大厅
 games/endless-night/           无尽长夜，四角色、五烽火与守夜人试炼
 games/frost-trail/             雪原小营，采集生产、扩张与四种终局
-games/surge-squad/             电涌小队，充能、激光与三章闯关
-games/final-door/              最后一道门，三路线、真实仿真与输入回放
-games/garden-guard/            花园守卫，十六关、八种挑战、全植物无尽与三端入口
+games/surge-squad/             电涌小队，六地图、充能激光与无尽接战
+games/final-door/              最后一道门，六路线、无尽接战与成长回放
+games/garden-guard/            花园守卫，二十四关、十二种挑战与全植物无尽
 games/plane-battle/            飞机大战，共享规则、Canvas、UI 与三端入口
 games/zombie-lane/             尸潮防线，共享规则、Canvas、UI 与三端入口
 games/volley-run/              弹幕小队，共享模拟、Three 场景、本地模型

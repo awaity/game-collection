@@ -96,6 +96,7 @@ onmessage = async ({ data }) => {
   try {
     if (data.type === "boot") {
       root = data.root;
+      for (const [key,value] of Object.entries(data.initialStorage ?? {})) storage.set(key,value);
       webglVersion = data.webglVersion;
       display = canvas(data.canvas);
       let first = true;
