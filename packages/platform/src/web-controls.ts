@@ -5,6 +5,7 @@ export interface CanvasButton {
   y: number;
   w: number;
   h: number;
+  disabled?:boolean;
 }
 /** Accessible Web mirrors of the same controls drawn inside the native Canvas. */
 export function syncCanvasControls(
@@ -19,6 +20,7 @@ export function syncCanvasControls(
   for (const button of buttons) {
     const element = document.createElement("button");
     element.type = "button";
+    element.disabled=!!button.disabled;
     element.dataset.action = button.id;
     element.textContent = button.label;
     element.style.cssText = `left:${(button.x / width) * 100}%;top:${(button.y / height) * 100}%;width:${(button.w / width) * 100}%;height:${(button.h / height) * 100}%`;

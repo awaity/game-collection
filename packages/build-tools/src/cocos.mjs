@@ -121,7 +121,7 @@ export async function buildCocos(project, target = 'web') {
   // Stage workspace modules as Creator assets. No npm installation inside Creator projects.
   await mkdir(path.join(stage, 'assets/collection/platform'), { recursive: true });
   await copy(path.join(root, 'packages/cocos-runtime/src'), path.join(stage, 'assets/collection'));
-  for (const name of ['cocos-host.ts', 'cocos-services.ts', 'web-state.ts', 'wasm.ts']) await copy(path.join(root, 'packages/platform/src', name), path.join(stage, 'assets/collection/platform', name));
+  for (const name of ['cocos-host.ts', 'cocos-services.ts', 'web-state.ts', 'wasm.ts', 'progression.ts', 'progression-panel.ts']) await copy(path.join(root, 'packages/platform/src', name), path.join(stage, 'assets/collection/platform', name));
   await stableScriptMetadata(path.join(stage, 'assets/collection'), `${slug}/collection`);
   await copy(path.join(root, 'packages/cocos-runtime/assets'), path.join(stage, 'assets/resources/collection'));
   await writeFile(path.join(stage, 'package.json'), JSON.stringify({ name: slug, type: 'module', uuid: manifest.uuid, version: '3.0.0', creator: manifest.creator }, null, 2));
