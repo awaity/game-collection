@@ -104,11 +104,12 @@ export async function verify({p,native,target,viewport,state,click,advance,event
       if(c.id==='learn:'+skill)return 4000;
       if(skill==='orb'&&c.skill==='orb'){
        if(ultimate.includes(c.id))return 3000;
-       if(s.orbLuck===21)return 0;
+       if(s.orbLuck===21)return c.luckAfter; // Prefer the smallest setback if every offer spends luck.
        if(c.luckAfter===21)return 2500;
        if(c.luckAfter>s.orbLuck&&s.orbLuck+c.luckChange<=21)return 2000+c.luckAfter;
        return c.luckChange<0&&s.orbLuck>=16?1200+c.luckAfter:100;
       }
+      if(skill==='orb'&&c.kind==='learn')return ['frost','thermo','electron'].includes(c.skill)?650:100;
       return c.skill===skill?800:c.kind!=='learn'?500:0;
      };
      if(skill==='orb'&&s.orbLuck===21&&!capturedLuck){await fits();await capture(requiredUpgrade?'research-tide-lucky-choice':'advanced-orb-lucky-choice');capturedLuck=true;}
@@ -156,6 +157,13 @@ export async function verify({p,native,target,viewport,state,click,advance,event
   assert.ok(observed,skill+' must be acquired through visible cards and produce its actual battle effect');
  }
  async function researchTideBattle(){
+  // Use rewards earned by the preceding runs to support a long build. These are
+  // normal visible purchases; the battle loadout is never edited or granted.
+  await click('open:gear');
+  for(let level=(await state()).profile.weapon;level<5;level++){await choose('upgrade:weapon');assert.equal((await state()).profile.weapon,level+1);}
+  await home();await click('open:wall');
+  for(let level=(await state()).profile.wall;level<5;level++){await choose('upgrade:wall');assert.equal((await state()).profile.wall,level+1);}
+  await home();
   for(let attempt=0;attempt<3;attempt++){
    const p=(await state()).profile;if(p.coins>=2800&&p.scrap>=80)break;
    await click('endless');await play(200000);await home();
