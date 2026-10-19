@@ -53,7 +53,7 @@ export class BattlefieldUI {
   if(this.session.saveFailed)this.text('save:warning','奖励等待保存 · 暂停后可重试',0,bottom+6,12,orange,w);
   else if(b.skinProgress){const s=b.skinProgress;this.text('skin:charge',`${s.name} ${s.hits}/${s.threshold} · 已触发 ${s.triggers} 次`,0,bottom+6,11,skillById[s.skill].color,w);}
   const learned=Object.entries(b.learned),skillX=Math.min(480,this.ui.width-84)/2+12,spacing=Math.min(67,(top-bottom-98)/Math.max(1,learned.length));
-  learned.forEach(([id,rank],i)=>{const y=top-91-i*spacing,size=Math.min(42,spacing-17);this.icon('skill:icon'+i,id as SkillId,skillX,y,size);this.text('skill:'+i,'Lv.'+rank,skillX,y-size/2-8,10,skillById[id as SkillId].color,50);if(id==='dragon'&&b.dragon)this.text('dragon:charge',`${Math.floor(b.dragon.energy)}/${b.dragon.maxEnergy}`,skillX,y-size/2-21,9,'#a7e3ed',58);});
+  learned.forEach(([id,rank],i)=>{const y=top-91-i*spacing,size=Math.min(42,spacing-17);this.icon('skill:icon'+i,id as SkillId,skillX,y,size);const caption=id==='orb'?`幸${b.orbLuck}/21`:id==='dragon'&&b.dragon?`${Math.floor(b.dragon.energy)}/${b.dragon.maxEnergy}`:'Lv.'+rank;this.text('skill:'+i,caption,skillX,y-size/2-8,10,skillById[id as SkillId].color,56);});
   if(b.time<12&&b.phase==='playing')this.text('aim:hint','自动射击 · 轻触敌人可优先集火',0,bottom+55,11,paper,Math.min(350,w-24));
   if(b.phase==='choice')this.choices();
   if(b.phase==='paused'){
@@ -73,7 +73,7 @@ export class BattlefieldUI {
  private choices(){
   const b=this.session.battle,w=Math.min(650,this.ui.width-18),height=Math.min(320,this.ui.height-210),cardWidth=(w-18)/3,center=this.ui.height<500?5:8;
   this.ui.panel('choice:shade',0,0,this.ui.width,this.ui.height,'#1e2c3ee9');this.text('choice:title',this.session.armory.data.tutorial?'选择技能':'选择第一项技能',0,center+height/2+47,27,orange,w,true);
-  this.text('choice:hint',b.dailyRule&&b.time===0?b.dailyRule.description:'战斗已暂停 · 选择后自动射击',0,center+height/2+21,12,paper,w);
+  this.text('choice:hint',b.learned.orb?`幸运 ${b.orbLuck}/21 · ${b.orbLuck===21?'终极词条已开启':'超过21点重置为1'}`:b.dailyRule&&b.time===0?b.dailyRule.description:'战斗已暂停 · 选择后自动射击',0,center+height/2+21,12,paper,w);
   b.cards.forEach((card,i)=>{
    const x=(i-1)*(cardWidth+7);const node=this.button('choose:'+i,'选择 '+card.name,x,center,cardWidth,()=>{if(b.choose(card.id))this.session.armory.completeTutorial();},false,height);this.ui.buttons.get('choose:'+i)!.label.node.active=false;
    const g=node.getComponent(Graphics)!;g.clear();g.fillColor=color(paper);g.strokeColor=color(card.kind==='evolution'?orange:'#b5b2a1');g.lineWidth=card.kind==='evolution'?3:1.5;g.rect(-cardWidth/2,-height/2,cardWidth,height);g.fill();g.stroke();
@@ -119,8 +119,11 @@ export class BattlefieldUI {
    for(const gem of p.gems){const type=GEM_TYPES.find(t=>t.id===gem.type)!;rows.push({id:'gem'+gem.id,title:GRADES[gem.grade]+type.name,detail:SLOTS.some(s=>p.gear[s].gems.includes(gem.id))?'已镶嵌':'未镶嵌，可装备或三合一。',tint:type.color,actions:[{id:'gem:equip:'+gem.id,label:'镶嵌',run:()=>{a.equip(this.gemSlot,this.socket,gem.id)}},{id:'gem:merge:'+gem.id,label:'合成',run:()=>{a.merge(gem.id)}}]});}
   }
   if(this.panel==='codex'){
-   if(this.codexTab==='skills')for(const s of SKILLS)rows.push({id:s.id,title:s.name,detail:s.description,tint:s.color});
-   if(this.codexTab==='evolutions')for(const u of UPGRADES.filter(u=>u.evolution))rows.push({id:u.id,title:'进化 · '+u.name,detail:'需要 '+u.requires.map(([id,rank])=>(upgradeById[id]?.name??skillById[id as SkillId]?.name??id)+' '+rank+'级').join(' + '),tint:skillById[u.skill].color});
+   if(this.codexTab==='skills'){
+    for(const s of SKILLS)rows.push({id:s.id,title:s.name,detail:s.description,tint:s.color});
+    rows.push({id:'orb-luck',title:'弹球幸运值',detail:'只在选择弹球词条后变化。10点起出现高维词条，21点开启终极词条；超过21变为1，扣减最低到0。',tint:skillById.orb.color});
+   }
+   if(this.codexTab==='evolutions')for(const u of UPGRADES.filter(u=>u.evolution))rows.push({id:u.id,title:'进化 · '+u.name,detail:u.luck?`需要多维弹球幸运值 ${u.luck.min} 点。${u.description}`:'需要 '+u.requires.map(([id,rank])=>(upgradeById[id]?.name??skillById[id as SkillId]?.name??id)+' '+rank+'级').join(' + '),tint:skillById[u.skill].color});
    if(this.codexTab==='outfits'){
     for(const s of SKINS){const ability=skinAbility(s.id);rows.push({id:s.id,title:s.name+(ability?' · '+ability.name:''),detail:ability?.description??'基础衣装，无额外技能。其他衣装可在装备 → 专属时装中解锁。',tint:s.accent});}
     rows.push({id:'outfit-rules',title:'命中与充能',detail:'仅自身对应武器的直接命中计数；佣兵、持续伤害和时装追加攻击不充能。每局重新计数。'});

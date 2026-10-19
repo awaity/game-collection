@@ -25,7 +25,7 @@ export class BattleAudio {
   if(!this.unlocked||!settings.sound||!settings.volume)return;
   const names=new Set<string>();
   for(const event of events){
-   if(event.type==='shot'&&event.skill==='rifle'&&this.shotClock<=0){names.add('shot');this.shotClock=.12;}
+   if(event.type==='shot'&&(event.skill==='rifle'||event.skill==='orb')&&this.shotClock<=0){names.add('shot');this.shotClock=.12;}
    if(event.type==='burst'&&event.skill!=='fuel'&&event.skill!=='matrix'){
     const element=event.skill?skillById[event.skill].element:'fire';
     names.add(element==='ice'?'ice':element==='electric'?'electric':'blast');

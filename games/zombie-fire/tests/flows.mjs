@@ -25,20 +25,35 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  }
  async function advancedBattle(skill){
   let observed=false;
-  for(let attempt=0;attempt<4&&!observed;attempt++){
-   await click('endless');let s=await state();
-   for(let n=0;n<450;n++){
+  const luckGain={'orb:rise':11,'orb:heavy':5,'orb:wall-split':6,'orb:salvo':8,'orb:bounce':4,'orb:repeat':7,'orb:power':5,'orb:haste':5};
+  const ultimate=['orb:tide','orb:destroy','orb:cycle','orb:ultimate'];
+  for(let attempt=0;attempt<(skill==='orb'?8:4)&&!observed;attempt++){
+   await click('endless');let s=await state(),evolvedAt21=false,capturedLuck=false;
+   for(let n=0;n<(skill==='orb'?750:450);n++){
     if(s.battlePhase==='choice'){
      if(!s.learned[skill]&&!s.cards.some(c=>c.id==='learn:'+skill)&&s.rerolls>0){await click('reroll');s=await fresh();continue;}
-     const score=c=>c.id==='learn:'+skill?2000:c.skill===skill?800:c.kind!=='learn'?500:0;
+     const score=c=>{
+      if(c.id==='learn:'+skill)return 4000;
+      if(skill==='orb'&&c.skill==='orb'){
+       if(ultimate.includes(c.id))return 3000;
+       const gain=luckGain[c.id],next=s.orbLuck+gain;
+       if(gain&&next<=21)return 2000+(next===21?500:0)+(c.id==='orb:rise'?50:0)+next;
+       return gain?100:600;
+      }
+      return c.skill===skill?800:c.kind!=='learn'?500:0;
+     };
+     if(skill==='orb'&&s.orbLuck===21&&!capturedLuck){await fits();await capture('advanced-orb-lucky-choice');capturedLuck=true;}
      const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0];await click('choose:'+s.cards.findIndex(c=>c.id===card.id));
     }else if(s.battlePhase==='playing'){
      const count=s.learned[skill]?24:180;
      if(native)await p.evaluate(count=>call({type:'advance',count}),count);else await p.evaluate(count=>__collectionAdvance(count),count);
     }else break;
     s=await fresh();
+    if(skill==='orb'&&ultimate.some(id=>s.upgrades[id])&&s.lastLuck?.before===21&&s.lastLuck.overflow)evolvedAt21=true;
     if(!s.learned[skill]&&Object.keys(s.learned).length>=5)break;
-    observed=skill==='drone'?s.projectiles.some(p=>p.skill==='drone'&&p.rebounds>0):skill==='rift'?s.fields.some(f=>f.skill==='rift'):skill==='matrix'?s.fields.some(f=>f.skill==='matrix'&&f.merged>1)&&s.enemies.some(e=>e.bind>0):s.dragon?.slams>0&&s.fields.some(f=>f.variant==='dragon-slam'&&f.delay<=0);
+    assert.ok(Number.isInteger(s.orbLuck)&&s.orbLuck>=0&&s.orbLuck<=21,'lucky values stay finite in actual exports');
+    observed=skill==='drone'?s.projectiles.some(p=>p.skill==='drone'&&p.rebounds>0):skill==='rift'?s.fields.some(f=>f.skill==='rift'):skill==='matrix'?s.fields.some(f=>f.skill==='matrix'&&f.merged>1)&&s.enemies.some(e=>e.bind>0):skill==='pillar'?s.fields.some(f=>f.skill==='pillar'&&f.nodes.length>=3&&f.hits>0):skill==='orb'?evolvedAt21&&s.projectiles.some(p=>p.skill==='orb'&&p.hits>1):s.dragon?.slams>0&&s.fields.some(f=>f.variant==='dragon-slam'&&f.delay<=0);
+    observed=observed&&s.battlePhase==='playing';
     if(observed){assert.ok(s.learned[skill]);assert.ok(s.damage>0);assert.ok(s.counts.links<=12);await fits();await capture('advanced-'+skill);break;}
    }
    await home();
@@ -79,7 +94,7 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  await click('open:merc');await choose('merc:upgrade:storm');await choose('merc:deploy:storm');assert.deepEqual((await state()).team,['storm']);await choose('merc:upgrade:storm');assert.equal((await state()).profile.mercs.storm,2);await fits();await capture('mercenaries');await home();
  await click('open:gear');await choose('skins');for(const id of ['ranger','ember','arctic','hazard','arc']){await choose('skin:'+id);assert.equal((await state()).skin,id);await fits();}const owned=(await state()).coins;await choose('skin:arc');assert.equal((await state()).coins,owned);await capture('skins');await home();
  for(const [skin,skill]of [['ember','thermo'],['arctic','dryice'],['hazard','blade'],['arc','electro']])await outfitBattle(skin,skill);
- for(const skill of ['drone','rift','matrix','dragon'])await advancedBattle(skill);
+ for(const skill of ['drone','rift','matrix','dragon','pillar','orb'])await advancedBattle(skill);
  await click('open:supply');await choose('supply:gems');const gem=(await state()).profile.gems[0];await choose('gem:equip:'+gem.id);assert.equal((await state()).profile.gear.weapon.gems[0],gem.id);await fits();await capture('gems');await home();
  await click('open:quests');await choose('claim:first-victory');const claimed=(await state()).coins;await choose('claim:first-victory');assert.equal((await state()).coins,claimed);await fits();await capture('quests-earned');await home();
  await click('settings');for(const id of ['sound','motion','quality','volume'])await choose('setting:'+id);assert.equal((await state()).profile.settings.sound,false);assert.equal((await state()).profile.settings.motion,false);assert.equal((await state()).profile.settings.quality,'low');assert.equal((await state()).profile.settings.volume,1);await fits();await capture('settings');await home();
@@ -90,5 +105,5 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  else{await p.reload();await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await p.waitForFunction(()=>!document.querySelector('#collection-entrance'));}
  for(let n=0;n<150;n++){if((await fresh())?.phase==='menu')break;await p.waitForTimeout(50);}
  const restored=await state();assert.equal(restored.coins,saved.coins);assert.equal(restored.skin,'arc');assert.deepEqual(restored.profile.gear,saved.profile.gear);assert.deepEqual(restored.profile.mercs,saved.profile.mercs);assert.deepEqual(restored.profile.settings,saved.profile.settings);assert.equal(restored.profile.tutorial,true);
- return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
+ return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
 }

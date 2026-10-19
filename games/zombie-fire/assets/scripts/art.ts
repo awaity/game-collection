@@ -22,6 +22,8 @@ export class BattlefieldArt {
   if(b.isEnraged(e)){this.g.strokeColor=color('#f4a04a');this.g.lineWidth=2.5;this.g.ellipse(p.x,p.y-16*scale,22*scale,10*scale);this.g.stroke();}
   if(e.bind>0){const strength=Math.min(1,e.bind);for(const side of [-1,1])this.line([pt(side*16,-21),pt(side*11,-15),pt(side*17,-8),pt(side*10,-4+strength*8)],e.root>0?'#c8e58c':'#8eae66',1.8*scale);}
   if(e.slow>0)this.line([pt(-17,-18),pt(-4,-22),pt(8,-21),pt(17,-17)],'#b9d4df',1.5*scale);
+  if(e.orbSlow>0)this.line([pt(-17,-12),pt(-12,-18),pt(9,-18),pt(17,-12)],'#e2b6e6',2*scale);
+  if(e.fractures>0)this.line([pt(-6,12),pt(1,3),pt(-3,-2),pt(7,-10)],'#f4bdce',1.8*scale);
   if(e.hp<e.maxHp||def.boss){this.rect(p.x,p.y+33*scale,30*scale,3*scale,'#343c3c');this.rect(p.x-(1-e.hp/e.maxHp)*15*scale,p.y+33*scale,30*scale*Math.max(0,e.hp/e.maxHp),3*scale,'#bc6557');}
   if(e.freeze>0){poly([[-16,-15],[-19,15],[-10,30],[12,26],[19,7],[13,-17]],'#a3e9fa77');this.line([pt(-15,5),pt(-4,18),pt(1,2),pt(13,12)],'#d6faff',scale);}
   if(e.burn>0)for(const side of [-1,1])poly([[side*13,-8],[side*18,8],[side*12,1],[side*8,12],[side*7,-7]],'#ef9a42cc');
@@ -47,6 +49,17 @@ export class BattlefieldArt {
   for(let n=0;n<Math.floor(w/20);n++){const x=-w/2+n*20;this.poly([[x,wall.y-39],[x+8,wall.y-39],[x+14,wall.y-33],[x+6,wall.y-33]],'#c9a25f','#c9a25f',0);}
   const healthY=wall.y-(h<300?42:55);this.rect(0,healthY,w,7,'#263541',2);const ratio=Math.max(0,b.hp/b.maxHp);this.rect(-(1-ratio)*w/2,healthY,w*ratio,7,ratio>.4?'#8ebd8d':'#dd7b62',2);
   for(const f of b.fields){const p=this.point(f.x,f.y),radius=f.radius*this.width/360;const c=skillById[f.skill].color,ry=f.radius*this.height/FIELD.height;
+   if(f.skill==='pillar'&&f.nodes){
+    for(let i=1;i<f.nodes.length;i++){
+     const a=f.nodes[i-1],z=f.nodes[i],length=Math.hypot(z.x-a.x,z.y-a.y)||1,nx=-(z.y-a.y)/length*f.radius,ny=(z.x-a.x)/length*f.radius;
+     this.poly(this.worldPath([[a.x+nx,a.y+ny],[z.x+nx,z.y+ny],[z.x-nx,z.y-ny],[a.x-nx,a.y-ny]]),'#79d5f429','#79d5f450',.6);
+     const points=Array.from({length:9},(_,n)=>{const t=n/8,jitter=n===0||n===8?0:Math.sin(n*7+(motion?b.time*18:0))*.45;return [a.x+(z.x-a.x)*t+nx*jitter,a.y+(z.y-a.y)*t+ny*jitter];});
+     this.line(this.worldPath(points),c,quality==='low'?2:3);this.line(this.worldPath(points),'#e8fcff',1);
+    }
+    const s=Math.min(1.2,w/320,Math.max(.65,h/500));
+    for(const node of f.nodes){const q=this.point(node.x,node.y);this.ellipse(q.x,q.y-17*s,12*s,5*s,'#24374199');this.poly([[q.x-9*s,q.y-15*s],[q.x+9*s,q.y-15*s],[q.x+6*s,q.y-8*s],[q.x-6*s,q.y-8*s]],'#718b9b','#26323b',1.5);this.rect(q.x,q.y-7*s,5*s,18*s,'#a6b7bc',1);for(let n=0;n<3;n++)this.ellipse(q.x,q.y-9*s+n*4*s,7*s,2*s,'#456c80');this.ellipse(q.x,q.y,5*s,5*s,'#79d5f477');this.ellipse(q.x,q.y,2.6*s,3*s,'#e6fbff');}
+    continue;
+   }
    if(f.skill==='rift'){
     const diamond=(r:number)=>this.worldPath([[f.x-r,f.y],[f.x,f.y+r*.7],[f.x+r,f.y],[f.x,f.y-r*.7]]);
     this.poly(diamond(f.radius),'#9270c63b','#bda5e4',2);this.poly(diamond(f.radius*.72),'#28284d70','#8e7fc5',1.2);
@@ -92,7 +105,19 @@ export class BattlefieldArt {
   b.loadout.mercenaries.forEach((merc,i)=>drawSoldier(g,merc==='frost'?'arctic':merc==='flame'?'ember':merc==='storm'?'arc':'hazard',(i===0?-1:1)*w*.32,heroY-2,.55));
   const target=b.enemies.find(e=>e.id===b.priority)??b.enemies.reduce<Battle['enemies'][number]|undefined>((a,e)=>!a||e.y<a.y?e:a,undefined),angle=target?Math.atan2(target.x,Math.max(1,target.y-FIELD.wall)):0;
   this.line([[0,heroY+2],[Math.sin(angle)*36,heroY+2+Math.cos(angle)*36]],'#26363e',10);this.line([[0,heroY+6],[Math.sin(angle)*34,heroY+6+Math.cos(angle)*34]],'#788990',5);
-  for(const p of b.projectiles){const a=this.point(p.px,p.py),q=this.point(p.x,p.y);if(p.skill==='drone'){drawDrone(g,q.x,q.y,p.radius*this.width/360,motion?b.time:0);continue;}this.line([[a.x,a.y],[q.x,q.y]],skillById[p.skill].color,p.skill==='rifle'?3:p.skill==='blade'?8:6);if(p.skill==='thermo'){this.ellipse(q.x,q.y,7,9,'#f9ba58');this.ellipse(q.x,q.y+1,3,5,'#fff0bc');}}
+  for(const p of b.projectiles){const a=this.point(p.px,p.py),q=this.point(p.x,p.y);
+   if(p.skill==='drone'){drawDrone(g,q.x,q.y,p.radius*this.width/360,motion?b.time:0);continue;}
+   if(p.skill==='orb'){
+    const r=Math.max(3,p.radius*this.width/360),c=p.source==='secondary'?'#b9b1c9':'#e0a9dd';
+    if(motion){const speed=Math.hypot(p.vx,p.vy)||1,t=this.point(p.x-p.vx/speed*24,p.y-p.vy/speed*24);this.line([[t.x,t.y],[q.x,q.y]],c+'65',r);}
+    this.ellipse(q.x,q.y,r+1,r+1,'#333346');this.ellipse(q.x,q.y,r,r,c);
+    this.poly([[q.x-r*.8,q.y+r*.3],[q.x,q.y+r*.85],[q.x+r*.7,q.y+r*.2],[q.x+r*.3,q.y-r*.7],[q.x-r*.5,q.y-r*.5]],'#9974a6',c,1);
+    this.poly([[q.x-r*.8,q.y+r*.3],[q.x,q.y+r*.85],[q.x-r*.1,q.y],[q.x-r*.5,q.y-r*.5]],'#efd0ed',c,0);
+    this.ellipse(q.x-r*.15,q.y+r*.4,Math.max(1,r*.18),Math.max(1,r*.2),'#fff4f7');
+    if(quality==='high'&&p.source!=='secondary'){g.strokeColor=color('#e9c98e');g.lineWidth=1;g.ellipse(q.x,q.y,r*1.4,r*.55);g.stroke();}continue;
+   }
+   this.line([[a.x,a.y],[q.x,q.y]],skillById[p.skill].color,p.skill==='rifle'?3:p.skill==='blade'?8:6);if(p.skill==='thermo'){this.ellipse(q.x,q.y,7,9,'#f9ba58');this.ellipse(q.x,q.y+1,3,5,'#fff0bc');}
+  }
   for(const e of events)this.flashes.push({...e,age:0});this.flashes=this.flashes.slice(quality==='low'?-32:-90).filter(f=>f.age<.6);
   let label=0;
   for(const f of this.flashes){f.age+=delta;const p=this.point(f.x,f.y),q=this.point(f.tx??f.x,f.ty??f.y),alpha=Math.round(Math.max(0,1-f.age/.6)*255).toString(16).padStart(2,'0'),tint=f.skill?skillById[f.skill].color:'#f6cf7c';
