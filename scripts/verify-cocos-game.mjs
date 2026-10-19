@@ -11,7 +11,15 @@ const server=createSiteServer(process.cwd());server.listen(0,'127.0.0.1');await 
 try{
  const cases=[...(mode==='web'?[]:['weixin','douyin'].map(target=>({target,viewport:{width:390,height:844}}))),...(mode==='native'?[]:[{width:390,height:844},{width:1440,height:900},{width:844,height:390},{width:320,height:568}].map(viewport=>({target:'web',viewport})))];
  for(const {target,viewport}of cases){
-  const context=await browser.newContext({viewport,reducedMotion:'reduce',hasTouch:viewport.width<900}),p=await context.newPage(),errors=[];p.on('pageerror',e=>errors.push(String(e)));p.on('console',m=>{if(m.type()==='error')errors.push(m.text())});let latest;
+  const context=await browser.newContext({viewport,reducedMotion:'reduce',hasTouch:viewport.width<900}),p=await context.newPage(),errors=[],diagnostics=[];
+  p.on('pageerror',e=>errors.push(String(e)));
+  p.on('console',m=>{if(m.type()==='error'){
+    // Creator 3.8 calls preventDefault on browser-generated, non-cancelable
+    // touchcancel events. Record this Chrome diagnostic; still assert that the
+    // cancelled gesture is cleared, and fail on every other console error.
+    if(m.text().startsWith('Ignored attempt to cancel a touchcancel event with cancelable=false,'))diagnostics.push(m.text());
+    else errors.push(m.text());
+  }});let latest;
   try{
    const native=target!=='web';let dirty=true;
    if(native){await p.goto(host.url);latest=await p.evaluate(({slug,target})=>boot(slug,target,1),{slug,target});}
@@ -26,7 +34,7 @@ try{
    async function capture(name){dirty=true;await state();await p.screenshot({path:`${output}/${target}-${viewport.width}-${name}.png`})}
    const flows=await verify({p,native,target,viewport,state,click,advance,event,fits,capture});
    assert.deepEqual(errors,[]);if(native){assert.equal(latest.environment.documentAbsent,true);assert.equal(latest.environment.windowAbsent,true);assert.equal(latest.graphics.error,0);assert.ok(latest.graphics.colors>100);}
-   report.push({target,viewport,flows,errors,...native?{environment:latest.environment,graphics:latest.graphics,sounds:latest.sounds}:{}});console.log(slug,target,viewport.width,'passed');
+   report.push({target,viewport,flows,errors,diagnostics,...native?{environment:latest.environment,graphics:latest.graphics,sounds:latest.sounds}:{}});console.log(slug,target,viewport.width,'passed');
   }catch(e){await p.screenshot({path:`${output}/${target}-${viewport.width}-failure.png`});await writeFile(`${output}/${target}-${viewport.width}-failure.json`,JSON.stringify({message:String(e),errors,latest},null,2));throw e}finally{await context.close()}
  }
  await writeFile(`${output}/${mode}-verification.json`,JSON.stringify(report,null,2)+'\n');
