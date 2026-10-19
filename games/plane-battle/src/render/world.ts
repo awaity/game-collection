@@ -170,6 +170,7 @@ export class World {
     c.beginPath();
     c.rect(0, 0, WIDTH, HEIGHT);
     c.clip();
+    if(g.mission>=0){c.fillStyle=g.map.color;c.globalAlpha=.18;c.fillRect(0,0,WIDTH,HEIGHT);c.globalAlpha=.3;c.strokeStyle=g.map.color;c.lineWidth=2;for(let i=0;i<8;i++){const y=(i*120+g.tick*.5)%(HEIGHT+120)-60;c.beginPath();c.moveTo(0,y);c.lineTo(WIDTH,y+80);c.stroke();}c.globalAlpha=1;}
     for (const p of this.particles) {
       c.globalAlpha = p.life;
       c.fillStyle = p.colour;
@@ -243,7 +244,8 @@ export class World {
       c.restore();
     }
     const p = g.player;
-    ship(c, p.x, p.y, p.radius, palette.cyan);
+    ship(c, p.x, p.y, p.radius, g.skinColor);
+    if(g.skinMark)text(c,g.skinMark,p.x,p.y+8,15,"#ffffff");
     if (p.shield) {
       c.strokeStyle = palette.green;
       c.lineWidth = 2;

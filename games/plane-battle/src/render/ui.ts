@@ -1,4 +1,4 @@
-import { DIFFICULTIES } from "../core/game";
+import { DIFFICULTIES, MISSIONS } from "../core/game";
 import type { Game } from "../core/game";
 import { palette as P, text, panel, ship } from "./world";
 export interface Button {
@@ -51,13 +51,14 @@ export class UI {
       best: number;
       sound: boolean;
       help: boolean;
+      coins:number;
     },
   ) {
     this.buttons = [];
     const top = s.safeTop + 18,
       bottom = h - s.safeBottom;
     if (g.phase === "menu") {
-      text(c, "NEON AIR / 01", 32, top + 14, 11, P.cyan, "left");
+      this.button(c,"career:open",`机库 · ${s.coins} 金币`,32,top,220,38);
       text(c, "飞机", 30, top + 83, 72, P.white, "left", 900);
       text(c, "大战", 30, top + 161, 72, P.cyan, "left", 900);
       text(c, "穿过弹幕，把天空留给自己。", 32, top + 222, 14, P.muted, "left");
@@ -137,7 +138,7 @@ export class UI {
       text(
         c,
         g.mode === "stage"
-          ? `第 ${g.stage} 关`
+          ? `${MISSIONS[g.mission]?.name??`第 ${g.stage} 关`}`
           : `生存 ${(g.tick / 60).toFixed(0)} 秒`,
         42,
         top + 47,
@@ -214,12 +215,12 @@ export class UI {
         g.phase === "paused"
           ? "resume"
           : g.phase === "cleared"
-            ? "next"
+            ? g.mission===MISSIONS.length-1?"home":"next"
             : "retry",
         g.phase === "paused"
           ? "继续飞行"
           : g.phase === "cleared"
-            ? "进入下一关"
+            ? g.mission===MISSIONS.length-1?"全部空域通关 · 返回":"进入下一关"
             : "再次起飞",
         45,
         y + 203,

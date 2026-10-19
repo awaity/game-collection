@@ -1,4 +1,6 @@
-import { Game, WIDTH, HEIGHT, DIFFICULTIES, clamp } from "./core/game";
+import {Career} from '@game-collection/platform/progression';
+import {CareerPanel,drawCareerCanvas} from '@game-collection/platform/progression-panel';
+import { Game, WIDTH, HEIGHT, DIFFICULTIES, MISSIONS, clamp } from "./core/game";
 import type { Mode, Difficulty, Input } from "./core/game";
 import { World } from "./render/world";
 import type { Arena } from "./render/world";
@@ -11,6 +13,10 @@ import type {
 } from "@game-collection/platform/types";
 export class App {
   game: Game;
+  career:Career;
+  careerPanel:CareerPanel;
+  selectedMission=0;
+  private rewardRun=0;
   world = new World();
   ui = new UI();
   height = 800;
@@ -70,6 +76,9 @@ export class App {
       }
       platform.write("plane.migrated.v1", true);
     }
+    this.career=new Career(platform.read('plane-battle.career.v1'),value=>{platform.write('plane-battle.career.v1',value);return JSON.stringify(platform.read('plane-battle.career.v1'))===JSON.stringify(value)});
+    this.careerPanel=new CareerPanel(this.career,()=>MISSIONS.map((m,i)=>({...m,unlocked:i===0||this.career.data.clears.includes(String(i-1))})),(map,endless)=>{this.selectedMission=map;this.game.mode=endless?'endless':'stage';this.reset(true);},'远征机库');
+    this.careerPanel.guardDescription='每级增加 1 点初始生命与生命上限';
     this.resize();
     this.cleanups.push(
       platform.onPointer((e) => this.pointer(e)),
@@ -117,9 +126,12 @@ export class App {
     this.manual = false;
     this.clearInput();
     this.clock.reset();
-    if (start) this.game.start();
+    this.game.configure(this.selectedMission,this.career.buffs,this.career.skin.color,this.career.data.skin==='classic'?'':this.career.skin.mark);
+    if (start) {this.rewardRun=this.career.begin(this.game.mode);this.game.start();}
   }
+  private reward(){this.career.checkpoint(this.rewardRun,{kills:this.game.kills,seconds:this.game.tick/60,waves:this.game.mode==='endless'?this.game.stage-1:0,clear:(this.game.phase as string)==='cleared'?String(Math.max(0,this.game.mission)):undefined});}
   pause() {
+    this.reward();
     this.game.pause();
     this.clearInput();
     this.clock.reset();
@@ -127,6 +139,7 @@ export class App {
   }
   action(id: string) {
     this.platform.unlockAudio();
+    if(id.startsWith('career:')){if(id==='career:open')this.pause();this.careerPanel.action(id);this.render();return;}
     if (id === "start" || id === "retry") this.reset(true);
     else if (id === "resume") {
       this.game.resume();
@@ -137,6 +150,7 @@ export class App {
       this.reset();
     } else if (id === "next") {
       this.game.nextStage();
+      this.selectedMission=this.game.mission;
       this.clearInput();
       this.clock.reset();
     } else if (id === "sound") {
@@ -207,6 +221,7 @@ export class App {
     }
   }
   private key(key: string, down: boolean) {
+    if(this.careerPanel.active){if(down&&key==='Escape'){this.careerPanel.active=false;this.render();}this.clearInput();return;}
     if (!down) {
       this.keys.delete(key);
       return;
@@ -242,6 +257,7 @@ export class App {
   private step(input: Input) {
     if (this.game.phase !== "playing") return;
     this.game.step(input);
+    if(this.game.tick%60===0||this.game.phase!=='playing')this.reward();
     this.world.step();
     const events = this.game.drainEvents();
     this.world.events(events);
@@ -298,10 +314,14 @@ export class App {
       best: this.best,
       sound: this.sound,
       help: this.help,
+      coins:this.career?.data.coins??0,
     });
+    if(this.careerPanel?.active)this.ui.buttons=drawCareerCanvas(this.ctx,this.careerPanel,WIDTH,this.height,false,(view.safeTop/view.width)*WIDTH,(view.safeBottom/view.width)*WIDTH+12);
     const signature = JSON.stringify([
       this.game.phase,
       this.help,
+      this.career?.data.coins,
+      this.careerPanel?.active,
       this.game.score,
       this.game.player.lives,
       this.game.player.weapon,

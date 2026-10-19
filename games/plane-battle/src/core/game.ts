@@ -6,6 +6,13 @@ export const WIDTH = 420,
 export type Difficulty = "easy" | "normal" | "hard";
 export type Mode = "stage" | "endless";
 export type Phase = "menu" | "playing" | "paused" | "cleared" | "lost";
+export const MAPS = [
+  {name:'晨曦云海',color:'#27556a',rule:'顺风航线 · 平衡敌群',wind:0,elite:.2,supply:900},
+  {name:'雷暴走廊',color:'#59467e',rule:'横向气流 · 注意修正航向',wind:.45,elite:.3,supply:780},
+  {name:'珊瑚海岸',color:'#246c6a',rule:'密集补给 · 高速低空战',wind:0,elite:.15,supply:480},
+  {name:'赤曜熔谷',color:'#773b48',rule:'精英机群 · 更强守卫',wind:-.35,elite:.5,supply:720},
+];
+export const MISSIONS=MAPS.flatMap((map,m)=>['前哨','截击','守卫'].map((part,i)=>({name:map.name+' · '+part,description:map.rule,map:m,rank:i,color:map.color})));
 export type Supply = "weapon" | "shield" | "health";
 export const DIFFICULTIES = {
   easy: {
@@ -98,6 +105,20 @@ export class Game {
   enemyBullets: Bullet[] = [];
   powerUps: PowerUp[] = [];
   boss: Enemy | null = null;
+  mission = -1;
+  damageScale = 1;
+  intervalScale = 1;
+  skinColor = '#00d4ff';
+  skinMark = '';
+  get map(){return MAPS[this.mode==='endless'?Math.floor((this.stage-1)/2)%MAPS.length:Math.max(0,MISSIONS[this.mission]?.map??0)];}
+  configure(mission:number,buffs={damage:1,interval:1,guard:0},color='#00d4ff',mark=''){
+    this.mission=clamp(Math.floor(mission),0,MISSIONS.length-1);this.stage=this.mission+1;
+    this.killsNeeded=20+MISSIONS[this.mission].rank*6;
+    this.spawnInterval=Math.max(36,DIFFICULTIES[this.difficulty].spawn-MISSIONS[this.mission].rank*6);
+    this.damageScale=buffs.damage;this.intervalScale=buffs.interval;this.skinColor=color;this.skinMark=mark;
+    this.player.lives+=buffs.guard;this.player.maxLives+=buffs.guard;
+    if(this.mode==='endless')this.stage=1;
+  }
   spawnTimer = 0;
   supplyTimer = 0;
   spawnInterval: number;
@@ -126,9 +147,15 @@ export class Game {
   nextStage() {
     if (this.phase !== "cleared") return;
     this.stage++;
+    if(this.mission>=0)this.mission=Math.min(MISSIONS.length-1,this.mission+1);
     this.stageKills = 0;
-    this.killsNeeded += 5;
-    this.spawnInterval = Math.max(30, this.spawnInterval - 6);
+    if(this.mission>=0){
+      this.killsNeeded=20+MISSIONS[this.mission].rank*6;
+      this.spawnInterval=Math.max(36,DIFFICULTIES[this.difficulty].spawn-MISSIONS[this.mission].rank*6);
+    }else{
+      this.killsNeeded += 5;
+      this.spawnInterval = Math.max(30, this.spawnInterval - 6);
+    }
     this.spawnTimer = 0;
     this.bullets = [];
     this.enemyBullets = [];
@@ -188,15 +215,17 @@ export class Game {
           p.y - p.radius,
           vx,
           -8,
-          p.weapon === 5 ? 2 : 1,
+          (p.weapon === 5 ? 2 : 1) * this.damageScale,
+          this.skinColor,
         ),
       );
-    p.cooldown = 9;
+    // Carry fractional ticks so even the first 4% upgrade increases fire rate.
+    p.cooldown += Math.max(4,9*this.intervalScale);
     this.emit("shot");
   }
   spawnEnemy(
     x = 30 + this.rng() * (WIDTH - 60),
-    kind: "normal" | "elite" = this.rng() > 0.8 ? "elite" : "normal",
+    kind: "normal" | "elite" = this.rng() > (this.mission>=0?1-this.map.elite:.8) ? "elite" : "normal",
   ) {
     const config = DIFFICULTIES[this.difficulty],
       hp = (kind === "elite" ? 3 : 1) * config.health;
@@ -284,7 +313,7 @@ export class Game {
     if (enemy.kind === "boss") {
       for (let i = 0; i < 8; i++) add((i * Math.PI) / 4, 3);
       for (const delta of [-0.3, 0, 0.3]) add(angle + delta, 5);
-      enemy.cooldown = 48;
+      enemy.cooldown = this.mission>=0?Math.max(30,48-MISSIONS[this.mission].rank*6):48;
     } else if (enemy.kind === "elite") {
       for (const delta of [-0.2, 0, 0.2]) add(angle + delta, 4);
       enemy.cooldown = 90;
@@ -328,14 +357,16 @@ export class Game {
         p.y += (y / distance) * speed;
       }
     }
+    if(this.mission>=0)p.x+=Math.sin(this.tick/90)*this.map.wind;
     p.x = clamp(p.x, p.radius, WIDTH - p.radius);
     p.y = clamp(p.y, p.radius, HEIGHT - p.radius);
-    if (--p.cooldown <= 0) this.shoot();
+    if (p.cooldown <= 0) this.shoot();
+    p.cooldown--;
     if (!this.boss && ++this.spawnTimer >= this.spawnInterval) {
       this.spawnEnemy();
       this.spawnTimer = 0;
     }
-    if (++this.supplyTimer >= 900) {
+    if (++this.supplyTimer >= (this.mission>=0?this.map.supply:900)) {
       this.spawnSupply();
       this.supplyTimer = 0;
     }
@@ -353,6 +384,7 @@ export class Game {
     }
     for (const enemy of this.enemies) {
       enemy.y += enemy.speed;
+      if(this.mission>=0&&this.map.wind)enemy.x=clamp(enemy.x+Math.sin((this.tick+enemy.y)/45)*this.map.wind*2,25,WIDTH-25);
       if (--enemy.cooldown <= 0) this.enemyFire(enemy);
     }
     if (this.boss) {
