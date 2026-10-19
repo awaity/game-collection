@@ -55,5 +55,5 @@ jobs:
           name: verification-${{ github.sha }}
           path: |
             artifacts/
-            games/garden-guard/artifacts/
+            games/*/artifacts/
           retention-days: 14
