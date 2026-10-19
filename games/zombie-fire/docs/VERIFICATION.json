@@ -1,17 +1,17 @@
 {
-  "verifiedAt": "2026-10-19T15:34:43.003Z",
-  "milestone": "ordinary-orb-and-fission-timing-corrected-not-full-reference-parity",
+  "verifiedAt": "2026-10-19T16:04:16.636Z",
+  "milestone": "ordinary-orb-boundary-budgets-and-continuous-collision-corrected-not-full-reference-parity",
   "creator": "3.8.8",
-  "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
-  "rulesAndCampaignRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
-  "unitTests": 68,
-  "ruleLog": "artifacts/zombie-fire-orb-timing-rules.log",
+  "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
+  "rulesAndCampaignRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
+  "unitTests": 72,
+  "ruleLog": "artifacts/zombie-fire-orb-reflection-rules-final.log",
   "localCampaign": {
     "configuredStages": 36,
     "successfulClears": 36,
     "maps": 6,
-    "verifiedAt": "2026-10-19T15:23:45.180Z",
-    "log": "artifacts/zombie-fire-orb-timing-campaign.log"
+    "verifiedAt": "2026-10-19T15:45:01.156Z",
+    "log": "artifacts/zombie-fire-orb-reflection-campaign.log"
   },
   "localContent": {
     "weapons": 19,
@@ -45,47 +45,47 @@
     "reference": "LUCKY-ORB-REFERENCE.md",
     "originalClientObserved": false,
     "remainingDifferences": [
-      "wall-and-target-reflection-budgets",
+      "original-reflection-enums-and-counter-dispatch",
       "coordinate-speed-and-damage-mapping",
       "hidden-21-point-dispatch",
       "card-pool-and-research-eligibility"
     ]
   },
   "sourceFiles": {
-    "assets/scripts/core.ts": "9ae61d2739f2ae0d0068d2ee40af7f03df40af34f269645212234133e43f04c7",
-    "assets/scripts/content.ts": "690b257d1b7d1a5abfad2899a8581f777bd68603296f6a1f5a65e8eb2907a9b5",
+    "assets/scripts/core.ts": "46937b91ae0a8c8d6a26dda1966a4990b0d089a4188a1c68fd9594e02a30eb35",
+    "assets/scripts/content.ts": "f6c282bace77a37d92d557a1446a3f9c4bf5e88dc74f5a9e9e3608211e526057",
     "assets/scripts/profile.ts": "b9a361d69840ba0af5e2bab2c29833e36dba942c351c69e7a84cbbcb684c2c8b",
     "assets/scripts/session.ts": "6b752e283a19a7291cde8326a5d2c87ac76b62bec31b689909e590edb115b86f",
     "assets/scripts/art.ts": "12535f0a17a39e7e0a7c93a8010eceb437d3c68c19644b81e8eddd9caa808aee",
-    "tests/core.test.ts": "9b1cb87c81f76c6fc92c0e8f4ad14be3a2f606114e014df96b781d95fdbdc019",
-    "tests/flows.mjs": "d73a7202b8bf7b0dfbb50550c6a334731e0bae5cb431f5d8bf8138e4b65cfb1b"
+    "tests/core.test.ts": "d40740ef684d8cd7c0ae09cc735ad5130fc0d546cb0a4b898f74a2fc19012a74",
+    "tests/flows.mjs": "2236232488445a15784b47924fe8c5ce82b0ba1a3493cb74de723a994d54914e"
   },
   "exports": {
     "web": {
       "target": "web-mobile",
-      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
-      "builtAt": "2026-10-19T15:24:17.894Z",
+      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
+      "builtAt": "2026-10-19T15:45:34.093Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "weixin": {
       "target": "wechatgame",
-      "sourceHash": "dfcd6439a5c497d7bd80f14c2ec1211b9ec0d44116a0eb87ed5f08cf550b147e",
-      "builtAt": "2026-10-19T15:25:13.289Z",
+      "sourceHash": "58e08c6371ce75368abe94edadfecc16a473e019333ae0d9438396ecdaca4996",
+      "builtAt": "2026-10-19T15:47:20.919Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "douyin": {
       "target": "bytedance-mini-game",
-      "sourceHash": "e3cd5e85184e7669ddf82d6ae2567e2f7f7bdfa57e894804d66dd2678d0018c0",
-      "builtAt": "2026-10-19T15:26:15.155Z",
+      "sourceHash": "3939d2e5a0ce951531ea2ddbadc6c051b5e9e78862cf47dae44796569b441150",
+      "builtAt": "2026-10-19T15:48:22.719Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     }
   },
   "web": [
     {
-      "verifiedAt": "2026-10-19T15:27:02.645Z",
+      "verifiedAt": "2026-10-19T15:50:14.083Z",
       "target": "web",
       "viewport": {
         "width": 390,
@@ -109,6 +109,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-boundaries-preserve-target-redirects",
         "orb-fixed-luck-preview-and-selection",
         "lucky-three-qualities-piercing-lights-and-blasts",
         "lucky-preparation-pause",
@@ -123,12 +124,29 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
-      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
-      "log": "artifacts/zombie-fire-orb-timing-web-390.log"
+      "orbReflection": {
+        "verifiedAt": "2026-10-19T15:49:27.154Z",
+        "attempt": 4,
+        "tick": 432,
+        "id": 10,
+        "source": "weapon",
+        "before": {
+          "walls": 0,
+          "hits": 0,
+          "remaining": 3
+        },
+        "after": {
+          "walls": 1,
+          "hits": 0,
+          "remaining": 3
+        }
+      },
+      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
+      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
+      "log": "artifacts/zombie-fire-orb-reflection-web-390.log"
     },
     {
-      "verifiedAt": "2026-10-19T15:30:21.756Z",
+      "verifiedAt": "2026-10-19T15:55:52.989Z",
       "target": "web",
       "viewport": {
         "width": 1440,
@@ -152,6 +170,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-boundaries-preserve-target-redirects",
         "orb-fixed-luck-preview-and-selection",
         "lucky-three-qualities-piercing-lights-and-blasts",
         "lucky-preparation-pause",
@@ -164,12 +183,29 @@
       ],
       "errors": [],
       "diagnostics": [],
-      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
-      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
-      "log": "artifacts/zombie-fire-orb-timing-web-1440.log"
+      "orbReflection": {
+        "verifiedAt": "2026-10-19T15:54:41.084Z",
+        "attempt": 4,
+        "tick": 432,
+        "id": 10,
+        "source": "weapon",
+        "before": {
+          "walls": 0,
+          "hits": 0,
+          "remaining": 3
+        },
+        "after": {
+          "walls": 1,
+          "hits": 0,
+          "remaining": 3
+        }
+      },
+      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
+      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
+      "log": "artifacts/zombie-fire-orb-reflection-web-1440.log"
     },
     {
-      "verifiedAt": "2026-10-19T15:32:28.513Z",
+      "verifiedAt": "2026-10-19T15:59:31.032Z",
       "target": "web",
       "viewport": {
         "width": 844,
@@ -193,6 +229,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-boundaries-preserve-target-redirects",
         "orb-fixed-luck-preview-and-selection",
         "lucky-three-qualities-piercing-lights-and-blasts",
         "lucky-preparation-pause",
@@ -207,12 +244,29 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
-      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
-      "log": "artifacts/zombie-fire-orb-timing-web-844.log"
+      "orbReflection": {
+        "verifiedAt": "2026-10-19T15:58:36.601Z",
+        "attempt": 4,
+        "tick": 432,
+        "id": 10,
+        "source": "weapon",
+        "before": {
+          "walls": 0,
+          "hits": 0,
+          "remaining": 3
+        },
+        "after": {
+          "walls": 1,
+          "hits": 0,
+          "remaining": 3
+        }
+      },
+      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
+      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
+      "log": "artifacts/zombie-fire-orb-reflection-web-844.log"
     },
     {
-      "verifiedAt": "2026-10-19T15:34:21.275Z",
+      "verifiedAt": "2026-10-19T16:03:04.059Z",
       "target": "web",
       "viewport": {
         "width": 320,
@@ -236,6 +290,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-boundaries-preserve-target-redirects",
         "orb-fixed-luck-preview-and-selection",
         "lucky-three-qualities-piercing-lights-and-blasts",
         "lucky-preparation-pause",
@@ -250,14 +305,31 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "fe1ebe08f03f4ed964a4828f374802d1c5e99f68443debe80959e78f718693d5",
-      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
-      "log": "artifacts/zombie-fire-orb-timing-web-320.log"
+      "orbReflection": {
+        "verifiedAt": "2026-10-19T16:02:10.754Z",
+        "attempt": 4,
+        "tick": 432,
+        "id": 10,
+        "source": "weapon",
+        "before": {
+          "walls": 0,
+          "hits": 0,
+          "remaining": 3
+        },
+        "after": {
+          "walls": 1,
+          "hits": 0,
+          "remaining": 3
+        }
+      },
+      "sourceHash": "6bd450fb8746a368b89db5b08db2b14c5a4467abcd3d17033823fe8c31e2a94e",
+      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
+      "log": "artifacts/zombie-fire-orb-reflection-web-320.log"
     }
   ],
   "native": [
     {
-      "verifiedAt": "2026-10-19T15:31:00.448Z",
+      "verifiedAt": "2026-10-19T15:57:34.123Z",
       "target": "weixin",
       "viewport": {
         "width": 390,
@@ -281,6 +353,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-boundaries-preserve-target-redirects",
         "orb-fixed-luck-preview-and-selection",
         "lucky-three-qualities-piercing-lights-and-blasts",
         "lucky-preparation-pause",
@@ -300,17 +373,34 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 530,
+        "colors": 529,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
-      "sourceHash": "dfcd6439a5c497d7bd80f14c2ec1211b9ec0d44116a0eb87ed5f08cf550b147e",
-      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
-      "log": "artifacts/zombie-fire-orb-timing-weixin-390.log",
+      "orbReflection": {
+        "verifiedAt": "2026-10-19T15:56:07.306Z",
+        "attempt": 4,
+        "tick": 443,
+        "id": 10,
+        "source": "weapon",
+        "before": {
+          "walls": 0,
+          "hits": 0,
+          "remaining": 3
+        },
+        "after": {
+          "walls": 1,
+          "hits": 0,
+          "remaining": 3
+        }
+      },
+      "sourceHash": "58e08c6371ce75368abe94edadfecc16a473e019333ae0d9438396ecdaca4996",
+      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
+      "log": "artifacts/zombie-fire-orb-reflection-weixin-390.log",
       "audioBeforeRestart": 7
     },
     {
-      "verifiedAt": "2026-10-19T15:34:16.769Z",
+      "verifiedAt": "2026-10-19T16:03:53.788Z",
       "target": "douyin",
       "viewport": {
         "width": 390,
@@ -334,6 +424,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-boundaries-preserve-target-redirects",
         "orb-fixed-luck-preview-and-selection",
         "lucky-three-qualities-piercing-lights-and-blasts",
         "lucky-preparation-pause",
@@ -353,13 +444,30 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 530,
+        "colors": 531,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
-      "sourceHash": "e3cd5e85184e7669ddf82d6ae2567e2f7f7bdfa57e894804d66dd2678d0018c0",
-      "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72",
-      "log": "artifacts/zombie-fire-orb-timing-douyin-390.log",
+      "orbReflection": {
+        "verifiedAt": "2026-10-19T16:02:59.385Z",
+        "attempt": 4,
+        "tick": 434,
+        "id": 10,
+        "source": "weapon",
+        "before": {
+          "walls": 0,
+          "hits": 0,
+          "remaining": 3
+        },
+        "after": {
+          "walls": 1,
+          "hits": 0,
+          "remaining": 3
+        }
+      },
+      "sourceHash": "3939d2e5a0ce951531ea2ddbadc6c051b5e9e78862cf47dae44796569b441150",
+      "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34",
+      "log": "artifacts/zombie-fire-orb-reflection-douyin-390.log",
       "audioBeforeRestart": 3
     }
   ],
@@ -369,212 +477,212 @@
       {
         "target": "web",
         "width": 390,
-        "verifiedAt": "2026-10-19T15:26:59.173Z",
+        "verifiedAt": "2026-10-19T15:50:10.066Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "mid",
+            "quality": "low",
             "casts": 12,
             "triggers": 2,
             "hits": 1,
-            "tick": 57614
+            "tick": 4296
           },
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 49,
-            "triggers": 8,
-            "hits": 1,
-            "tick": 70023
+            "quality": "mid",
+            "casts": 19,
+            "triggers": 3,
+            "hits": 4,
+            "tick": 6120
           },
           {
-            "attempt": 2,
+            "attempt": 1,
             "quality": "high",
-            "casts": 102,
-            "triggers": 17,
+            "casts": 54,
+            "triggers": 9,
             "hits": 1,
-            "tick": 46048
+            "tick": 18540
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
+        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
       },
       {
         "target": "web",
         "width": 1440,
-        "verifiedAt": "2026-10-19T15:30:16.426Z",
+        "verifiedAt": "2026-10-19T15:55:47.039Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "mid",
+            "quality": "low",
             "casts": 12,
             "triggers": 2,
             "hits": 1,
-            "tick": 57614
+            "tick": 4296
           },
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 49,
-            "triggers": 8,
-            "hits": 1,
-            "tick": 70023
+            "quality": "mid",
+            "casts": 19,
+            "triggers": 3,
+            "hits": 4,
+            "tick": 6120
           },
           {
-            "attempt": 2,
+            "attempt": 1,
             "quality": "high",
-            "casts": 102,
-            "triggers": 17,
+            "casts": 54,
+            "triggers": 9,
             "hits": 1,
-            "tick": 46048
+            "tick": 18540
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
+        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
       },
       {
         "target": "web",
         "width": 844,
-        "verifiedAt": "2026-10-19T15:32:24.271Z",
+        "verifiedAt": "2026-10-19T15:59:26.275Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "mid",
+            "quality": "low",
             "casts": 12,
             "triggers": 2,
             "hits": 1,
-            "tick": 57614
+            "tick": 4296
           },
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 49,
-            "triggers": 8,
-            "hits": 1,
-            "tick": 70023
+            "quality": "mid",
+            "casts": 19,
+            "triggers": 3,
+            "hits": 4,
+            "tick": 6120
           },
           {
-            "attempt": 2,
+            "attempt": 1,
             "quality": "high",
-            "casts": 102,
-            "triggers": 17,
+            "casts": 54,
+            "triggers": 9,
             "hits": 1,
-            "tick": 46048
+            "tick": 18540
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
+        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
       },
       {
         "target": "web",
         "width": 320,
-        "verifiedAt": "2026-10-19T15:34:18.220Z",
+        "verifiedAt": "2026-10-19T16:03:00.445Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "mid",
+            "quality": "low",
             "casts": 12,
             "triggers": 2,
             "hits": 1,
-            "tick": 57614
+            "tick": 4296
           },
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 49,
-            "triggers": 8,
-            "hits": 1,
-            "tick": 70023
+            "quality": "mid",
+            "casts": 19,
+            "triggers": 3,
+            "hits": 4,
+            "tick": 6120
           },
           {
-            "attempt": 2,
+            "attempt": 1,
             "quality": "high",
-            "casts": 102,
-            "triggers": 17,
+            "casts": 54,
+            "triggers": 9,
             "hits": 1,
-            "tick": 46048
+            "tick": 18540
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
+        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
       },
       {
         "target": "weixin",
         "width": 390,
-        "verifiedAt": "2026-10-19T15:30:55.202Z",
+        "verifiedAt": "2026-10-19T15:57:28.094Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "mid",
+            "quality": "low",
             "casts": 12,
             "triggers": 2,
             "hits": 1,
-            "tick": 57617
+            "tick": 4296
           },
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 49,
-            "triggers": 8,
-            "hits": 1,
-            "tick": 70023
+            "quality": "mid",
+            "casts": 19,
+            "triggers": 3,
+            "hits": 3,
+            "tick": 6119
           },
           {
-            "attempt": 2,
+            "attempt": 1,
             "quality": "high",
-            "casts": 102,
-            "triggers": 17,
+            "casts": 54,
+            "triggers": 9,
             "hits": 1,
-            "tick": 46049
+            "tick": 18547
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
+        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
       },
       {
         "target": "douyin",
         "width": 390,
-        "verifiedAt": "2026-10-19T15:34:12.158Z",
+        "verifiedAt": "2026-10-19T16:03:49.685Z",
         "evidence": [
           {
             "attempt": 1,
-            "quality": "mid",
+            "quality": "low",
             "casts": 12,
             "triggers": 2,
             "hits": 1,
-            "tick": 57616
+            "tick": 4295
           },
           {
             "attempt": 1,
-            "quality": "low",
-            "casts": 49,
-            "triggers": 8,
-            "hits": 1,
-            "tick": 70024
+            "quality": "mid",
+            "casts": 19,
+            "triggers": 3,
+            "hits": 3,
+            "tick": 6119
           },
           {
-            "attempt": 2,
+            "attempt": 1,
             "quality": "high",
-            "casts": 102,
-            "triggers": 17,
+            "casts": 54,
+            "triggers": 9,
             "hits": 1,
-            "tick": 46050
+            "tick": 18539
           }
         ],
         "lightHit": true,
         "highBurst": true,
         "preparationPause": true,
-        "testedImplementationRevision": "ffebc582d3a3e6bfc2403ea10a7024b4925cba72"
+        "testedImplementationRevision": "cc7f28ed95b47f380671e9a225bef8a16851dd34"
       }
     ],
     "localChoices": [
@@ -589,38 +697,102 @@
   "realDevices": false,
   "catalogIntegrated": false,
   "newGamePublished": false,
-  "flowSourceHash": "d73a7202b8bf7b0dfbb50550c6a334731e0bae5cb431f5d8bf8138e4b65cfb1b",
+  "flowSourceHash": "2236232488445a15784b47924fe8c5ce82b0ba1a3493cb74de723a994d54914e",
   "referenceEvidence": {
     "serializedBehaviorIdentities": 2804,
-    "selectedBehaviors": 13,
+    "selectedBehaviors": 16,
     "clientExecution": false,
-    "log": "artifacts/zombie-fire-orb-timing-reference.log",
-    "retainedOwnBuffGates": true
+    "log": "artifacts/zombie-fire-orb-reflection-reference-final.log",
+    "retainedOwnBuffGates": true,
+    "researchRevision": "4839ebf5d9daccbfca48c16e7ed4335f0b05a79e",
+    "tableLog": "artifacts/zombie-fire-orb-reflection-skill-level-reference.log",
+    "baseTableLog": "artifacts/zombie-fire-orb-reflection-skill-base-reference.log",
+    "validatedTables": 14,
+    "skillBase": {
+      "sha256": "051c0e6e78db28d0ced63ca276cd3852ac26bc79235f5273d2f42a0fe6bb5651",
+      "encoding": "transformed-blocks",
+      "bytes": 860619,
+      "declaredRows": 2154,
+      "completeRows": 2153,
+      "decodedPrefixBytes": 860608,
+      "undecodedTailBytes": 11,
+      "declaredChecksum": "503b209f",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": false,
+      "incompleteRecordOffset": 860232,
+      "selectedMainSkills": 18,
+      "prefixBytes": 26,
+      "stringLengthBytes": 4,
+      "bodyBytes": 356,
+      "predictedFinalRecordEnd": 860619,
+      "incompleteBodyExcluded": true,
+      "missingMagicSkillBases": [],
+      "runtimeFieldSemanticsVerified": false
+    },
+    "skillLevels": {
+      "sha256": "d348f5fea6211c06e6b617798bd94ec925a910bad32bd858a4b5b3bcbaa1a22a",
+      "encoding": "plain",
+      "bytes": 145748,
+      "declaredRows": 828,
+      "completeRows": 828,
+      "decodedPrefixBytes": 145748,
+      "undecodedTailBytes": 0,
+      "declaredChecksum": "c37a35f5",
+      "checksumVerified": false,
+      "recordBoundariesReachFileEnd": true,
+      "incompleteRecordOffset": null,
+      "recordBytes": 176,
+      "skillFamilies": 18,
+      "levelsPerFamily": 46,
+      "selectedRows": 42,
+      "cooldownDisplayComparisons": 17,
+      "missingDisplayTexts": [
+        407700146
+      ],
+      "originalClientObserved": false,
+      "gameplayApplied": false
+    }
   },
   "finalBuildLogs": [
-    "artifacts/zombie-fire-orb-timing-web-build.log",
-    "artifacts/zombie-fire-orb-timing-mini-build.log",
-    "artifacts/zombie-fire-orb-timing-mini-verify.log"
+    "artifacts/zombie-fire-orb-reflection-web-build.log",
+    "artifacts/zombie-fire-orb-reflection-mini-build.log",
+    "artifacts/zombie-fire-orb-reflection-mini-verify.log"
   ],
   "visualEvidence": {
     "actualCombat": "artifacts/cocos/zombie-fire/*-advanced-orb.png",
     "luckyEffects": "artifacts/cocos/zombie-fire/*-lucky-{low,mid,high}-{prepare,combat}.png",
-    "luckyDerivatives": "artifacts/cocos/zombie-fire/*-lucky-{light-hit,high-burst}.png"
+    "luckyDerivatives": "artifacts/cocos/zombie-fire/*-lucky-{light-hit,high-burst}.png",
+    "reviewedScreens": [
+      "artifacts/cocos/zombie-fire/web-390-lucky-light-hit.png",
+      "artifacts/cocos/zombie-fire/web-1440-advanced-orb.png",
+      "artifacts/cocos/zombie-fire/web-844-advanced-orb-lucky-choice.png",
+      "artifacts/cocos/zombie-fire/web-844-lucky-high-burst.png",
+      "artifacts/cocos/zombie-fire/web-320-first-choice.png",
+      "artifacts/cocos/zombie-fire/web-320-lucky-high-burst.png",
+      "artifacts/cocos/zombie-fire/weixin-390-advanced-orb.png",
+      "artifacts/cocos/zombie-fire/douyin-390-lucky-high-burst.png"
+    ],
+    "reviewScope": "Reviewed current-export combat and choice screenshots for clipping and overlap; not a visual-parity claim against an interactive original client."
   },
-  "verificationScope": "All six complete gameplay flows rerun after official exports of ffebc58. No card-choice, RNG, health, currency or victory fixtures in runtime acceptance; QA advances real fixed-step rules.",
-  "browserRecovery": {
-    "initialExitCode": 1,
-    "cause": "Chromium could not load libnspr4.so before any game was started.",
-    "action": "Reran using the existing local browser dependency cache through LD_LIBRARY_PATH.",
-    "log": "artifacts/zombie-fire-orb-timing-web-390-launch-failed.log"
+  "verificationScope": "All six complete gameplay flows rerun after official exports of cc7f28e. No card-choice, RNG, health, currency or victory fixtures in runtime acceptance; QA advances real fixed-step rules.",
+  "ordinaryOrbReflection": {
+    "targetRedirects": 3,
+    "maxBaseContacts": 4,
+    "boundariesPreserveTargetBudget": true,
+    "childRadiusRatio": 0.7,
+    "childSpeedRatio": 0.7777777777777778,
+    "wallEventInterval": 0.5,
+    "collision": "continuous-circle-surface-and-boundary-time-order",
+    "targetSearch": "nearest-living-across-field",
+    "originalClientObserved": false
   },
   "localServices": {
-    "checkedAt": "2026-10-19T15:34:35.010966+00:00",
+    "checkedAt": "2026-10-19T16:04:04.802382+00:00",
     "ownVerificationProcesses": 0,
     "ownCreatorBuildProcesses": 0,
     "preservedExistingServices": true,
     "listeners": "State  Recv-Q Send-Q Local Address:Port  Peer Address:PortProcess                                  \nLISTEN 0      4096   127.0.0.53%lo:53         0.0.0.0:*                                            \nLISTEN 0      511        127.0.0.1:41095      0.0.0.0:*    users:((\"MainThread\",pid=1247,fd=41))   \nLISTEN 0      511          0.0.0.0:5173       0.0.0.0:*    users:((\"node\",pid=197353,fd=34))       \nLISTEN 0      511        127.0.0.1:36871      0.0.0.0:*    users:((\"MainThread\",pid=3040365,fd=36))\nLISTEN 0      128        127.0.0.1:37663      0.0.0.0:*    users:((\"codex\",pid=68733,fd=39))       \nLISTEN 0      511        127.0.0.1:37487      0.0.0.0:*    users:((\"MainThread\",pid=976,fd=22))    \nLISTEN 0      128        127.0.0.1:38323      0.0.0.0:*    users:((\"codex\",pid=4367,fd=39))        \nLISTEN 0      4096      127.0.0.54:53         0.0.0.0:*                                            \n",
     "creatorProcessCount": 0,
-    "evidence": "artifacts/zombie-fire-orb-timing-services-closed.json"
+    "evidence": "artifacts/zombie-fire-orb-reflection-services-closed.json"
   }
 }
