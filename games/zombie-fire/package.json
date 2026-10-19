@@ -1,0 +1,29 @@
+{
+  "name": "zombie-fire",
+  "version": "0.1.0",
+  "displayName": "向僵尸开炮",
+  "description": "竖向尸潮射击塔防、局内技能构筑与局外成长",
+  "private": true,
+  "type": "module",
+  "uuid": "762bb256-b62d-55e5-9bd2-1218d6b5b5ec",
+  "creator": {
+    "version": "3.8.8"
+  },
+  "packageManager": "pnpm@11.23.0",
+  "scripts": {
+    "build": "node ../../packages/build-tools/src/cocos.mjs web",
+    "build:weixin": "node ../../packages/build-tools/src/cocos.mjs weixin",
+    "build:douyin": "node ../../packages/build-tools/src/cocos.mjs douyin",
+    "build:mini": "pnpm build:weixin && pnpm build:douyin",
+    "typecheck": "tsc --noEmit",
+    "test": "pnpm typecheck && tsx --test tests/*.test.ts",
+    "verify:mini": "node ../../packages/build-tools/src/cocos-verify.mjs"
+  },
+  "devDependencies": {
+    "@game-collection/build-tools": "workspace:*",
+    "@game-collection/cocos-runtime": "workspace:*",
+    "@game-collection/platform": "workspace:*",
+    "typescript": "5.9.3",
+    "tsx": "4.20.6"
+  }
+}

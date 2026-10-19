@@ -1,0 +1,118 @@
+/** Mechanisms are reconstructed from public observations; tuning is explicit local data. */
+export type Element='physical'|'fire'|'ice'|'electric'|'energy'|'wind';
+export type SkillId='rifle'|'thermo'|'dryice'|'electro'|'guided'|'ray'|'frost'|'cyclone'|'fuel'|'electron'|'blade'|'vehicle'|'airdrop';
+export type Attack='bullet'|'shell'|'beam'|'guided'|'ray'|'field'|'tornado'|'chain'|'blade'|'vehicle'|'airdrop';
+export interface Skill {id:SkillId;name:string;element:Element;attack:Attack;color:string;damage:number;interval:number;radius:number;pierce:number;duration:number;description:string}
+export const SKILLS:readonly Skill[]=[
+ {id:'rifle',name:'突击步枪',element:'physical',attack:'bullet',color:'#e3b76c',damage:28,interval:.27,radius:3,pierce:0,duration:0,description:'自动锁定靠近防线的敌人。弹匣耗尽后重新装填。'},
+ {id:'thermo',name:'温压弹',element:'fire',attack:'shell',color:'#f29a38',damage:85,interval:3.7,radius:55,pierce:0,duration:0,description:'发射温压弹，命中爆炸并击退范围内敌人。'},
+ {id:'dryice',name:'干冰弹',element:'ice',attack:'bullet',color:'#8cdef1',damage:48,interval:2.7,radius:9,pierce:4,duration:0,description:'冰系穿透弹道，可击中多名敌人并轻微击退。'},
+ {id:'electro',name:'电磁穿刺',element:'electric',attack:'beam',color:'#c2a0ef',damage:100,interval:4.1,radius:44,pierce:0,duration:0,description:'雷击目标并溅射附近敌人，附带麻痹。'},
+ {id:'guided',name:'制导激光',element:'energy',attack:'guided',color:'#efbd75',damage:95,interval:3.2,radius:18,pierce:0,duration:1.4,description:'持续追踪锁定目标，目标倒下后自动转移；升级后可折射。'},
+ {id:'ray',name:'高能射线',element:'energy',attack:'ray',color:'#78d9ef',damage:60,interval:3.6,radius:14,pierce:99,duration:0,description:'从枪口向目标射出贯穿整条路径的能量射线。'},
+ {id:'frost',name:'冰爆发生器',element:'ice',attack:'field',color:'#67cce9',damage:26,interval:5.2,radius:62,pierce:0,duration:2.7,description:'生成冰爆领域，周期伤害并冻结其中的敌人。'},
+ {id:'cyclone',name:'旋风加农',element:'wind',attack:'tornado',color:'#8fdcc8',damage:24,interval:5.8,radius:43,pierce:99,duration:4,description:'旋风持续推进，将敌人卷向中心并造成多次伤害。'},
+ {id:'fuel',name:'燃油弹',element:'fire',attack:'field',color:'#e77640',damage:23,interval:5.3,radius:61,pierce:0,duration:4,description:'燃油覆盖地面，持续烧灼范围内的尸群。'},
+ {id:'electron',name:'跃迁电子',element:'electric',attack:'chain',color:'#aca0ee',damage:51,interval:3.3,radius:128,pierce:4,duration:0,description:'电子在相邻敌人之间跃迁，适合密集尸群。'},
+ {id:'blade',name:'压缩气刃',element:'wind',attack:'blade',color:'#bdddb7',damage:64,interval:3.8,radius:20,pierce:8,duration:0,description:'气刃穿过多个目标，并降低敌人的受治疗量。'},
+ {id:'vehicle',name:'装甲车',element:'physical',attack:'vehicle',color:'#bdb79a',damage:55,interval:7,radius:38,pierce:99,duration:4,description:'装甲车从防线出击，沿途碾压并推开敌人。'},
+ {id:'airdrop',name:'空投轰炸',element:'fire',attack:'airdrop',color:'#ddab69',damage:130,interval:7.8,radius:70,pierce:0,duration:0,description:'在尸群中标记区域，短暂延迟后实施空中轰炸。'},
+];
+export const skillById=Object.fromEntries(SKILLS.map(s=>[s.id,s])) as Record<SkillId,Skill>;
+export type Modifier='damage'|'haste'|'count'|'radius'|'pierce'|'duration'|'burn'|'freeze'|'stun'|'bounce'|'crit'|'magazine'|'knock'|'vulnerability';
+export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean}
+const upgrade=(id:string,skill:SkillId,name:string,description:string,mods:Upgrade['mods'],requires:Upgrade['requires']=[],max=1,evolution=false):Upgrade=>({id,skill,name,description,mods,requires,max,evolution});
+export const UPGRADES:readonly Upgrade[]=[
+ ...SKILLS.flatMap(s=>[
+  upgrade(s.id+':power',s.id,s.name+'增伤','本技能伤害提高 25%。',{damage:.25},[],5),
+  upgrade(s.id+':haste',s.id,s.name+'速发','本技能冷却缩短 10%。',{haste:.1},[],3),
+ ]),
+ upgrade('rifle:pierce','rifle','穿透弹','子弹多穿透 1 名敌人。',{pierce:1},[],3),
+ upgrade('rifle:salvo','rifle','枪械齐射','每轮多发射 1 颗子弹。',{count:1},[['rifle:power',1]],2),
+ upgrade('rifle:magazine','rifle','扩容弹匣','弹匣容量增加 6 发。',{magazine:6},[],3),
+ upgrade('rifle:crit','rifle','弱点瞄准','暴击率增加 10%。',{crit:.1},[],3),
+ upgrade('rifle:explosive','rifle','爆炸子弹','步枪命中产生小范围火焰爆炸。',{radius:22,burn:8},[['thermo',1],['rifle:power',2]],1,true),
+ upgrade('rifle:frost','rifle','急冻子弹','步枪命中使目标短暂冻结。',{freeze:.45},[['dryice',1],['rifle:pierce',1]],1,true),
+ upgrade('thermo:salvo','thermo','温压弹连发','额外发射 1 枚温压弹。',{count:1},[],2),
+ upgrade('thermo:heat','thermo','热能爆发','温压爆炸伤害提高 40%，范围扩大。',{damage:.4,radius:15},[['thermo:power',1]]),
+ upgrade('thermo:ignite','thermo','爆炸引燃','爆炸命中的敌人持续烧灼。',{burn:18},[['thermo:power',1]]),
+ upgrade('thermo:super','thermo','超爆弹','大幅提升温压爆炸的范围与冲击。',{damage:.6,radius:28,knock:20},[['thermo:heat',1],['thermo:salvo',1]],1,true),
+ upgrade('thermo:spread','thermo','传火','烧灼更猛烈，击杀时传播到附近敌人。',{burn:24},[['thermo:super',1],['thermo:ignite',1]],1,true),
+ upgrade('thermo:burst','thermo','连珠火球','同时投射更多超爆弹。',{count:2,damage:.2},[['thermo:super',1],['thermo:salvo',2]],1,true),
+ upgrade('dryice:salvo','dryice','干冰弹连发','额外发射 1 枚干冰弹。',{count:1},[],2),
+ upgrade('dryice:freeze','dryice','急冻寒冰','穿透命中附带冻结。',{freeze:1.1},[['dryice:power',1]]),
+ upgrade('dryice:pierce','dryice','低温贯穿','增加 3 次穿透，扩大弹道。',{pierce:3,radius:3},[],2),
+ upgrade('dryice:extreme','dryice','极寒冰弹','延长冻结并增强干冰弹伤害。',{damage:.7,freeze:1},[['dryice:freeze',1],['dryice:pierce',1],['dryice:power',2]],1,true),
+ upgrade('electro:split','electro','电磁分流','雷击增加一个目标。',{count:1},[],2),
+ upgrade('electro:paralyze','electro','麻痹增伤','延长麻痹，提高电磁伤害。',{stun:.8,damage:.25},[['electro:power',1]]),
+ upgrade('electro:fission','electro','电磁裂变','雷击向更多目标扩散。',{count:2,radius:18},[['electro:split',1],['electro:paralyze',1]],1,true),
+ upgrade('electro:voltage','electro','高压粒子','裂变雷击更强，并产生额外溅射。',{damage:.8,radius:20},[['electro:fission',1],['electro:power',2]],1,true),
+ upgrade('guided:focus','guided','聚焦','提高制导激光的单体伤害。',{damage:.5},[],2),
+ upgrade('guided:refract','guided','追踪折射','激光折射命中更多敌人。',{bounce:2},[['guided:power',1]],2),
+ upgrade('guided:wave','guided','能量光波','加强聚焦激光并扩大折射。',{damage:.65,bounce:2,radius:8},[['guided:focus',1],['guided:refract',1]],1,true),
+ upgrade('ray:spread','ray','射线扩散','射线增宽，并提高伤害。',{radius:9,damage:.15},[['ray:power',1]],2),
+ upgrade('ray:overload','ray','高能过载','贯穿射线冷却明显缩短。',{haste:.22},[['ray:power',2]]),
+ upgrade('ray:flash','ray','闪击射线','额外释放一道高能射线。',{count:1,damage:.3},[['ray:overload',1],['ray:spread',1]],1,true),
+ upgrade('frost:area','frost','冰爆扩张','冰爆范围增加 20。',{radius:20},[['frost:power',1]],2),
+ upgrade('frost:lasting','frost','冰雹延续','冰爆持续时间增加 1.5 秒。',{duration:1.5},[],2),
+ upgrade('frost:heavy','frost','重型冰爆','冰爆伤害、范围与冻结强度提升。',{damage:.6,radius:16,freeze:.5},[['frost:area',1],['frost:lasting',1]],1,true),
+ upgrade('cyclone:lasting','cyclone','延长气流','旋风持续时间增加 1.5 秒。',{duration:1.5},[],2),
+ upgrade('cyclone:double','cyclone','双重旋风','额外发射一道旋风。',{count:1},[['cyclone:lasting',1]],1,true),
+ upgrade('cyclone:storm','cyclone','风暴聚焦','旋风扩大，并更强地聚拢敌人。',{radius:18,damage:.4,knock:15},[['cyclone:power',2]],1,true),
+ upgrade('fuel:area','fuel','燃烧扩散','扩大燃油覆盖区域。',{radius:20},[],2),
+ upgrade('fuel:lasting','fuel','火焰侵袭','延长燃烧区域的持续时间。',{duration:2,burn:8},[],2),
+ upgrade('fuel:death','fuel','死亡爆炸','燃烧伤害提高，燃烧中的敌人倒下时爆炸。',{burn:18,damage:.4},[['thermo',1],['fuel:lasting',1]],1,true),
+ upgrade('electron:compound','electron','复合电子','电子增加 3 次跃迁。',{bounce:3},[],2),
+ upgrade('electron:high','electron','高压电子','提升电子伤害并附带麻痹。',{damage:.35,stun:.35},[['electron:power',1]]),
+ upgrade('electron:perpetual','electron','永动电子','增加跃迁，显著缩短冷却。',{bounce:4,haste:.25},[['electron:compound',2],['electron:high',1]],1,true),
+ upgrade('blade:salvo','blade','三连气刃','额外释放气刃。',{count:1},[],2),
+ upgrade('blade:wide','blade','气刃风波','加宽气刃并提升重伤效果。',{radius:10,vulnerability:.12},[],2),
+ upgrade('blade:frost','blade','低温风波','气刃附带冻结。',{freeze:1,damage:.3},[['blade:wide',1],['dryice',1]],1,true),
+ upgrade('vehicle:armor','vehicle','军备强化','增强装甲车的碾压伤害。',{damage:.4},[],2),
+ upgrade('vehicle:heavy','vehicle','重型坦克','装甲车进化，增大车体和伤害。',{damage:.6,radius:18},[['vehicle:armor',1],['vehicle:power',1]],1,true),
+ upgrade('vehicle:repeat','vehicle','连续出击','额外派出一辆战车。',{count:1},[['vehicle:heavy',1]],2),
+ upgrade('vehicle:crush','vehicle','碾压术','坦克体积和推力进一步提高。',{radius:16,knock:20},[['vehicle:heavy',1]],1,true),
+ upgrade('airdrop:precise','airdrop','精准打击','提高轰炸伤害与覆盖范围。',{damage:.4,radius:14},[],2),
+ upgrade('airdrop:repeat','airdrop','连续轰炸','多标记一个轰炸区域。',{count:1},[],2),
+ upgrade('airdrop:nuke','airdrop','战术核弹','更大范围的爆炸留下燃烧地带。',{damage:.8,radius:42,burn:30},[['airdrop:precise',2],['thermo',1]],1,true),
+];
+export const upgradeById=Object.fromEntries(UPGRADES.map(u=>[u.id,u])) as Record<string,Upgrade>;
+
+export type EnemyId='walker'|'runner'|'brute'|'shield'|'armor'|'spitter'|'healer'|'splitter'|'bat'|'bomber'|'fireguard'|'frostguard'|'shockguard'|'burrower'|'butcher'|'mech'|'queen';
+export interface EnemyDefinition {id:EnemyId;name:string;hp:number;speed:number;damage:number;interval:number;radius:number;xp:number;color:string;resist?:Partial<Record<Element,number>>;boss?:boolean;description:string}
+export const ENEMIES:readonly EnemyDefinition[]=[
+ {id:'walker',name:'感染者',hp:64,speed:12,damage:5,interval:1.5,radius:15,xp:2,color:'#88aa96',description:'缓慢接近并持续攻击防线。'},
+ {id:'runner',name:'狂奔者',hp:46,speed:24,damage:4,interval:1.2,radius:13,xp:2,color:'#a3b487',description:'移动迅速，控制技能可争取集火时间。'},
+ {id:'brute',name:'臃肿怪',hp:230,speed:8,damage:13,interval:2,radius:22,xp:5,color:'#a2ae72',description:'血量很高，倒下时掉落更多经验。'},
+ {id:'shield',name:'持盾者',hp:108,speed:11,damage:8,interval:1.7,radius:17,xp:3,color:'#90a594',resist:{physical:.45},description:'护盾消耗前抵挡伤害，物理抗性较高。'},
+ {id:'armor',name:'装甲感染者',hp:160,speed:9,damage:9,interval:1.8,radius:18,xp:4,color:'#7e999a',resist:{physical:.35,fire:.8},description:'厚重护甲克制普通弹道，冰电伤害更有效。'},
+ {id:'spitter',name:'酸液投手',hp:100,speed:12,damage:13,interval:3,radius:16,xp:3,color:'#91ba7a',description:'接近到射程后投掷酸液，优先消灭。'},
+ {id:'healer',name:'孢子医师',hp:125,speed:9,damage:5,interval:2,radius:17,xp:4,color:'#b0a5c3',description:'周期治疗周围敌人；气刃重伤可抑制恢复。'},
+ {id:'splitter',name:'裂殖体',hp:142,speed:10,damage:8,interval:1.7,radius:20,xp:4,color:'#79b29c',description:'倒下后分裂出两只迅捷的小型感染者。'},
+ {id:'bat',name:'毒翼蝠',hp:67,speed:22,damage:5,interval:1,radius:14,xp:2,color:'#b494c0',resist:{physical:.8},description:'飞行敌人不受地面燃油和装甲车伤害。'},
+ {id:'bomber',name:'爆破感染者',hp:74,speed:16,damage:40,interval:2,radius:17,xp:3,color:'#c0ac87',description:'接触防线后自爆；远处击败不会损伤防线。'},
+ {id:'fireguard',name:'炽热感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#ba8064',resist:{fire:.15,ice:1.35},description:'抵抗火焰与烧灼，冰系伤害提高。'},
+ {id:'frostguard',name:'寒霜感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#8bbbc8',resist:{ice:.15,fire:1.35},description:'抗冻结且冰系伤害大幅降低。'},
+ {id:'shockguard',name:'绝缘感染者',hp:150,speed:11,damage:9,interval:1.4,radius:17,xp:4,color:'#b7ab66',resist:{electric:.15},description:'抵抗雷电和麻痹，改用其他流派集火。'},
+ {id:'burrower',name:'潜地感染者',hp:92,speed:15,damage:8,interval:1.2,radius:15,xp:3,color:'#9f9981',description:'从战场中段钻出，突然逼近防线。'},
+ {id:'butcher',name:'屠戮巨尸',hp:1900,speed:7,damage:34,interval:3,radius:36,xp:40,color:'#af896a',boss:true,description:'标记重击后冲锋；被冻结会延后行动。'},
+ {id:'mech',name:'冰钻机甲',hp:2350,speed:6,damage:30,interval:2.7,radius:39,xp:45,color:'#b1ab84',resist:{physical:.6,ice:.4},boss:true,description:'护甲厚重，周期发射远程钻头并呼叫援军。'},
+ {id:'queen',name:'孢子女王',hp:2100,speed:7,damage:28,interval:2.6,radius:35,xp:45,color:'#ac90ae',resist:{fire:1.25},boss:true,description:'召唤尸群并治疗附近感染者，重伤与爆炸效果突出。'},
+];
+export const enemyById=Object.fromEntries(ENEMIES.map(e=>[e.id,e])) as Record<EnemyId,EnemyDefinition>;
+export const MAPS=[
+ {id:'street',name:'废弃街区',ground:'#82817a',edge:'#494e50',accent:'#c5b58b',enemies:['walker','runner','brute','bomber'],boss:'butcher'},
+ {id:'factory',name:'锈铁工厂',ground:'#6e7777',edge:'#3f4b50',accent:'#ca974b',enemies:['armor','walker','spitter','shield'],boss:'mech'},
+ {id:'hospital',name:'隔离医院',ground:'#8c9690',edge:'#505e5d',accent:'#b3c7c2',enemies:['healer','splitter','runner','spitter'],boss:'queen'},
+ {id:'frozen',name:'极寒站台',ground:'#92abb7',edge:'#4c6273',accent:'#c9e4eb',enemies:['frostguard','brute','bat','runner'],boss:'mech'},
+ {id:'refinery',name:'燃烧炼厂',ground:'#937f6d',edge:'#594c48',accent:'#de9a5d',enemies:['fireguard','bomber','armor','burrower'],boss:'butcher'},
+ {id:'reactor',name:'零号反应堆',ground:'#768681',edge:'#394e4e',accent:'#9fc58c',enemies:['shockguard','healer','splitter','bat','burrower'],boss:'queen'},
+] as const;
+export const STAGES=Array.from({length:36},(_,i)=>({id:i,map:Math.floor(i/6),name:`${MAPS[Math.floor(i/6)].name} ${i%6+1}`,waves:8+Math.floor(i/6)*2+(i%6===5?2:0),elite:i%6===5}));
+/** Local daily variants; these are not claimed to be the reference game's event table. */
+export const DAILY_RULES=[
+ {id:'rush',name:'疾行尸潮',description:'敌人移动加快 25%，击杀和波次奖励提高。',speed:1.25,health:1,damage:1,wall:1,ammo:0},
+ {id:'heavy',name:'重装包围',description:'敌人生命提高 40%，移速降低 10%，考验持续火力。',speed:.9,health:1.4,damage:1,wall:1,ammo:0},
+ {id:'short-magazine',name:'弹药精算',description:'弹匣减少 4 发，技能和枪械伤害提高 25%。',speed:1,health:1,damage:1.25,wall:1,ammo:-4},
+ {id:'breach',name:'残垣坚守',description:'防线耐久只有 70%，全部伤害提高 10%。',speed:1,health:1,damage:1.1,wall:.7,ammo:0},
+] as const;
