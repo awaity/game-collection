@@ -127,6 +127,7 @@ onmessage = async ({data}) => {
       globalThis.require=requireFrom('game.js');globalThis.requirePlugin=()=>{throw Error('This export must not require an unstaged plugin')};
       globalThis.require('./game.js');
     }else if(data.type==='advance') {globalThis.__collectionAdvance(data.count);
+    }else if(data.type==='shanhai-play') {globalThis.__shanhai.play(data.count);
     }else if(data.type==='clipboard') {clipboard=data.value;
     }else if(data.type==='modal') {modalResponse=data.value;
     }else if(data.type==='frames') {
