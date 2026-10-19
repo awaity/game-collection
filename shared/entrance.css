@@ -1,0 +1,22 @@
+#collection-entrance{position:fixed;inset:0;z-index:2147483645;display:grid;place-items:center;background:#f5f5fb;color:#292943;font:14px/1.6 'PingFang SC','Microsoft YaHei',sans-serif;touch-action:manipulation;isolation:isolate}
+#collection-entrance .entrance-content{text-align:center;padding:24px;width:min(320px,85vw);position:relative;z-index:1}
+#collection-entrance svg{display:block;width:96px;height:96px;margin:0 auto 22px;overflow:visible}
+#collection-entrance .gate-left{animation:kaiju-left .7s cubic-bezier(.22,.8,.25,1) both}
+#collection-entrance .gate-right{animation:kaiju-right .7s cubic-bezier(.22,.8,.25,1) both}
+#collection-entrance .gate-play{animation:kaiju-play .7s ease both;transform-origin:54px 55px}
+#collection-entrance strong{font-size:27px;font-weight:850;letter-spacing:2px;display:block}
+#collection-entrance .entrance-title{color:#6254c7;margin:12px 0 0;font-size:16px;font-weight:600}
+#collection-entrance .entrance-status{color:#77748d;margin:8px 0 0;min-height:23px}
+#collection-entrance .entrance-track{height:3px;width:100px;margin:22px auto;background:#e7e3fa;overflow:hidden;border-radius:3px}
+#collection-entrance .entrance-track:after{content:'';display:block;width:40px;height:100%;background:#6254c7;animation:kaiju-load 1.2s ease-in-out infinite}
+#collection-entrance .entrance-actions{position:absolute;bottom:max(36px,env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:12px;padding:12px}
+#collection-entrance button,#collection-entrance a{font:inherit;font-size:13px;border:1px solid #d9d3ef;border-radius:24px;background:#fff;color:#6254c7;padding:12px 20px;min-height:44px;text-decoration:none;cursor:pointer}
+#collection-entrance button:disabled{color:#77748d;cursor:wait}
+#collection-entrance :focus-visible{outline:3px solid #6254c7;outline-offset:4px}
+#collection-entrance [hidden]{display:none!important}
+#collection-entrance[data-leaving]{background:transparent}
+#collection-entrance[data-leaving]:before,#collection-entrance[data-leaving]:after{content:'';position:absolute;top:0;bottom:0;width:50.1%;background:#f5f5fb;animation:kaiju-door .32s cubic-bezier(.4,0,.2,1) both}
+#collection-entrance[data-leaving]:before{left:0;--direction:-101%}#collection-entrance[data-leaving]:after{right:0;--direction:101%}
+#collection-entrance[data-leaving] .entrance-content,#collection-entrance[data-leaving] .entrance-actions{opacity:0;transition:opacity .12s}
+@keyframes kaiju-left{from{transform:translateX(8px);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes kaiju-right{from{transform:translateX(-8px);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes kaiju-play{0%,25%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}@keyframes kaiju-load{from{transform:translateX(-45px)}to{transform:translateX(105px)}}@keyframes kaiju-door{to{transform:translateX(var(--direction))}}
+@media(prefers-reduced-motion:reduce){#collection-entrance *,#collection-entrance:before,#collection-entrance:after{animation:none!important;transition:none!important}}

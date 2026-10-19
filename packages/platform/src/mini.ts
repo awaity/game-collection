@@ -1,4 +1,5 @@
 import type { Platform, PointerInput, Sound, Surface, Viewport } from "./types";
+import {Entrance,drawBrand} from './brand';
 interface MiniTouch {
   identifier: number;
   clientX?: number;
@@ -58,6 +59,7 @@ export interface MiniAPI {
 }
 /** One adapter for both native Mini Game APIs; no DOM shim or WebView. */
 export class MiniPlatform implements Platform {
+  readonly entrance:Entrance|null;
   canvas: Surface;
   reducedMotion = false;
   private view: Viewport;
@@ -65,7 +67,8 @@ export class MiniPlatform implements Platform {
   private sounds = new Map<Sound, MiniSound[]>();
   private indexes = new Map<Sound, number>();
   private lastSound = new Map<Sound, number>();
-  constructor(private api: MiniAPI) {
+  constructor(private api: MiniAPI,private options:{entrance?:boolean|'external'}={}) {
+    this.entrance=options.entrance?new Entrance():null;
     this.canvas = api.createCanvas();
     this.view = this.measure();
   }
@@ -105,20 +108,29 @@ export class MiniPlatform implements Platform {
     return typeof performance !== "undefined" ? performance.now() : Date.now();
   }
   requestFrame(callback: (time: number) => void) {
-    return requestAnimationFrame(() => callback(this.now()));
+    return requestAnimationFrame(() => {
+      const now=this.now();callback(now);
+      if(this.options.entrance===true&&this.entrance?.update(now)){
+        const v=this.viewport();drawBrand(this.canvas.getContext('2d'),v.width,v.height,this.entrance.progress,true,this.canvas.width/v.width);
+      }
+    });
   }
   cancelFrame(id: number) {
     cancelAnimationFrame(id);
   }
   onPointer(callback: (event: PointerInput) => void) {
+    const blocked=new Set<number>();
     const handler = (type: PointerInput["type"]) => (e: TouchEvent) => {
-      for (const touch of e.changedTouches)
+      for (const touch of e.changedTouches) {
+        if(this.entrance&&!this.entrance.done){blocked.add(touch.identifier);if(type==='up')this.entrance.skip();}
+        if(blocked.has(touch.identifier)){if(type==='up'||type==='cancel')blocked.delete(touch.identifier);continue;}
         callback({
           type,
           x: touch.clientX ?? touch.x ?? 0,
           y: touch.clientY ?? touch.y ?? 0,
           id: touch.identifier,
         });
+      }
     };
     const start = handler("down"),
       move = handler("move"),

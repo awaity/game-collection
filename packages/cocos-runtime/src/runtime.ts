@@ -6,11 +6,13 @@ import {
 } from 'cc';
 import { createCocosPlatform } from 'db://assets/collection/platform/cocos-host';
 import { cocosServices, CocosWebControls } from 'db://assets/collection/platform/cocos-services';
+import {BRAND,GATE_PATHS,Entrance} from 'db://assets/collection/platform/brand';
 
 export const color = (hex: string) => new Color().fromHEX(hex);
 
 /** Reusable Creator services. Game state remains in each game's pure core. */
 export class GameView {
+  readonly entrance=sys.isBrowser?null:new Entrance();
   readonly scene = director.getScene()!;
   readonly world = new Node('World');
   readonly camera: Camera;
@@ -34,11 +36,13 @@ export class GameView {
   onHide = () => {};
   onKey = (_key: EventKeyboard, _down: boolean) => {};
   onTouch = (_touch: EventTouch, _phase: 'start' | 'move' | 'end') => {};
-  private readonly keyDown = (e: EventKeyboard) => this.onKey(e, true);
-  private readonly keyUp = (e: EventKeyboard) => this.onKey(e, false);
-  private readonly touchStart = (e: EventTouch) => this.onTouch(e, 'start');
-  private readonly touchMove = (e: EventTouch) => this.onTouch(e, 'move');
-  private readonly touchEnd = (e: EventTouch) => this.onTouch(e, 'end');
+  private readonly blockedTouches=new Set<number>();
+  private readonly blockedKeys=new Set<number>();
+  private readonly keyDown = (e: EventKeyboard) => {if(this.entrance&&!this.entrance.done){this.blockedKeys.add(e.keyCode);this.entrance.skip();return;}if(!this.blockedKeys.has(e.keyCode))this.onKey(e,true);};
+  private readonly keyUp = (e: EventKeyboard) => {if(!this.blockedKeys.delete(e.keyCode))this.onKey(e,false);};
+  private readonly touchStart = (e: EventTouch) => {if(this.entrance&&!this.entrance.done){this.blockedTouches.add((e.getID()??0));return;}this.onTouch(e,'start');};
+  private readonly touchMove = (e: EventTouch) => {if((!this.entrance||this.entrance.done)&&!this.blockedTouches.has((e.getID()??0)))this.onTouch(e,'move');};
+  private readonly touchEnd = (e: EventTouch) => {const blocked=this.blockedTouches.delete((e.getID()??0));if(this.entrance&&!this.entrance.done){if(e.getType()!==Input.EventType.TOUCH_CANCEL)this.entrance.skip();return;}if(!blocked)this.onTouch(e,'end');};
   private readonly hidden = () => this.onHide();
   private frameWidth = 0;
   private frameHeight = 0;
@@ -188,7 +192,10 @@ export class GameView {
       label.overflow = Label.Overflow.SHRINK;
       label.horizontalAlign = Label.HorizontalAlign.CENTER; label.verticalAlign = Label.VerticalAlign.CENTER;
       button = { node, label, action, width, height, accent }; this.buttons.set(id, button);
-      node.on(Node.EventType.TOUCH_END, () => this.buttons.get(id)!.action());
+      let enteringTouch=false;
+      node.on(Node.EventType.TOUCH_START,()=>{enteringTouch=!!this.entrance&&!this.entrance.done;});
+      node.on(Node.EventType.TOUCH_CANCEL,()=>{enteringTouch=false;});
+      node.on(Node.EventType.TOUCH_END, () => {if(enteringTouch||(this.entrance&&!this.entrance.done)){enteringTouch=false;this.entrance?.skip();return;}this.buttons.get(id)!.action();});
     }
     button.node.getComponent(UITransform)!.setContentSize(width, height);
     if (width !== button.width || height !== button.height || accent !== button.accent) {
@@ -246,17 +253,35 @@ export class GameView {
   }
 
   end(state: Record<string, unknown>) {
+    const prepared=state.phase!=='loading'&&this.usedButtons.size>0;
+    const entering=this.entrance?.update(performance.now(),prepared)??false;
+    if(entering)this.brandEntrance(prepared);
     for (const [id,node] of this.objects) if (!this.usedObjects.has(id)) node.active = false;
     for (const [id,label] of this.texts) if (!this.usedTexts.has(id)) label.node.active = false;
     for (const [id,button] of this.buttons) if (!this.usedButtons.has(id)) button.node.active = false;
-    const controls = Array.from(this.buttons.entries()).filter(([,b]) => b.node.active).map(([id,b]) => ({
+    const controls = Array.from(this.buttons.entries()).filter(([,b]) => b.node.active&&!entering).map(([id,b]) => ({
       id, label: b.label.string, x: b.node.position.x + this.width / 2, y: this.height / 2 - b.node.position.y,
       width: b.node.getComponent(UITransform)!.width, height: b.height, action: b.action,
     }));
     this.webControls?.sync(controls, this.width, this.height);
     const global = globalThis as unknown as {__COLLECTION_TEST__?: boolean; __collectionSnapshot?: unknown};
-    if (global.__COLLECTION_TEST__) global.__collectionSnapshot = { ...state, width: this.width, height: this.height,
+    if (global.__COLLECTION_TEST__) global.__collectionSnapshot = { ...state,...entering?{phase:'loading'}:{}, width: this.width, height: this.height,
       controls: controls.map(({action, ...button}) => button), labels: Array.from(this.texts.values()).filter(t => t.node.active).map(t => t.string) };
+  }
+
+  private brandEntrance(ready:boolean){
+    const w=this.width,h=this.height,size=Math.min(100,w*.25,h*.24),y=h*.08;
+    const opening=this.entrance!.reduced?0:Math.max(0,(this.entrance!.progress-.62)/.38),reveal=opening*opening*(3-2*opening),alpha=Math.round((1-reveal)*255).toString(16).padStart(2,'0');
+    for(const side of [-1,1]){
+      this.panel('brand:door'+side,side*(w/4+w/2*reveal),0,w/2+1,h,BRAND.paper);
+      const door=this.objects.get('panel:brand:door'+side)!.getComponent(Graphics)!;door.clear();door.fillColor=color(BRAND.paper);door.rect(-w/4-.5,-h/2,w/2+1,h);door.fill();
+    }
+    this.panel('brand:mark',0,y,size,size,BRAND.purple);
+    const g=this.objects.get('panel:brand:mark')!.getComponent(Graphics)!;g.clear();g.fillColor=color(BRAND.purple+alpha);g.roundRect(-size/2,-size/2,size,size,size*22/96);g.fill();
+    GATE_PATHS.forEach((path,i)=>{const shift=i<2&&!this.entrance!.reduced?(i===0?-1:1)*Math.sin(this.entrance!.progress*Math.PI)*3:0;g.fillColor=color((i===2?BRAND.orange:'#ffffff')+alpha);path.forEach(([x,y],j)=>j?g.lineTo((x+shift-48)*size/96,(48-y)*size/96):g.moveTo((x+shift-48)*size/96,(48-y)*size/96));g.close();g.fill();});
+    const title=this.text('brand:title',BRAND.name,0,y-size/2-38,27,BRAND.ink+alpha,280);title.isBold=true;
+    this.text('brand:status',ready?'准备好，开一局。':'正在准备游戏…',0,y-size/2-72,14,BRAND.muted+alpha,280);
+    this.text('brand:skip',ready?'轻触跳过入场动画':'请稍候',0,-h/2+Math.max(48,h*.12),13,BRAND.purple+alpha,280);
   }
 
   destroy() {

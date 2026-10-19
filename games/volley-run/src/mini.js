@@ -1,5 +1,6 @@
 import {Campaign} from './campaign.js';
 import {drawCareerCanvas} from '@game-collection/platform/progression-panel';
+import {drawBrand} from '@game-collection/platform/brand';
 import { MiniPlatform } from "@game-collection/platform/mini";
 import { FixedClock } from "@game-collection/platform/loop";
 import { World } from "./render/world.js";
@@ -13,7 +14,7 @@ import {
 } from "./simulation/game.js";
 
 const api = __MINI_TARGET__ === "weixin" ? wx : tt;
-const platform = new MiniPlatform(api);
+const platform = new MiniPlatform(api,{entrance:'external'});
 const T = globalThis.THREE;
 
 /** Native menus share the WebGL display canvas with the real Three battlefield. */
@@ -47,9 +48,10 @@ class Overlay {
       s = w / 390,
       top = view.safeTop + 18 * s,
       bottom = h - view.safeBottom;
+    const entering=platform.entrance.update(platform.now());
     const g = app.game,
       signature = [
-        app.campaign.panel.active,app.campaign.panel.tab,app.campaign.panel.page,app.campaign.career.data.coins,app.campaign.career.message,
+        entering?platform.entrance.progress:'done',app.campaign.panel.active,app.campaign.panel.tab,app.campaign.panel.page,app.campaign.career.data.coins,app.campaign.career.message,
         g.phase,
         g.tick >> 3,
         g.troops.length,
@@ -216,6 +218,7 @@ class Overlay {
       }
       if(g.phase==='ready')button('career:open',`军需库 · ${app.campaign.career.data.coins} 金币`,Math.max(top,bottom-52*s));
       if(app.campaign.panel.active)this.buttons=drawCareerCanvas(c,app.campaign.panel,w,h,false,view.safeTop+10,view.safeBottom+20);
+      if(entering){drawBrand(c,w,h,platform.entrance.progress);this.buttons=[];}
       this.texture.needsUpdate = true;
     }
     const r = app.world.renderer;

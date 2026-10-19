@@ -89,12 +89,14 @@ function snapshot() {
     audioPlays,
     storage: Object.fromEntries(storage),
     graphics,
+    entrance:globalThis.__collectionEntrance,
     domAbsent: typeof document === "undefined" && typeof window === "undefined",
   };
 }
 onmessage = async ({ data }) => {
   try {
     if (data.type === "boot") {
+      globalThis.__COLLECTION_TEST__=true;
       root = data.root;
       for (const [key,value] of Object.entries(data.initialStorage ?? {})) storage.set(key,value);
       webglVersion = data.webglVersion;

@@ -16,9 +16,11 @@ test('native adapter maps physical touch coordinates, safe areas, storage and li
     onWindowResize: cb => { resize = cb; }, offWindowResize: () => { off++; },
     createInnerAudioContext: () => ({ get src() { return ''; }, set src(v: string) { sources.push(v); }, volume: 1, play() {}, stop() { stopped++; }, destroy() { destroyed++; } }),
   };
-  const host = miniHost(api); assert.deepEqual(host.size(), { width: 390, height: 844, dpr: 2, safeTop: 60, safeBottom: 34 });
+  let frameTime=0;Object.assign(drawing.canvas,{requestAnimationFrame:(cb:(t:number)=>void)=>{cb(frameTime);return 1;}});
+  const host = miniHost(api);host.frame(()=>{}); assert.deepEqual(host.size(), { width: 390, height: 844, dpr: 2, safeTop: 60, safeBottom: 34 });
   let point: number[] = [], paused = false, resized = false;
-  host.onPointer((x, y) => { point = [x, y]; }); assert(touch); (touch as Parameters<MiniAPI['onTouchStart']>[0])({ changedTouches: [{ clientX: 120, clientY: 280 }] }); assert.deepEqual(point, [120, 280]);
+  host.onPointer((x, y) => { point = [x, y]; }); assert(touch); (touch as Parameters<MiniAPI['onTouchStart']>[0])({ changedTouches: [{ clientX: 120, clientY: 280 }] }); assert.deepEqual(point, [],'entrance consumes the first touch');
+  frameTime=900;host.frame(()=>{});(touch as Parameters<MiniAPI['onTouchStart']>[0])({ changedTouches: [{ clientX: 120, clientY: 280 }] });assert.deepEqual(point,[120,280]);
   (touch as Parameters<MiniAPI['onTouchStart']>[0])({ changedTouches: [{ x: 40, y: 90 }] }); assert.deepEqual(point, [40, 90]);
   host.onHide(() => { paused = true; }); hide(); assert(paused); host.onResize(() => { resized = true; }); resize(); assert(resized);
   assert(host.write('save', 'value')); assert.equal(host.read('save'), 'value'); host.sound('sun'); assert.deepEqual(sources, ['audio/sun.wav']); host.silence(); assert(stopped > 0); host.destroy(); assert.equal(destroyed, 1); assert.equal(off, 3);

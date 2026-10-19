@@ -84,18 +84,19 @@ a svg {
 .brand-icon {
   width: 42px;
   height: 42px;
-  background: #e8e5fa;
+  background: transparent;
   color: var(--purple);
   display: grid;
   place-items: center;
   border-radius: 14px;
-  transform: rotate(-5deg);
 }
 .brand-icon svg {
-  transform: rotate(5deg);
+  width:100%;height:100%;
 }
+.footer-mark{display:inline-flex;width:22px;height:22px;padding:0!important;margin:0!important;border:0!important}
+.footer-mark svg{width:100%;height:100%}
 .brand-name {
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 850;
   letter-spacing: -1px;
 }
@@ -507,7 +508,7 @@ a svg {
   flex-wrap: wrap;
   max-width: 180px;
 }
-.site-footer p > span {
+.site-footer p > span:not(.footer-mark) {
   display: block;
   width: 100%;
   font-size: 10px;
@@ -576,7 +577,7 @@ a svg {
   .site-footer p {
     max-width: none;
   }
-  .site-footer p > span {
+  .site-footer p > span:not(.footer-mark) {
     width: auto;
     padding-left: 10px;
     margin-top: 0;
@@ -589,7 +590,7 @@ a svg {
     min-height: 95px;
   }
   .brand-name {
-    font-size: 26px;
+    font-size: 25px;
   }
   .brand-name > span {
     font-size: 10px;

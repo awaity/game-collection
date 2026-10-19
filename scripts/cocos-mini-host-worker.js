@@ -83,7 +83,7 @@ function snapshot(rendered=false) {
   let drawn=lastGraphics;
   if(rendered&&graphics){const gl=graphics,pixels=new Uint8Array(display.width*display.height*4);gl.readPixels(0,0,display.width,display.height,gl.RGBA,gl.UNSIGNED_BYTE,pixels);const colors=new Set();for(let i=0;i<pixels.length;i+=148)colors.add(pixels.slice(i,i+3).join(','));drawn={error:gl.getError(),colors:colors.size,version:gl.getParameter(gl.VERSION)}}
   lastGraphics=drawn;
-  return {environment,errors:failures,reads:[...new Set(reads)],sounds:sounds.length,clipboard,storage:Object.fromEntries(storage),graphics:drawn,frames:frames.size,state:globalThis.__collectionSnapshot??null};
+  return {bootBrand:globalThis.__collectionBootBrand,entrance:globalThis.__collectionEntrance,environment,errors:failures,reads:[...new Set(reads)],sounds:sounds.length,clipboard,storage:Object.fromEntries(storage),graphics:drawn,frames:frames.size,state:globalThis.__collectionSnapshot??null};
 }
 onmessage = async ({data}) => {
   try {

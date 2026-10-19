@@ -1,4 +1,5 @@
 import type { CanvasHost, Size } from './canvas-host';
+import {Entrance,drawBrand} from './brand';
 export interface MiniCanvas extends HTMLCanvasElement { requestAnimationFrame?: (fn: (t: number) => void) => number; cancelAnimationFrame?: (id: number) => void }
 export interface MiniTouch { clientX?: number; clientY?: number; x?: number; y?: number; identifier?: number }
 interface TouchEvent { changedTouches: MiniTouch[]; touches?: MiniTouch[] }
@@ -21,7 +22,8 @@ export interface MiniAPI {
   createInnerAudioContext?(): Audio;
   setKeepScreenOn?(options: { keepScreenOn: boolean }): void;
 }
-export function createMiniCanvasHost<Sound extends string>(api: MiniAPI): CanvasHost<Sound> {
+export function createMiniCanvasHost<Sound extends string>(api: MiniAPI,options:{entrance?:boolean}={}): CanvasHost<Sound> {
+  const entrance=options.entrance?new Entrance():null;
   const canvas = api.createCanvas(), cleanup: (() => void)[] = [], sounds = new Map<Sound, Audio>(), played: Partial<Record<Sound, number>> = {};
   const size = (): Size => {
     const info = api.getWindowInfo?.() ?? api.getSystemInfoSync();
@@ -33,10 +35,10 @@ export function createMiniCanvasHost<Sound extends string>(api: MiniAPI): Canvas
     canvas, size,
     read(key) { try { return api.getStorageSync(key); } catch { return null; } },
     write(key, value) { try { api.setStorageSync(key, value); return true; } catch { return false; } },
-    frame(callback) { if (typeof globalThis.requestAnimationFrame === 'function') return globalThis.requestAnimationFrame(callback); if (canvas.requestAnimationFrame) return canvas.requestAnimationFrame(callback); return setTimeout(() => callback(Date.now()), 16) as unknown as number; },
+    frame(callback) { const draw=(t:number)=>{callback(t);if(entrance?.update(t)){const v=size();drawBrand(canvas.getContext('2d')!,v.width,v.height,entrance.progress,true,canvas.width/v.width);}};if (typeof globalThis.requestAnimationFrame === 'function') return globalThis.requestAnimationFrame(draw); if (canvas.requestAnimationFrame) return canvas.requestAnimationFrame(draw); return setTimeout(() => draw(Date.now()), 16) as unknown as number; },
     cancelFrame(id) { if (typeof globalThis.cancelAnimationFrame === 'function') globalThis.cancelAnimationFrame(id); else if (canvas.cancelAnimationFrame) canvas.cancelAnimationFrame(id); else clearTimeout(id); },
-    onPointer(callback) { const handler = (event: TouchEvent) => { const t = event.changedTouches[0]; if (t) callback(t.clientX ?? t.x ?? 0, t.clientY ?? t.y ?? 0); }; api.onTouchStart(handler); cleanup.push(() => api.offTouchStart?.(handler)); },
-    onMove(callback) { const handler = (event: TouchEvent) => { const t = event.changedTouches[0]; if (t) callback(t.clientX ?? t.x ?? 0, t.clientY ?? t.y ?? 0); }; api.onTouchMove?.(handler); cleanup.push(() => api.offTouchMove?.(handler)); },
+    onPointer(callback) { const handler = (event: TouchEvent) => {if(entrance&&!entrance.done){entrance.skip();return;} const t = event.changedTouches[0]; if (t) callback(t.clientX ?? t.x ?? 0, t.clientY ?? t.y ?? 0); }; api.onTouchStart(handler); cleanup.push(() => api.offTouchStart?.(handler)); },
+    onMove(callback) { const handler = (event: TouchEvent) => {if(entrance&&!entrance.done)return; const t = event.changedTouches[0]; if (t) callback(t.clientX ?? t.x ?? 0, t.clientY ?? t.y ?? 0); }; api.onTouchMove?.(handler); cleanup.push(() => api.offTouchMove?.(handler)); },
     onKey() { /* Touch is the primary input on mini-game hosts. */ },
     onResize(callback) { api.onWindowResize?.(callback); cleanup.push(() => api.offWindowResize?.(callback)); },
     onHide(callback) { api.onHide(callback); cleanup.push(() => api.offHide?.(callback)); },

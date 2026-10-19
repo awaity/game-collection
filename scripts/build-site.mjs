@@ -3,6 +3,7 @@ import { cp, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { root, siteDir, base, readCatalog } from "./site-config.mjs";
 import { runPnpm } from './pnpm.mjs';
+import {brandHtml} from '../packages/build-tools/src/brand.mjs';
 
 const { games, targets } = await readCatalog();
 const run = (workspace) =>
@@ -29,7 +30,7 @@ for (const game of games) {
     recursive: true,
   });
   const index = path.join(destination, "index.html");
-  const html = await readFile(index, "utf8");
+  const html = await brandHtml(await readFile(index, "utf8"),game.title);
   if (!html.includes("</body>")) throw new Error(`${game.slug} 缺少 HTML body`);
   await writeFile(
     index,

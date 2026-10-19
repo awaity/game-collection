@@ -9,6 +9,7 @@ for(const target of ['weixin','douyin'])test(`${target} production bundle boots 
   for(const event of ['TouchStart','TouchMove','TouchEnd','TouchCancel','Show','Hide','WindowResize'])api['on'+event]=(fn:Function)=>callbacks[event]=fn;
   const host={console,performance:{now:()=>now},requestAnimationFrame:(cb:Function)=>{frame=cb;return 1;},cancelAnimationFrame(){},[target==='weixin'?'wx':'tt']:api};
   assert.doesNotThrow(()=>runInNewContext(code,host));assert.ok(draws>0);assert.ok(callbacks.TouchStart);assert.ok(frame);
+  for(let i=0;i<55;i++){now+=1000/60;frame!();}
   // Start with a touch at the shared Canvas menu button, then drag and background.
   callbacks.TouchStart({changedTouches:[{identifier:1,clientX:190,clientY:731}]});callbacks.TouchEnd({changedTouches:[{identifier:1,clientX:190,clientY:731}]});
   for(let i=0;i<120;i++){now+=1000/60;frame!();}

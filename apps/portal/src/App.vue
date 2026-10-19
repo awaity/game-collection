@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   ChevronDown,
   Clock3,
-  Gamepad2,
   Github,
   Hand,
   Keyboard,
@@ -16,6 +15,7 @@ import {
   Volume2,
 } from "lucide-vue-next";
 import { games, gameHref, assetHref } from "./catalog";
+import brandMark from '../../../shared/brand/mark.svg?raw';
 
 const expanded = ref<string | null>(null);
 const toggleGuide = (slug: string) => {
@@ -27,11 +27,9 @@ const toggleGuide = (slug: string) => {
   <a class="skip-link" href="#games">跳到游戏列表</a>
   <div class="site-shell">
     <header class="site-header">
-      <a class="brand" href="./" aria-label="开局游戏厅首页">
-        <span class="brand-icon"
-          ><Gamepad2 :size="25" :stroke-width="2" aria-hidden="true"
-        /></span>
-        <span class="brand-name">开局<span>小游戏，大快乐。</span></span>
+      <a class="brand" href="./" aria-label="开局游戏首页">
+        <span class="brand-icon" aria-hidden="true" v-html="brandMark"></span>
+        <span class="brand-name">开局游戏<span>休息一下，开一局。</span></span>
       </a>
       <nav class="top-nav" aria-label="主导航">
         <a class="active" href="#games">游戏大厅</a>
@@ -163,14 +161,14 @@ const toggleGuide = (slug: string) => {
       <section id="how-to" class="how-to" aria-labelledby="how-to-title">
         <div class="how-heading">
           <h2 id="how-to-title">不用研究，直接上手。</h2>
-          <p>每款游戏都会自动开火，你只需要负责走位。</p>
+          <p>跑酷、塔防、射击与经营，找到你的下一局。</p>
         </div>
         <div class="how-grid">
           <div class="how-item">
             <span class="how-icon"><Hand :size="22" aria-hidden="true" /></span>
             <div>
-              <h3>手机拖动操控</h3>
-              <p>一根手指，升级、躲避、清场。</p>
+              <h3>手机轻触或滑动</h3>
+              <p>种植、跳跃、走位，各有各的乐趣。</p>
             </div>
           </div>
           <div class="how-item">
@@ -197,7 +195,7 @@ const toggleGuide = (slug: string) => {
 
     <footer class="site-footer">
       <p>
-        <Gamepad2 :size="17" aria-hidden="true" />开局游戏厅<span
+        <span class="footer-mark" aria-hidden="true" v-html="brandMark"></span>开局游戏<span
           >认真做一点好玩的。</span
         >
       </p>

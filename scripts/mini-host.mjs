@@ -8,7 +8,7 @@ export async function createMiniHost({ cocos = false } = {}) {
  const worker=new Worker('/worker.js'),pending=new Map();let id=0;
  worker.onmessage=({data})=>{pending.get(data.id)?.(data.value);pending.delete(data.id);};
  window.call=(data,transfer=[])=>new Promise((resolve,reject)=>{const request=++id;const timer=setTimeout(()=>{pending.delete(request);reject(Error('Native host request timed out: '+data.type));},45000);pending.set(request,value=>{clearTimeout(timer);resolve(value);});worker.postMessage({...data,id:request},transfer);});
- window.boot=(slug,target,webglVersion,initialStorage={})=>{const canvas=document.querySelector('canvas').transferControlToOffscreen();return call({type:'boot',canvas,target,webglVersion,initialStorage,root:location.origin+'/games/'+slug+'/dist/'+target+'/'},[canvas]);};
+ window.boot=async(slug,target,webglVersion,initialStorage={},rawEntrance=false)=>{const canvas=document.querySelector('canvas').transferControlToOffscreen();let result=await call({type:'boot',canvas,target,webglVersion,initialStorage,root:location.origin+'/games/'+slug+'/dist/'+target+'/'},[canvas]);if(!rawEntrance)for(let n=0;n<300&&!result.entrance?.done;n++){result=await call({type:'frames',count:4});if(result.errors?.length)break;await new Promise(r=>setTimeout(r,20));}return result;};
  </script></body></html>`;
   const server = createServer(async (req, res) => {
     try {

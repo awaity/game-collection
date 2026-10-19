@@ -1,4 +1,4 @@
-# 开局游戏厅 · Game Collection
+# 开局游戏 · Game Collection
 
 多个独立小游戏的源码、Vue 3 + Vite + TypeScript 大厅和统一发布工程。手机优先、电脑自适应；pnpm Workspaces 管理全部项目，仅根目录维护锁文件。
 
@@ -45,6 +45,8 @@ dist/site/                    完整静态站点（不提交源码分支）
 ```
 
 大厅不加载游戏引擎；游戏核心不引用 DOM、`wx` 或 `tt`。平台能力经适配器注入。微信、抖音工程不依赖网页大厅、WebView 或 WXML 小程序页面。架构、平台差异与 AppID 说明见 [三端工程说明](docs/PLATFORMS.md)。
+
+统一标识、资源就绪后的入场动画、跳过与加载恢复见 [品牌与入场规范](docs/BRAND-ENTRANCE.md)。九款游戏共享交互，各自保留玩法与存档。
 
 ## 开发与验证
 

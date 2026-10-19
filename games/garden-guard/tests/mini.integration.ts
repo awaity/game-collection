@@ -28,7 +28,7 @@ for (const platform of ['weixin', 'douyin']) test(`${platform}: actual built pac
   const frame = (count = 1) => { for (let i = 0; i < count; i++) { const entries = [...callbacks.values()]; callbacks.clear(); time += 1000 / 30; for (const cb of entries) cb(time); } };
   const tap = (x: number, y: number) => { touch({ changedTouches: [{ clientX: x, clientY: y }] }); frame(); };
   const tapText = (text: string) => { const found = drawing.texts.find(t => t.text === text); assert(found, `Missing native button ${text}`); tap(found.x, found.y); };
-  frame(); assert.equal(created, 1); assert.equal(drawing.canvas.width, 780); assert.equal(drawing.canvas.height, 1688);
+  frame(30); assert.equal(created, 1); assert.equal(drawing.canvas.width, 780); assert.equal(drawing.canvas.height, 1688);
   tap(344, 86); tapText('自动收集阳光'); tapText('保存并返回'); assert.equal(JSON.parse(storage.get(SAVE_KEY)!).settings.autoSun, true);
   tapText('开始守卫'); tapText('开始种植'); assert(drawing.texts.some(t => t.text === '准备种植'));
   const board = boardLayout({ w: 390, h: 844, safeTop: 56, safeBottom: 34 });

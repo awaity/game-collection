@@ -7,6 +7,8 @@ import { gunzipSync } from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inventory, verifyCreatorExport } from './cocos-verify.mjs';
+import {brandHtml} from './brand.mjs';
+import {build as bundle} from 'esbuild';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 export const toolchain = JSON.parse(await readFile(path.join(root, 'toolchains/cocos.json'), 'utf8'));
@@ -77,6 +79,8 @@ async function fingerprint(project, target, appId) {
   h.update(await readFile(path.join(project, 'package.json')));
   h.update(await readFile(fileURLToPath(import.meta.url)));
   h.update(await readFile(new URL('./cocos-verify.mjs', import.meta.url)));
+  h.update(await readFile(new URL('./brand.mjs', import.meta.url)));
+  for(const file of ['entrance.js','entrance.css','brand/mark.svg'])h.update(await readFile(path.join(root,'shared',file)));
   return h.digest('hex');
 }
 
@@ -121,7 +125,7 @@ export async function buildCocos(project, target = 'web') {
   // Stage workspace modules as Creator assets. No npm installation inside Creator projects.
   await mkdir(path.join(stage, 'assets/collection/platform'), { recursive: true });
   await copy(path.join(root, 'packages/cocos-runtime/src'), path.join(stage, 'assets/collection'));
-  for (const name of ['cocos-host.ts', 'cocos-services.ts', 'web-state.ts', 'wasm.ts', 'progression.ts', 'progression-panel.ts']) await copy(path.join(root, 'packages/platform/src', name), path.join(stage, 'assets/collection/platform', name));
+  for (const name of ['cocos-host.ts', 'cocos-services.ts', 'web-state.ts', 'wasm.ts', 'progression.ts', 'progression-panel.ts','brand.ts']) await copy(path.join(root, 'packages/platform/src', name), path.join(stage, 'assets/collection/platform', name));
   await stableScriptMetadata(path.join(stage, 'assets/collection'), `${slug}/collection`);
   await copy(path.join(root, 'packages/cocos-runtime/assets'), path.join(stage, 'assets/resources/collection'));
   await writeFile(path.join(stage, 'package.json'), JSON.stringify({ name: slug, type: 'module', uuid: manifest.uuid, version: '3.0.0', creator: manifest.creator }, null, 2));
@@ -158,6 +162,11 @@ export async function buildCocos(project, target = 'web') {
   await rm(destination, { recursive: true, force: true });
   await mkdir(path.dirname(destination), { recursive: true });
   await copy(output, destination);
+  // All targets use the collection entrance. Keep the official engine itself intact.
+  const settingsFile=path.join(destination,'src/settings.json');
+  const exportedSettings=JSON.parse(await readFile(settingsFile,'utf8'));
+  exportedSettings.splashScreen={...exportedSettings.splashScreen,totalTime:0,logo:{type:'none'},background:{type:'color',color:{x:245/255,y:245/255,z:251/255,w:1}}};
+  await writeFile(settingsFile,JSON.stringify(exportedSettings));
   if (target === 'web') {
     const entry = path.join(destination, 'index.html');
     const escape = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
@@ -165,10 +174,20 @@ export async function buildCocos(project, target = 'web') {
     const html = (await readFile(entry, 'utf8')).replace(/<!--[\s\S]*?-->/g, '').replace('<html>', '<html lang="zh-CN">')
       .replace(/<title>[^<]*<\/title>/, `<title>${title} · 游戏合集</title>`)
       .replace('</head>', `<meta name="description" content="${escape(manifest.description ?? title)}"><link rel="icon" href="favicon.svg"></head>`);
-    await writeFile(entry, html);
+    await writeFile(entry, await brandHtml(html,manifest.displayName??slug));
     await copy(path.join(root, 'apps/portal/public/favicon.svg'), path.join(destination, 'favicon.svg'));
   }
   if (target !== 'web') {
+    // Creator's native bootstrap has its own pre-engine screen, independent of
+    // settings.splashScreen. Replace that generated module with the same brand.
+    await bundle({entryPoints:[path.join(root,'packages/platform/src/cocos-entrance.ts')],outfile:path.join(destination,'first-screen.js'),bundle:true,format:'cjs',platform:'neutral',target:'es2019',minify:true});
+    await Promise.all(['logo.png','slogan.png'].map(file=>rm(path.join(destination,file),{force:true})));
+    if(target==='douyin'){
+      const entryPath=path.join(destination,'game.js');let entry=await readFile(entryPath,'utf8');
+      if(!entry.includes("require('./web-adapter');")||!entry.includes('return application.start();'))throw Error('Unexpected Creator native bootstrap');
+      entry=entry.replace("require('./web-adapter');","require('./web-adapter');\nconst firstScreen=require('./first-screen');firstScreen.start('default','default','false');").replace('return application.start();','return firstScreen.end().then(()=>application.start());');
+      await writeFile(entryPath,entry);
+    }
     const gamePath = path.join(destination, 'game.json');
     const gameConfig = JSON.parse(await readFile(gamePath, 'utf8'));
     // Creator 3.8.8's CLI can leave explicitly selected Asset Bundles in assets/
