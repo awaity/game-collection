@@ -105,7 +105,7 @@ export class Run {
   get cornerDistance(){const s=this.segment;return s.start+s.length-this.distance;}
   get canTurn(){return this.cornerDistance<=this.speed*1.25+2&&this.cornerDistance>=-2;}
   get turnDirection(){return this.segment.turn;}
-  get goal(){return this.mode==='trial'?TRIALS[this.trial].distance:this.mode==='training'?210:Infinity;}
+  get goal(){return this.mode==='trial'?TRIALS[this.trial].distance:this.mode==='training'?132:Infinity;}
   get score(){return Math.floor((this.distance+this.stats.coins*5+this.bestCombo*3)*(1+this.upgrades.fortune*.05));}
   start(){if(this.phase==='ready')this.phase='running';}
   pause(){if(this.phase==='running')this.phase='paused';}
@@ -245,7 +245,7 @@ export class Run {
     const first:HazardKind[]=['root','lintel','rock','gap'];
     let ordinal=0;
     for(let offset=id===0?31:20;offset<length-24;offset+=22+this.random.int(3)*2) {
-      const kind=id===0?first[ordinal%first.length]:types[area][this.random.int(types[area].length)];
+      const kind=id===0&&(this.mode==='training'||area===0)?first[ordinal%first.length]:types[area][this.random.int(types[area].length)];
       const lane=id===0&&kind==='rock'?0:this.random.int(3)-1;
       this.hazards.push({id:this.nextId++,d:start+offset,kind,lane,wide:['root','lintel','gap','fire'].includes(kind),half:kind==='gap'?2.1:kind==='lintel'?1.1:.75,phase:this.random.next()*Math.PI*2,hit:false,passed:false});ordinal++;
     }

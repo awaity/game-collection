@@ -1,0 +1,52 @@
+CCEffect %{
+  techniques:
+  - passes:
+    - vert: shanhai-vs:vert
+      frag: shanhai-fs:frag
+      rasterizerState: { cullMode: none }
+      depthStencilState: { depthTest: true, depthWrite: true }
+      blendState:
+        targets:
+        - blend: true
+          blendSrc: src_alpha
+          blendDst: one_minus_src_alpha
+      properties:
+        fogColor: { value: [0.65, 0.78, 0.73, 1], editor: { type: color } }
+        params: { value: [35, 145, 0, 0] }
+}%
+CCProgram shanhai-vs %{
+  precision highp float;
+  #include <builtin/uniforms/cc-global>
+  #include <builtin/uniforms/cc-local>
+  in vec3 a_position;
+  in vec4 a_color;
+  out vec4 tint;
+  out vec3 worldPos;
+  uniform Motion {vec4 params;};
+  vec4 vert () {
+    vec3 position = a_position;
+    #if WATER
+      position.y += sin(position.x*.14+params.z*.6)*.25+cos(position.z*.11+params.z*.4)*.18;
+    #endif
+    vec4 world=cc_matWorld*vec4(position,1.);
+    worldPos=world.xyz;tint=a_color;
+    return cc_matViewProj*world;
+  }
+}%
+CCProgram shanhai-fs %{
+  precision highp float;
+  in vec4 tint;
+  in vec3 worldPos;
+  uniform Look {vec4 fogColor;};
+  uniform Motion {vec4 params;};
+  vec4 frag () {
+    vec3 rgb=tint.rgb;
+    #if WATER
+      float wave=sin(worldPos.x*.72+worldPos.z*.51+params.z*.7)*sin(worldPos.x*.33-worldPos.z*.59-params.z*.43);
+      rgb+=max(0.,wave-.53)*.30;
+    #endif
+    float mist=smoothstep(params.x,params.y,length(worldPos.xz));
+    mist=max(mist,(1.-smoothstep(-25.,-1.,worldPos.y))*.48);
+    return vec4(mix(rgb,fogColor.rgb,mist),tint.a);
+  }
+}%
