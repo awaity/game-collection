@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "types": [
+      "./temp/declarations/cc",
+      "./temp/declarations/cc.env"
+    ],
+    "paths": {
+      "db://assets/collection/platform/*": ["../../packages/platform/src/*"],
+      "db://assets/collection/*": [
+        "../../packages/cocos-runtime/src/*"
+      ]
+    }
+  },
+  "include": [
+    "assets/scripts/**/*.ts",
+    "../../packages/cocos-runtime/src/**/*.ts"
+  ]
+}
