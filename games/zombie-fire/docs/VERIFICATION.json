@@ -1,13 +1,13 @@
 {
-  "verifiedAt": "2026-10-19T13:11:17.059Z",
-  "milestone": "nineteen-weapons-with-lucky-orb-and-electrode-not-full-reference-parity",
+  "verifiedAt": "2026-10-19T14:02:23.295Z",
+  "milestone": "signed-orb-luck-offers-and-haste-suppression-not-full-reference-parity",
   "creator": "3.8.8",
-  "unitTests": 55,
+  "unitTests": 59,
   "localCampaign": {
     "configuredStages": 36,
     "successfulClears": 36,
     "maps": 6,
-    "verifiedAt": "2026-10-19T12:55:29.337Z"
+    "verifiedAt": "2026-10-19T13:52:05.294Z"
   },
   "outfitAbilities": [
     "thermo-volley-after-12-hits",
@@ -18,29 +18,29 @@
   "exports": {
     "web": {
       "target": "web-mobile",
-      "sourceHash": "437143ce05260049dba0367f90c01575d60aa1610e081a7ef776e1d2f2f2b5c1",
-      "builtAt": "2026-10-19T12:53:43.487Z",
+      "sourceHash": "380e72aa3fa212b2ae824e65a9146587f8d55ba9be1cc86681330e0a5f3ad4f0",
+      "builtAt": "2026-10-19T13:52:47.308Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "weixin": {
       "target": "wechatgame",
-      "sourceHash": "484d70e73eb614c53ce351ac8efa654ff03cb33312f385b5465f50c3647ab153",
-      "builtAt": "2026-10-19T12:55:30.521Z",
+      "sourceHash": "2a082e96651e775cc39fa57779edfe49ba407d531e6595ec454abdfeef9483af",
+      "builtAt": "2026-10-19T13:54:08.984Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "douyin": {
       "target": "bytedance-mini-game",
-      "sourceHash": "cdccce4f7c3a513439f0c7b48aff3daedc9215d87a3c4dbe6cb49264404e492e",
-      "builtAt": "2026-10-19T12:56:10.199Z",
+      "sourceHash": "085c895e67ecd34f1c822c14db57c523596b1db878c551b9ca10f4b4a19444f9",
+      "builtAt": "2026-10-19T13:55:01.945Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     }
   },
   "web": [
     {
-      "verifiedAt": "2026-10-19T12:59:19.347Z",
+      "verifiedAt": "2026-10-19T13:54:42.531Z",
       "target": "web",
       "viewport": {
         "width": 390,
@@ -64,6 +64,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-fixed-luck-preview-and-selection",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -75,10 +76,10 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "437143ce05260049dba0367f90c01575d60aa1610e081a7ef776e1d2f2f2b5c1"
+      "sourceHash": "380e72aa3fa212b2ae824e65a9146587f8d55ba9be1cc86681330e0a5f3ad4f0"
     },
     {
-      "verifiedAt": "2026-10-19T13:05:39.868Z",
+      "verifiedAt": "2026-10-19T13:57:01.578Z",
       "target": "web",
       "viewport": {
         "width": 1440,
@@ -102,6 +103,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-fixed-luck-preview-and-selection",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -111,10 +113,10 @@
       ],
       "errors": [],
       "diagnostics": [],
-      "sourceHash": "437143ce05260049dba0367f90c01575d60aa1610e081a7ef776e1d2f2f2b5c1"
+      "sourceHash": "380e72aa3fa212b2ae824e65a9146587f8d55ba9be1cc86681330e0a5f3ad4f0"
     },
     {
-      "verifiedAt": "2026-10-19T13:08:31.225Z",
+      "verifiedAt": "2026-10-19T13:58:33.807Z",
       "target": "web",
       "viewport": {
         "width": 844,
@@ -138,6 +140,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-fixed-luck-preview-and-selection",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -149,10 +152,10 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "437143ce05260049dba0367f90c01575d60aa1610e081a7ef776e1d2f2f2b5c1"
+      "sourceHash": "380e72aa3fa212b2ae824e65a9146587f8d55ba9be1cc86681330e0a5f3ad4f0"
     },
     {
-      "verifiedAt": "2026-10-19T13:09:48.903Z",
+      "verifiedAt": "2026-10-19T14:02:07.178Z",
       "target": "web",
       "viewport": {
         "width": 320,
@@ -176,6 +179,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-fixed-luck-preview-and-selection",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -187,12 +191,12 @@
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
       ],
-      "sourceHash": "437143ce05260049dba0367f90c01575d60aa1610e081a7ef776e1d2f2f2b5c1"
+      "sourceHash": "380e72aa3fa212b2ae824e65a9146587f8d55ba9be1cc86681330e0a5f3ad4f0"
     }
   ],
   "native": [
     {
-      "verifiedAt": "2026-10-19T13:01:58.575Z",
+      "verifiedAt": "2026-10-19T13:58:08.582Z",
       "target": "weixin",
       "viewport": {
         "width": 390,
@@ -216,6 +220,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-fixed-luck-preview-and-selection",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -232,15 +237,15 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 532,
+        "colors": 529,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
-      "sourceHash": "484d70e73eb614c53ce351ac8efa654ff03cb33312f385b5465f50c3647ab153",
+      "sourceHash": "2a082e96651e775cc39fa57779edfe49ba407d531e6595ec454abdfeef9483af",
       "audioBeforeRestart": 7
     },
     {
-      "verifiedAt": "2026-10-19T13:06:26.360Z",
+      "verifiedAt": "2026-10-19T14:00:16.166Z",
       "target": "douyin",
       "viewport": {
         "width": 390,
@@ -264,6 +269,7 @@
         "energy-gated-dragon-slam",
         "electrode-wire-hits",
         "orb-lucky-21-evolution-and-rebounds",
+        "orb-fixed-luck-preview-and-selection",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -280,11 +286,11 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 532,
+        "colors": 528,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
-      "sourceHash": "cdccce4f7c3a513439f0c7b48aff3daedc9215d87a3c4dbe6cb49264404e492e",
+      "sourceHash": "085c895e67ecd34f1c822c14db57c523596b1db878c551b9ca10f4b4a19444f9",
       "audioBeforeRestart": 3
     }
   ],
@@ -292,8 +298,8 @@
   "realDevices": false,
   "catalogIntegrated": false,
   "newGamePublished": false,
-  "testedImplementationRevision": "d46cd70e9d203f19583e05ccc53db2baf24a463b",
-  "flowSourceHash": "39acb695cd33707697e437c86ae0b31f64358158ec8bb07d90cd315029ee3062",
+  "testedImplementationRevision": "ef6ce6277e21962b90ee194fc385d349f7768c44",
+  "flowSourceHash": "19d9ab9b6618489cbd9e29a91f033c714f827ee1b1234a02cbfbc39cb22bd561",
   "localContent": {
     "weapons": 19,
     "upgrades": 124,
@@ -316,18 +322,53 @@
     "orbLuckyChoice": "artifacts/cocos/zombie-fire/*-advanced-orb-lucky-choice.png"
   },
   "webExecution": {
-    "initialCommandExitCode": 143,
-    "completedCaseBeforeInterruption": 390,
-    "resumedViewports": [
+    "initialSingleViewport": {
+      "width": 390,
+      "exitCode": 0
+    },
+    "combinedCommandExitCode": 143,
+    "completedBeforeInterruption": [
       1440,
-      844,
+      844
+    ],
+    "resumedViewports": [
       320
     ],
     "resumedExitCodes": [
-      0,
-      0,
       0
     ],
-    "aggregateSource": "validated individual case reports"
+    "aggregateSource": "validated individual case reports",
+    "logs": [
+      "artifacts/zombie-fire-luck-web-390.log",
+      "artifacts/zombie-fire-luck-web-1440.log",
+      "artifacts/zombie-fire-luck-web-844.log",
+      "artifacts/zombie-fire-luck-web-320-resume.log"
+    ]
+  },
+  "luckCorrections": {
+    "reference": "BuildConfig 1502–1521; see REFERENCE-TABLE-SCHEMA.md",
+    "facts": [
+      "signed-luck-endpoints",
+      "tide-two-extra-rebounds",
+      "hinder-suppresses-acceleration"
+    ],
+    "localChoices": [
+      "inclusive-integer-ranges",
+      "roll-on-visible-offer",
+      "retained-10-and-21-selection-gates",
+      "hinder-one-second",
+      "child-speed-bonus-classified-as-haste"
+    ],
+    "pending": [
+      "mode-card-pools",
+      "research-conditions",
+      "lucky-ball-and-hidden-cards",
+      "original-random-timing"
+    ]
+  },
+  "nativeExecution": {
+    "mode": "both-full-flows",
+    "exitCode": 0,
+    "log": "artifacts/zombie-fire-luck-native.log"
   }
 }
