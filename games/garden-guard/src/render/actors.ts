@@ -84,6 +84,14 @@ export function drawPlant(ctx: Ctx, kind: PlantKind, x: number, y: number, size:
     path(ctx,[-26,-23,-8,-43,25,-33,34,-14,8,-25,-7,-24,-18,-7], '#c4df9b', '#477d63', 3);
     line(ctx,[-22,-21,-6,-34,24,-24],'#79aa72',2);
     ellipse(ctx,-6,-8,3,4,C.ink);ellipse(ctx,7,-8,3,4,C.ink);line(ctx,[-3,3,5,3],outline,2);
+  } else if(kind==='pepper'){
+    path(ctx,[-14,-29,12,-30,21,-10,13,17,-4,29,-20,23,-6,8,-12,-9],'#ec6754','#87513a',3);line(ctx,[-5,-28,-2,-42,12,-43],outline,5);ellipse(ctx,-5,-12,3,4,C.ink);ellipse(ctx,8,-12,3,4,C.ink);
+  } else if(kind==='magnet'){
+    box(ctx,{x:-10,y:-4,w:20,h:31},'#dfc9eb',7,outline,2);path(ctx,[-27,-30,-14,-30,-14,-13,0,-5,14,-13,14,-30,27,-30,27,-9,14,6,-14,6,-27,-9],'#b48dca','#685479',3);box(ctx,{x:-27,y:-36,w:13,h:12},'#e4e9ec',2);box(ctx,{x:14,y:-36,w:13,h:12},'#e4e9ec',2);
+  } else if(kind==='clover'){
+    for(const [xx,yy] of [[-17,-10],[17,-10],[0,-29]]){ellipse(ctx,xx,yy,17,17,'#72c79d',outline,2.5);ellipse(ctx,xx-3,yy-4,5,6,'#b7e5ad');}ellipse(ctx,-5,-7,2,3,C.ink);ellipse(ctx,5,-7,2,3,C.ink);line(ctx,[-5,3,5,3],outline,2);
+  } else if(kind==='cactus'){
+    box(ctx,{x:-16,y:-37,w:32,h:62},'#7fb56c',13,outline,3);line(ctx,[-14,8,-28,8,-28,-12],outline,8);line(ctx,[14,0,29,0,29,-20],outline,8);for(let i=0;i<4;i++){line(ctx,[-15,-27+i*13,-22,-32+i*13],'#e9edc3',2);line(ctx,[14,-24+i*13,21,-29+i*13],'#e9edc3',2);}ellipse(ctx,-5,-17,2,3,C.ink);ellipse(ctx,5,-17,2,3,C.ink);ellipse(ctx,0,-39,8,5,'#ed9eb0');
   } else if (kind === 'mushroom') {
     box(ctx, { x: -14, y: -7, w: 28, h: 35 }, '#e4d9ba', 11, '#786b71', 2.5);
     ellipse(ctx, 0, -10, 30, 22, '#aa8cc5', '#6c567f', 3); ellipse(ctx, -10, -19, 8, 5, '#d9c4e4'); ellipse(ctx, 14, -13, 6, 7, '#d9c4e4');
@@ -122,6 +130,10 @@ export function drawZombie(ctx: Ctx, kind: ZombieKind, x: number, y: number, siz
   if (kind === 'vaulter') { line(ctx,[-20,-20,18,-20],'#e6b849',6);path(ctx,[13,-20,32,-30,28,-14],'#e6b849',dark,1.5); }
   if (kind === 'frost') { path(ctx,[-24,-20,-18,-41,-7,-35,2,-52,13,-35,24,-40,25,-18], '#b4e5ed','#568e9f',2);line(ctx,[-13,-30,4,-33,15,-23],'#efffff',2); }
   ctx.restore();
+  if(kind==='balloon'&&!vaulted){line(ctx,[16,-12,24,-60],'#dcd2ad',2);ellipse(ctx,24,-77,18,23,'#d993cd',dark,2);ellipse(ctx,18,-85,4,7,'#f4d5eb');}
+  if(kind==='digger'){path(ctx,[-29,-49,13,-49,9,-61,-23,-61],'#d9ad52',dark,2);ellipse(ctx,-9,-54,6,5,'#fff4b5');line(ctx,[-36,-8,-24,31],'#9c7a51',5);path(ctx,[-29,20,-17,20,-19,39,-26,41],'#b2beb6',dark,2);}
+  if(kind==='drummer'){box(ctx,{x:-30,y:-3,w:37,h:26},'#cd7457',7,dark,2);ellipse(ctx,-12,-3,18,5,'#ebd5a3',dark,2);line(ctx,[-32,-17,0,2],'#e2c893',3);}
+  if(kind==='bomber'){box(ctx,{x:-31,y:-12,w:33,h:42},'#ad6950',6,dark,2);line(ctx,[-30,-3,1,-3],'#515b57',4);line(ctx,[-30,18,1,18],'#515b57',4);line(ctx,[-12,-13,-6,-23,0,-20],'#d8b563',2);ellipse(ctx,0,-20,4,4,'#f6d861');}
   if (kind === 'paper' && health > .5) { path(ctx, [-41, -10, -7, -14, -5, 18, -36, 22], '#dfdbc1', '#77816b', 2); for (let i = 0; i < 4; i++) line(ctx, [-32, -4 + i * 5, -13, -7 + i * 5], '#979e87', 1.5); }
   if (kind === 'giant') { line(ctx, [-25, -7, -40, 27], '#66513c', 7); box(ctx, { x: -52, y: 12, w: 23, h: 26 }, '#9d9e81', 3, '#565f4b', 2); }
   if (kind === 'shield') { path(ctx,[-42,-29,-12,-25,-10,22,-27,34,-44,21], '#98aaa0', '#455c53',3);line(ctx,[-36,-18,-19,-16,-17,17,-27,25,-37,16,-36,-18],'#d2d9b8',2); }

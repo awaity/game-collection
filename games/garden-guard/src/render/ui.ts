@@ -78,7 +78,7 @@ export class Renderer {
     if (mobile) {
       const compact = v.h < 740;
       label(ctx, '小小植物，大大守护。', 24, top + 89, compact ? 27 : 30, C.ink, 900, 'left', v.w - 40);
-      label(ctx, '阳光正好，一起来守住这片花园。', 25, top + 127, 14, C.muted);
+      this.button('career:open',`补给站 · ${v.coins??0} 金币 · 签到 / 强化`,{x:24,y:top+108,w:v.w-48,h:30});
       const artH = Math.min(280, Math.max(185, v.h * .3));
       gardenIllustration(ctx, { x: -3, y: top + 142, w: v.w + 3, h: artH }, v.save.settings.reducedMotion ? 0 : v.time);
       const primaryY = top + 142 + artH + 7;
@@ -93,11 +93,11 @@ export class Renderer {
       const mid = Math.max(150, Math.min(240, v.h * .3)), textW = Math.min(420, v.w * .39);
       label(ctx, '花园守卫', left, mid, Math.min(74, v.w * .061), C.ink, 900);
       label(ctx, '小小植物，大大守护。', left + 3, mid + 65, 24, C.ink, 700);
-      label(ctx, '种下第一颗种子，把不速之客挡在花园外。', left + 3, mid + 108, 16, C.muted, 500, 'left', textW);
+      this.button('career:open',`花园补给站 · ${v.coins??0} 金币`,{x:left,y:mid+92,w:textW,h:42});
       gardenIllustration(ctx, { x: left + textW + 22, y: mid - 116, w: Math.min(710, v.w - left - textW - 26), h: Math.min(450, v.h * .63) }, v.save.settings.reducedMotion ? 0 : v.time);
       this.button('continue-level', Object.keys(v.save.levels).length ? `继续守卫  ·  第 ${unlockedLevel(v.save)} 关` : '开始守卫', { x: left, y: mid + 156, w: textW, h: 62 }, 'primary');
       this.modeCard('adventure', '冒险远征', '五场战斗，一路成长', 'sunflower', { x: left, y: mid + 238, w: (textW - 16) / 2, h: 102 });
-      this.modeCard('challenges', '挑战模式', '八种规则，全植物无尽', 'cherry', { x: left + (textW + 16) / 2, y: mid + 238, w: (textW - 16) / 2, h: 102 });
+      this.modeCard('challenges', '挑战模式', '十二种规则，全植物无尽', 'cherry', { x: left + (textW + 16) / 2, y: mid + 238, w: (textW - 16) / 2, h: 102 });
       const footY = Math.min(v.h - 74, mid + 375);
       this.button('levels', '关卡地图', { x: left, y: footY, w: 130, h: 44 });
       this.button('almanac', '植物与僵尸图鉴', { x: left + 146, y: footY, w: 170, h: 44 });

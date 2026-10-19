@@ -1,3 +1,5 @@
+import {Career} from '@game-collection/platform/progression';
+import {CareerPanel,drawCareerCanvas} from '@game-collection/platform/progression-panel';
 import { adventureConfig, challengeConfig, levelConfig, CHALLENGES, CHAPTERS, LEVELS, ZOMBIES, PERKS, PLANTS, PLANT_ORDER, type GameConfig, type PerkId, type PlantKind } from './core/content';
 import { Game, STEP } from './core/game';
 import { parseSave, recordResult, SAVE_KEY, unlockedLevel } from './core/save';
@@ -7,6 +9,9 @@ import type { Hit, Modal, View } from './view';
 
 export class GardenApp {
   readonly view: View;
+  career:Career;
+  careerPanel:CareerPanel;
+  private rewardRun=0;
   hits: Hit[] = [];
   private renderer: Renderer;
   private ctx: CanvasRenderingContext2D;
@@ -27,6 +32,9 @@ export class GardenApp {
     const raw = host.read(SAVE_KEY), save = parseSave(raw);
     if (!raw) save.settings.reducedMotion = host.reducedMotion?.() ?? false;
     this.view = { w: 390, h: 844, safeTop: 0, safeBottom: 0, time: 0, screen: 'home', modal: null, save, game: null, brief: null, selected: null, shovel: false, speed: 1, chapter: Math.floor((unlockedLevel(save) - 1) / 4), almanac: 'plants', seedPage: 0, challengePage: 0, almanacPage: 0, detail: '', cursor: null, toast: '' };
+    this.career=new Career(host.read('garden-guard.career.v1'),value=>host.write('garden-guard.career.v1',JSON.stringify(value)));
+    this.careerPanel=new CareerPanel(this.career,()=>LEVELS.map(l=>({id:'levels:'+l.id,name:l.name,description:CHAPTERS[Math.floor((l.id-1)/4)],unlocked:l.id<=unlockedLevel(this.view.save)})),(map,endless)=>this.start(endless?challengeConfig('endless'):levelConfig(map+1)),'花园补给站');
+    this.careerPanel.guardDescription='每级增加所有植物 15% 生命';
     host.onPointer((x, y) => this.pointer(x, y));
     host.onMove((x, y) => this.move(x, y));
     host.onKey(key => this.key(key));
@@ -65,6 +73,7 @@ export class GardenApp {
     const g = this.view.game;
     if (!g || this.view.screen !== 'playing' || this.view.modal) return;
     g.update(dt);
+    if(Math.floor(g.elapsed)!==Math.floor(g.elapsed-dt)||g.state!=='playing')this.career.checkpoint(this.rewardRun,{kills:g.kills,seconds:g.elapsed,waves:g.config.endless?g.clearedWaves:0,clear:g.state==='won'?g.config.mode+':'+g.config.id:undefined});
     if (this.view.save.settings.autoSun) for (const s of [...g.suns]) if (s.age > .7) g.collectSun(s.id);
     if (g.state !== 'playing' && !this.recorded) {
       this.recorded = true; recordResult(this.view.save, g); this.persist(); this.view.screen = 'result';
@@ -86,7 +95,9 @@ export class GardenApp {
   }
   render() {
     this.host.reportState?.(this.view.screen === 'playing' ? this.view.modal ? 'paused' : 'playing' : this.view.screen === 'result' ? 'result' : 'menu');
+    this.view.coins=this.career?.data.coins??0;
     this.hits = this.renderer.render(this.view);
+    if(this.careerPanel?.active)this.hits=drawCareerCanvas(this.ctx,this.careerPanel,this.view.w,this.view.h,true,this.view.safeTop,this.view.safeBottom+16);
     const hits = this.scale === 1 ? this.hits : this.hits.map(h => ({ ...h, x: h.x * this.scale, y: h.y * this.scale, w: h.w * this.scale, h: h.h * this.scale }));
     this.host.syncControls?.(hits, id => this.action(id));
   }
@@ -105,6 +116,7 @@ export class GardenApp {
     this.view.cursor = x >= b.x && x < b.x + b.w && y >= b.y && y < b.y + b.h ? { row: Math.floor((y - b.y) / b.rh), col: Math.floor((x - b.x) / b.cw) } : null;
   }
   private key(key: string) {
+    if(this.careerPanel.active){if(key==='Escape'){this.careerPanel.active=false;this.render();}return;}
     const v = this.view;
     if (key === 'Escape') { if (v.modal) this.action('close'); else if (v.screen === 'playing') this.action('pause'); else if (v.screen !== 'home') this.action('home'); return; }
     if (v.screen !== 'playing') return;
@@ -124,6 +136,8 @@ export class GardenApp {
   }
   private showBrief(config: GameConfig) { this.view.brief = config; this.view.modal = 'brief'; this.returnModal = null; }
   private start(config: GameConfig) {
+    config={...config,damageScale:this.career.buffs.damage,intervalScale:this.career.buffs.interval,guardLevel:this.career.buffs.guard,skinColor:this.career.skin.color,skinMark:this.career.data.skin==='classic'?'':this.career.skin.mark};
+    this.rewardRun=this.career.begin(config.endless?'endless':'stage');
     this.view.game = new Game(config); this.view.screen = 'playing'; this.view.modal = null; this.view.brief = null;
     this.view.seedPage = 0; this.view.selected = config.allowed.includes('sunflower') ? 'sunflower' : config.allowed[0]; this.view.shovel = false; this.view.speed = 1; this.view.cursor = null; this.view.toast = '';
     this.accumulator = 0; this.last = 0; this.recorded = false; this.returnModal = null; this.resize();
@@ -141,6 +155,7 @@ export class GardenApp {
   }
   action(id: string) {
     const v = this.view, g = v.game, [name, arg, arg2] = id.split(':');
+    if(id.startsWith('career:')){if(v.screen==='playing'&&!v.modal)v.modal='pause';this.careerPanel.action(id);this.resize();return;}
     if (v.save.settings.sound && !['cell', 'sun', 'collect'].includes(name)) this.host.sound('click');
     if (name === 'seed' && g && !v.modal && v.screen === 'playing') {
       const kind = arg as PlantKind;
@@ -155,7 +170,7 @@ export class GardenApp {
     else if (name === 'collect' && g && !v.modal && v.screen === 'playing') g.collectAll();
     else if (name === 'shovel' && g && !v.modal) v.shovel = !v.shovel;
     else if (name === 'speed' && g && !v.modal) v.speed = v.speed === 1 ? 2 : 1;
-    else if (name === 'pause' && v.screen === 'playing') { v.modal = 'pause'; this.returnModal = null; this.host.silence(); }
+    else if (name === 'pause' && v.screen === 'playing') { if(g)this.career.checkpoint(this.rewardRun,{kills:g.kills,seconds:g.elapsed,waves:g.config.endless?g.clearedWaves:0}); v.modal = 'pause'; this.returnModal = null; this.host.silence(); }
     else if (name === 'settings' || name === 'help') { this.returnModal = v.modal === 'pause' ? 'pause' : null; v.modal = name; }
     else if (name === 'sound') { v.save.settings.sound = !v.save.settings.sound; if (!v.save.settings.sound) this.host.silence(); this.persist(); }
     else if (name === 'setting' && ['sound', 'autoSun', 'reducedMotion'].includes(arg)) { const key = arg as keyof typeof v.save.settings; v.save.settings[key] = !v.save.settings[key]; if (!v.save.settings.sound) this.host.silence(); this.persist(); }

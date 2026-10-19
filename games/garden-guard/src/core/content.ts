@@ -1,6 +1,6 @@
-export type PlantKind = 'sunflower' | 'pea' | 'wallnut' | 'cherry' | 'ice' | 'repeater' | 'mine' | 'mushroom' | 'threepeater' | 'torch' | 'corn' | 'lightning' | 'icebloom' | 'boomerang';
-export type ZombieKind = 'walker' | 'cone' | 'bucket' | 'runner' | 'paper' | 'giant' | 'shield' | 'vaulter' | 'dancer' | 'frost' | 'medic';
-export type Biome = 'day' | 'night' | 'fog';
+export type PlantKind = 'sunflower' | 'pea' | 'wallnut' | 'cherry' | 'ice' | 'repeater' | 'mine' | 'mushroom' | 'threepeater' | 'torch' | 'corn' | 'lightning' | 'icebloom' | 'boomerang' | 'pepper' | 'magnet' | 'clover' | 'cactus';
+export type ZombieKind = 'walker' | 'cone' | 'bucket' | 'runner' | 'paper' | 'giant' | 'shield' | 'vaulter' | 'dancer' | 'frost' | 'medic' | 'balloon' | 'digger' | 'drummer' | 'bomber';
+export type Biome = 'day' | 'night' | 'fog' | 'rain' | 'roof';
 export type Mode = 'levels' | 'adventure' | 'challenge';
 export interface PlantInfo { name: string; cost: number; cooldown: number; hp: number; interval: number; damage: number; color: string; role: string; description: string }
 export const PLANTS: Record<PlantKind, PlantInfo> = {
@@ -18,6 +18,10 @@ export const PLANTS: Record<PlantKind, PlantInfo> = {
   lightning: { name: '闪电芦苇', cost: 225, cooldown: 9, hp: 260, interval: 2, damage: 34, color: '#b5a1e5', role: '跨行连锁', description: '攻击前方四格内的敌人，闪电在附近两格内连续跳跃，最多命中四个不同敌人。穿透盾牌。' },
   icebloom: { name: '冰晶菇', cost: 125, cooldown: 28, hp: 9999, interval: .9, damage: 35, color: '#a6e5ec', role: '全场冰封', description: '一次性植物。展开寒潮，对全场造成伤害并冰封 3 秒，可突破普通抗冻间隔。冰甲和巨人的冰封时间较短。' },
   boomerang: { name: '回旋叶', cost: 175, cooldown: 8, hp: 300, interval: 2.2, damage: 24, color: '#7fc6a5', role: '往返穿透', description: '回旋叶穿透同一行多个敌人，飞行五格后返回。去程、回程各命中一次，能穿过盾牌。' },
+  pepper: {name:'火爆辣椒',cost:150,cooldown:25,hp:9999,interval:.8,damage:1400,color:'#ee7052',role:'整行烈焰',description:'一次性植物。点燃整行，对这一行所有地面和空中敌人造成 1400 伤害，也能融冰。'},
+  magnet: {name:'磁力菇',cost:125,cooldown:9,hp:360,interval:6,damage:0,color:'#b882cd',role:'卸除金属',description:'每 6 秒吸走附近两格内一个铁盾、铁桶或冰甲，卸甲后变成普通僵尸，最高剩余 165 生命。'},
+  clover: {name:'治愈三叶草',cost:100,cooldown:10,hp:420,interval:4,damage:0,color:'#68bd9b',role:'邻格修复',description:'每 4 秒为周围一格内其他植物恢复 75 生命，不能超过上限。适合与坚果和近程植物搭配。'},
+  cactus: {name:'仙人掌',cost:200,cooldown:7,hp:360,interval:1.8,damage:38,color:'#7aaf6a',role:'穿刺防空',description:'发射穿透五格的尖刺，命中多个敌人；可刺破气球并迫使气球僵尸落地。'},
 };
 export const PLANT_ORDER = Object.keys(PLANTS) as PlantKind[];
 export interface ZombieInfo { name: string; hp: number; speed: number; bite: number; description: string }
@@ -33,6 +37,10 @@ export const ZOMBIES: Record<ZombieKind, ZombieInfo> = {
   dancer: { name: '舞王僵尸', hp: 400, speed: .12, bite: 70, description: '每 10 秒召唤相邻两行的普通僵尸，最多两次。冰封会暂停召唤，尽早用范围攻击消灭它。' },
   frost: { name: '冰甲僵尸', hp: 520, speed: .14, bite: 90, description: '耐寒护甲使冰封和减速时间缩短。火球对它额外造成 30% 伤害，冰火搭配更有效。' },
   medic: { name: '药箱僵尸', hp: 290, speed: .12, bite: 60, description: '每 4 秒为附近两格内的其他僵尸恢复 26 生命。冻结会中断治疗，连锁闪电可以一起打到它。' },
+  balloon:{name:'气球僵尸',hp:260,speed:.16,bite:65,description:'飘过普通植物，躲开普通豌豆。仙人掌、寒冰、闪电和范围爆破可以命中；仙人掌或冻结使它落地。'},
+  digger:{name:'矿工僵尸',hp:300,speed:.15,bite:90,description:'在第五列钻出地面，从中后场发起攻击。保留近程与爆破植物照顾后方。'},
+  drummer:{name:'鼓手僵尸',hp:390,speed:.12,bite:65,description:'每 6 秒鼓舞附近僵尸，移动速度提高 35%，持续 3 秒。冻结能打断鼓点。'},
+  bomber:{name:'爆桶僵尸',hp:340,speed:.13,bite:75,description:'被击败时炸伤相邻格植物 100 生命。远距离消灭，或种治愈三叶草恢复。'},
 };
 export interface Level { id: number; name: string; biome: Biome; waves: number; intro: string; unlock?: PlantKind }
 export const LEVELS: Level[] = [
@@ -52,18 +60,30 @@ export const LEVELS: Level[] = [
   { id: 14, name: '两翼来袭', biome: 'day', waves: 4, intro: '上下两路承受重点进攻。波次预告会提示方向，别把火力都放中间。' },
   { id: 15, name: '月夜巡诊', biome: 'night', waves: 4, intro: '药箱与盾牌相互掩护。用抛射、闪电和爆破打破治疗阵。' },
   { id: 16, name: '花园大合奏', biome: 'fog', waves: 5, intro: '全植物集结，五波不同主题的联合进攻。最后一波迎战双巨人！' },
+  {id:17,name:'雨声渐起',biome:'rain',waves:4,intro:'雨水让种子冷却更快，天降阳光变慢。治愈三叶草修复前排。',unlock:'clover'},
+  {id:18,name:'鼓点回响',biome:'rain',waves:4,intro:'鼓手让敌人加速前进，整行辣椒可以平息鼓点。',unlock:'pepper'},
+  {id:19,name:'金属回收站',biome:'rain',waves:4,intro:'磁力菇吸走铁桶与铁盾，精心安排支援植物的位置。',unlock:'magnet'},
+  {id:20,name:'雨林爆桶',biome:'rain',waves:5,intro:'爆桶临终会伤害附近植物，用远程攻击和三叶草守护雨林。'},
+  {id:21,name:'气球旅行',biome:'roof',waves:4,intro:'露台花箱占据部分格子，仙人掌可以击落气球。',unlock:'cactus'},
+  {id:22,name:'地下来客',biome:'roof',waves:4,intro:'矿工从第五列出现，后方也需要部署防御。'},
+  {id:23,name:'空中鼓舞',biome:'roof',waves:5,intro:'气球与鼓手同时进攻，寒冰控制、穿刺防空和修复缺一不可。'},
+  {id:24,name:'天空花园庆典',biome:'roof',waves:5,intro:'全植物在露台集结。守住五波混合敌人，迎战双巨人！'},
 ];
-export const CHAPTERS = ['初晴庭院', '月光花圃', '薄雾林地', '四季合奏'];
+export const CHAPTERS = ['初晴庭院', '月光花圃', '薄雾林地', '四季合奏', '雨林温室', '天空露台'];
 export interface Challenge { id: string; name: string; subtitle: string; description: string; plant: PlantKind; biome: Biome }
 export const CHALLENGES: Challenge[] = [
   { id: 'drought', name: '阳光精算师', subtitle: '1,200 阳光，一次机会', description: '不再生产阳光，也没有向日葵。精打细算，守住三波进攻。', plant: 'sunflower', biome: 'day' },
   { id: 'rush', name: '极速尸潮', subtitle: '跑得更快，来得更密', description: '僵尸速度提高 40%，四波快速攻势。用寒冰和坚果稳住局面。', plant: 'ice', biome: 'day' },
   { id: 'fortress', name: '坚果保卫队', subtitle: '五颗坚果，寸土不让', description: '前排自带五颗坚果，但没有割草机。守住四波铁桶进攻。', plant: 'wallnut', biome: 'night' },
-  { id: 'endless', name: '无尽守卫', subtitle: '全植物开放 · 特殊波次 · 波间补给', description: '无需通关，全部 14 种植物直接可用。清空一波后获得阳光和修复，休整 8 秒再迎战；每五波巨人登场，挑战最高完成波次。', plant: 'threepeater', biome: 'fog' },
+  { id: 'endless', name: '无尽守卫', subtitle: '全植物开放 · 特殊波次 · 波间补给', description: '无需通关，全部 18 种植物直接可用。清空一波后获得阳光和修复，休整 8 秒再迎战；每五波巨人登场，挑战最高完成波次。', plant: 'threepeater', biome: 'fog' },
   { id: 'frostfire', name: '冰火连奏', subtitle: '先冰封，再融冰爆发', description: '寒冰封住敌人，火炬把普通豌豆变成火球。融冰额外造成 120 伤害，迎战冰甲与疾跑的混合队伍。', plant: 'torch', biome: 'day' },
   { id: 'explosives', name: '爆破工坊', subtitle: '禁用直射 · 冷却减半', description: '只带向日葵、坚果、樱桃、地雷、玉米和冰晶菇。种子冷却减半，用范围爆破解决成群僵尸。', plant: 'corn', biome: 'day' },
   { id: 'compact', name: '十株小花圃', subtitle: '最多十株 · 每个位置都重要', description: '场上最多同时存在十株植物，种子冷却缩短。试试三线覆盖与连锁闪电，及时铲除调整阵容。', plant: 'lightning', biome: 'day' },
   { id: 'harvest', name: '阳光丰收节', subtitle: '金色阳光雨 · 热闹舞王潮', description: '每 2.5 秒落下 50 阳光，种子冷却缩短 35%。尽情尝试全植物组合，对付舞王和疾跑者。', plant: 'sunflower', biome: 'day' },
+  {id:'monsoon',name:'雨林速生节',subtitle:'冷却减半 · 暴雨尸潮',description:'雨林中快速种植，鼓手加速进攻，善用三叶草持续修复。',plant:'clover',biome:'rain'},
+  {id:'airshow',name:'气球嘉年华',subtitle:'防空专场 · 穿刺与寒潮',description:'气球与疾跑者混合来袭。仙人掌、寒冰、闪电和爆破共同防御。',plant:'cactus',biome:'roof'},
+  {id:'recycling',name:'废铁回收日',subtitle:'全场金属护甲 · 磁力支援',description:'铁盾、铁桶与冰甲组成队伍。磁力菇能卸掉护甲，抛射也可越过盾牌。',plant:'magnet',biome:'rain'},
+  {id:'roofline',name:'露台极简派',subtitle:'八株上限 · 留给爆破的空位',description:'露台障碍和八株上限考验布阵。高额初始阳光与快速冷却鼓励频繁调整。',plant:'pepper',biome:'roof'},
 ];
 export type PerkId = 'damage' | 'sun' | 'health' | 'bank' | 'cooldown';
 export const PERKS: { id: PerkId; name: string; description: string; plant: PlantKind }[] = [
@@ -79,12 +99,13 @@ export interface GameConfig {
   speed: number; waveGap: number; endless: boolean; mowers: boolean; fortress: boolean;
   perks: PerkId[]; seed: number;
   enemyPool?: ZombieKind[]; focus?: ZombieKind[]; pattern?: 'balanced' | 'center' | 'flanks';
+  damageScale?:number; intervalScale?:number; guardLevel?:number; skinColor?:string; skinMark?:string; blocked?:[number,number][];
   plantLimit?: number; cooldownScale?: number; sunInterval?: number; sunValue?: number;
 }
 const base: GameConfig = { mode: 'levels', id: '1', title: '', biome: 'day', difficulty: 1, waves: 3, startSun: 300, skySun: true, production: true, allowed: [...PLANT_ORDER], speed: 1, waveGap: 40, endless: false, mowers: true, fortress: false, perks: [], seed: 1309 };
 export function levelConfig(id: number): GameConfig {
   const level = LEVELS[Math.max(0, Math.min(LEVELS.length - 1, Math.floor(id || 1) - 1))];
-  const at: Partial<Record<PlantKind, number>> = { mine: 2, ice: 3, repeater: 5, mushroom: 6, threepeater: 7, torch: 8, corn: 9, boomerang: 10, lightning: 11, icebloom: 12 };
+  const at: Partial<Record<PlantKind, number>> = { mine: 2, ice: 3, repeater: 5, mushroom: 6, threepeater: 7, torch: 8, corn: 9, boomerang: 10, lightning: 11, icebloom: 12, clover:17,pepper:18,magnet:19,cactus:21 };
   const available = PLANT_ORDER.filter(p => level.id >= (at[p] ?? 1));
   const focuses: ZombieKind[][] = [[], ['cone'], ['runner'], ['cone', 'runner'], ['bucket'], ['paper'], ['paper'], ['bucket'], ['shield'], ['vaulter'], ['giant', 'medic'], ['dancer'], ['frost'], ['vaulter', 'runner'], ['medic', 'shield'], ['shield', 'dancer', 'frost', 'medic', 'giant']];
   const pool: ZombieKind[] = ['walker'];
@@ -92,7 +113,8 @@ export function levelConfig(id: number): GameConfig {
   if (level.id >= 5) pool.push('bucket'); if (level.id >= 6) pool.push('paper');
   if (level.id >= 9) pool.push('shield'); if (level.id >= 10) pool.push('vaulter');
   if (level.id >= 11) pool.push('medic'); if (level.id >= 12) pool.push('dancer'); if (level.id >= 13) pool.push('frost');
-  return { ...base, id: String(level.id), title: `${Math.ceil(level.id / 4)}-${(level.id - 1) % 4 + 1} ${level.name}`, biome: level.biome, difficulty: Math.min(12, level.id), waves: level.waves, allowed: available, startSun: level.id === 1 ? 350 : level.id >= 9 ? 500 : level.biome === 'night' ? 400 : 300, skySun: level.biome !== 'night', seed: level.id * 1309, enemyPool: pool, focus: focuses[level.id - 1], pattern: level.id === 7 ? 'center' : level.id === 14 ? 'flanks' : 'balanced', waveGap: level.id >= 9 ? 44 : 40 };
+  if(level.id>=18)pool.push('drummer');if(level.id>=20)pool.push('bomber');if(level.id>=21)pool.push('balloon');if(level.id>=22)pool.push('digger');
+  return { ...base, cooldownScale:level.biome==='rain'?.8:1,sunInterval:level.biome==='rain'?9:7,blocked:level.biome==='roof'?[[0,4],[4,4],[2,6]]:[], id: String(level.id), title: `${Math.ceil(level.id / 4)}-${(level.id - 1) % 4 + 1} ${level.name}`, biome: level.biome, difficulty: Math.min(12, level.id), waves: level.waves, allowed: available, startSun: level.id === 1 ? 350 : level.id>=21?650:level.id >= 9 ? 500 : level.biome === 'night' ? 400 : 300, skySun: level.biome !== 'night', seed: level.id * 1309, enemyPool: level.id>=17?([['walker','cone','runner'],['walker','cone','drummer'],['walker','shield','bucket'],['walker','cone','bomber'],['walker','cone','balloon'],['walker','cone'],['walker','balloon','drummer'],['walker','cone','balloon','bomber']] as ZombieKind[][])[level.id-17]:pool, focus: focuses[level.id - 1]??([['drummer'],['drummer'],['shield','bucket'],['bomber'],['balloon'],['digger'],['balloon','drummer'],['giant','bomber','digger']] as ZombieKind[][])[level.id-17], pattern: level.id === 7 ? 'center' : level.id === 14 ? 'flanks' : 'balanced', waveGap: level.id >= 9 ? 44 : 40 };
 }
 export function adventureConfig(round: number, perks: PerkId[], seed: number): GameConfig {
   const biome: Biome = round < 3 ? 'day' : round < 5 ? 'night' : 'fog';
@@ -106,6 +128,11 @@ export function challengeConfig(id: string): GameConfig {
   if (id === 'explosives') Object.assign(config, { startSun: 650, allowed: ['sunflower', 'wallnut', 'cherry', 'mine', 'corn', 'icebloom'], cooldownScale: .5, focus: ['shield', 'cone'], pattern: 'center' });
   if (id === 'compact') Object.assign(config, { startSun: 600, plantLimit: 10, cooldownScale: .65, difficulty: 5, focus: ['shield'], waveGap: 46 });
   if (id === 'harvest') Object.assign(config, { sunInterval: 2.5, sunValue: 50, cooldownScale: .65, focus: ['dancer', 'runner'], waveGap: 34 });
+  if(id==='monsoon')Object.assign(config,{startSun:650,cooldownScale:.5,focus:['drummer','bomber'],waveGap:36});
+  if(id==='airshow')Object.assign(config,{startSun:700,focus:['balloon','runner'],allowed:['sunflower','wallnut','cherry','ice','lightning','icebloom','pepper','cactus']});
+  if(id==='recycling')Object.assign(config,{startSun:650,enemyPool:['shield','bucket','frost'],focus:['shield'],cooldownScale:.7});
+  if(id==='roofline')Object.assign(config,{startSun:900,plantLimit:8,cooldownScale:.5,difficulty:5,pattern:'center',focus:['digger','shield']});
+  if(c.biome==='roof')config.blocked=[[0,4],[4,4],[2,6]];
   return config;
 }
 

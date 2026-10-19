@@ -70,6 +70,9 @@ export function drawBoard(ctx: Ctx, game: Game, b: BoardLayout, time: number, cu
   for (let r = 0; r < 5; r++) for (let c = 0; c < 9; c++) {
     const x = b.x + c * b.cw, y = b.y + r * b.rh;
     ctx.fillStyle = night ? (r + c) % 2 ? '#527c58' : '#5a855e' : (r + c) % 2 ? '#91bd65' : '#9dc76e'; ctx.fillRect(x, y, b.cw, b.rh);
+    if(game.config.biome==='rain'){ctx.fillStyle=(r+c)%2?'#70ad92':'#82bd9b';ctx.fillRect(x,y,b.cw,b.rh);}
+    if(game.config.biome==='roof'){ctx.fillStyle=(r+c)%2?'#cbb39a':'#ddc6ac';ctx.fillRect(x,y,b.cw,b.rh);}
+    if(game.config.blocked?.some(([row,col])=>row===r&&col===c)){box(ctx,{x:x+3,y:y+3,w:b.cw-6,h:b.rh-6},'#8f8275',5);line(ctx,[x+5,y+6,x+b.cw-6,y+b.rh-6],'#dbd0b5',3);}
     ctx.strokeStyle = night ? 'rgba(26,62,45,.13)' : 'rgba(72,111,47,.13)'; ctx.lineWidth = 1; ctx.strokeRect(x, y, b.cw, b.rh);
     for (let i = 0; i < 3; i++) { const xx = x + ((c * 13 + r * 27 + i * 17) % 80) / 90 * b.cw + 2, yy = y + ((c * 17 + i * 11) % 60) / 70 * b.rh + 3; line(ctx, [xx - 2, yy, xx, yy + 3, xx + 2, yy - 1], night ? '#608a60' : '#87b45a', 1); }
   }
@@ -82,6 +85,7 @@ export function drawBoard(ctx: Ctx, game: Game, b: BoardLayout, time: number, cu
     for (const p of game.plants.filter(p => p.row === row)) {
       const x = b.x + (p.col + .5) * b.cw;
       drawPlant(ctx, p.kind, x, cy, Math.min(b.cw * 1.06, b.rh * .91), reducedMotion ? 0 : time, p.hp / p.maxHp, p.age >= 9);
+      if(game.config.skinMark){ellipse(ctx,x+b.cw*.22,cy+b.rh*.17,7,7,game.config.skinColor??'#f4cc76');label(ctx,game.config.skinMark,x+b.cw*.22,cy+b.rh*.17,10,C.ink,700,'center');}
       if (p.hp < p.maxHp * .9 && p.kind !== 'cherry') { box(ctx, { x: x - b.cw * .3, y: cy + b.rh * .38, w: b.cw * .6, h: 3 }, 'rgba(39,67,36,.35)', 2); box(ctx, { x: x - b.cw * .3, y: cy + b.rh * .38, w: b.cw * .6 * p.hp / p.maxHp, h: 3 }, p.hp / p.maxHp > .3 ? '#ecdf80' : '#df805a', 2); }
       if (p.kind === 'mine' && p.age < 9) { box(ctx, { x: x - b.cw * .25, y: cy + b.rh * .32, w: b.cw * .5, h: 3 }, '#776b41', 2); box(ctx, { x: x - b.cw * .25, y: cy + b.rh * .32, w: b.cw * .5 * p.age / 9, h: 3 }, '#f8ca58', 2); }
     }
@@ -94,7 +98,8 @@ export function drawBoard(ctx: Ctx, game: Game, b: BoardLayout, time: number, cu
     }
     for (const shot of game.projectiles.filter(p => p.row === row)) {
       const x = b.x + shot.x * b.cw, y = cy - b.rh * .13;
-      if (shot.type === 'corn') {
+      if(shot.type==='spike'){path(ctx,[x-9,y-3,x+9,y,x-9,y+3],'#edf3bd','#629166',1);}
+      else if (shot.type === 'corn') {
         const lift = Math.sin(Math.min(1, (shot.age ?? 0) / shot.duration!) * Math.PI) * b.rh * 1.25;
         ellipse(ctx,x,cy+b.rh*.3,5,2,'rgba(32,67,35,.2)');ellipse(ctx,x,y-lift,6,7,'#ffe493','#a58938',1.5);line(ctx,[x-2,y-lift-3,x+2,y-lift+3],'#fff4ca',2);
       } else if (shot.type === 'leaf') {

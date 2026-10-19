@@ -69,7 +69,7 @@ test('save parsing rejects damage, unlocks only contiguous wins and preserves be
   s.adventure = { round: 1, perks: [], seed: 1, awaitingPerk: true }; assert.deepEqual(parseSave(JSON.stringify(s)), s);
 });
 
-test('all sixteen levels are winnable through legal placement and resource collection', t => {
+test('all twenty-four levels are winnable through legal placement and resource collection', t => {
   for (const l of LEVELS) {
     const g = play(new Game(levelConfig(l.id)));
     t.diagnostic(`Level ${l.id}: ${g.state}, ${g.stars} stars, ${g.kills} kills, ${Math.round(g.elapsed)} seconds`);
@@ -95,5 +95,5 @@ test('finite challenges are winnable and endless progresses beyond finite wave c
   const endless = play(new Game(challengeConfig('endless')), 400);
   assert(endless.wave > 4); assert.notEqual(endless.state, 'won');
   assert(endless.zombies.length <= 80); assert(endless.projectiles.length <= 160); assert(endless.suns.length <= 36);
-  assert.equal(new Set(PLANT_ORDER).size, 14);
+  assert.equal(new Set(PLANT_ORDER).size, 18);
 });

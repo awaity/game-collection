@@ -62,6 +62,7 @@ try {
     // Capture a populated battlefield, then complete the real simulation.
     await playToResult(page, 52); await page.screenshot({ path: `${artifacts}/battle-active-${tag}.png` });
     const result = await playToResult(page); assert.equal(result.state, 'won', `${tag} first level`); assert(result.kills > 0);
+    assert.equal(await page.evaluate(()=>window.__GARDEN__.career.data.totals.waves),0,'campaign waves must not count as endless task progress');
     await validateBounds(page); await page.screenshot({ path: `${artifacts}/victory-${tag}.png` });
     await click(page, 'next'); assert.equal(await page.evaluate(() => window.__GARDEN__.view.brief?.id), '2');
     await page.reload(); await page.waitForSelector('[data-action="continue-level"]'); assert((await page.evaluate(() => window.__GARDEN__.view.save.levels['1'])) > 0);
@@ -72,18 +73,19 @@ try {
       assert.deepEqual(await page.evaluate(() => window.__GARDEN__.view.save.adventure?.perks), ['damage']); await page.reload(); await click(page, 'adventure'); await click(page, 'adventure:continue'); assert.equal(await page.evaluate(() => window.__GARDEN__.view.brief?.id), '2'); await click(page, 'close'); await click(page, 'home');
       await click(page, 'challenges'); await click(page, 'challenge:drought'); await click(page, 'start'); assert.equal((await playToResult(page)).state, 'won'); await click(page, 'result:back');
       assert((await page.evaluate(() => window.__GARDEN__.view.save.challenges.drought.score)) > 0);
-      for (const id of ['rush', 'fortress', 'endless', 'frostfire', 'explosives', 'compact', 'harvest']) {
-        if(!(await page.locator(`[data-action="challenge:${id}"]`).count()))await click(page,'challenge-page:next');
+      for (const id of ['rush', 'fortress', 'endless', 'frostfire', 'explosives', 'compact', 'harvest', 'monsoon', 'airshow', 'recycling', 'roofline']) {
+        for(let n=0;n<3&&!(await page.locator(`[data-action="challenge:${id}"]`).count());n++)await click(page,'challenge-page:next');
         await click(page, `challenge:${id}`); await click(page, 'start'); const config = await page.evaluate(() => window.__GARDEN__.view.game!.config); assert.equal(config.id, id);
         await page.screenshot({ path: `${artifacts}/challenge-${id}.png` });
         if (id === 'endless') {
-          assert.equal(config.allowed.length,14);await click(page,'seeds:next');await validateBounds(page);await page.screenshot({path:`${artifacts}/all-plants-${tag}.png`});
+          assert.equal(config.allowed.length,18);await click(page,'seeds:next');await click(page,'seeds:next');assert(await page.locator('[data-action="seed:cactus"]').count());await click(page,'seeds:prev');await validateBounds(page);await page.screenshot({path:`${artifacts}/all-plants-${tag}.png`});
           await click(page,'seed:threepeater');await click(page,'cell:2:2');await click(page,'seeds:prev');await click(page,'seed:ice');await click(page,'cell:4:2');
           await page.addScriptTag({content:strategy.outputFiles[0].text});
           const frozen=await page.evaluate(()=>{const app=window.__GARDEN__;for(let n=0;n<1600&&app.view.screen==='playing';n++){window.GardenStrategy.defend(app.view.game!);app.advance(.1);if(app.view.game!.zombies.some(z=>z.freeze>.9&&z.x<8.5))return true;}return false;});
           assert(frozen,'real ice projectile freezes a naturally spawned zombie');await page.screenshot({path:`${artifacts}/ice-freeze-${tag}.png`});
           const endless = await playToResult(page, 400); assert(endless.wave >= 5); assert.notEqual(endless.state, 'won');
-        } else if(['frostfire','explosives','compact','harvest'].includes(id)) {assert.equal((await playToResult(page)).state,'won',id);await page.screenshot({path:`${artifacts}/result-${id}.png`});}
+          assert(await page.evaluate(()=>window.__GARDEN__.career.data.totals.waves>=1));
+        } else if(['frostfire','explosives','compact','harvest','monsoon','airshow','recycling','roofline'].includes(id)) {assert.equal((await playToResult(page)).state,'won',id);await page.screenshot({path:`${artifacts}/result-${id}.png`});}
         if(await page.evaluate(()=>window.__GARDEN__.view.screen==='playing')){await click(page,'pause');await click(page,'leave');await click(page,'leave:confirm');}else{await click(page,'result:back');await click(page,'home');}await click(page,'challenges');
       }
     }
@@ -92,6 +94,6 @@ try {
   }
   const normal = await browser.newPage(); await normal.goto(base); assert.equal(await normal.evaluate(() => '__GARDEN__' in window), false); await normal.close();
   assert.deepEqual(errors, []);
-  await writeFile(`${artifacts}/web-verification.json`, JSON.stringify({ date: new Date().toISOString(), checks, errors, extra: ['Adventure upgrade and reload', 'Challenge start and result records', 'All 14 plants available in endless', 'Actual frozen-zombie screenshot', 'Seven finite challenge entries and four new victories', 'Expanded almanac and seed pages', 'Endless wave progression', 'QA interface absent from normal URL'] }, null, 2));
+  await writeFile(`${artifacts}/web-verification.json`, JSON.stringify({ date: new Date().toISOString(), checks, errors, extra: ['Adventure upgrade and reload', 'Challenge start and result records', 'All 18 plants available in endless', 'Actual frozen-zombie screenshot', 'Eleven finite challenge entries and eight specialist challenge victories', 'Expanded almanac and seed pages', 'Endless wave progression', 'QA interface absent from normal URL'] }, null, 2));
   console.log(checks.join('\n')); console.log('Browser checks passed; screenshots and report are in artifacts/.');
 } finally { await browser?.close(); server.kill('SIGTERM'); }

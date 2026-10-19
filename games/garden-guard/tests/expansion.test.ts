@@ -68,7 +68,7 @@ test('medics heal other living enemies only; dancers have finite summons and fre
   d.update(30);assert.equal(dancer.summons,2);assert(d.zombies.length<=80);
 });
 
-test('all seven finite challenges can be won by legal tactics', t => {
+test('all eleven finite challenges can be won by legal tactics', t => {
   for(const c of CHALLENGES.filter(c=>c.id!=='endless')){
     const g=play(new Game(challengeConfig(c.id)),800);
     t.diagnostic(`${c.id}: ${g.state}, ${g.kills} kills, ${g.planted} placements`);
@@ -96,8 +96,8 @@ test('old saves keep stars and scores, unlock chapter four, and record cleared e
 test('fresh players can page through all seeds and challenges with touch and keyboard', () => {
   const h=mockHost(),app=new GardenApp(h.host);app.action('challenges');app.action('challenge-page:next');
   assert(app.hits.some(h=>h.id==='challenge:compact'));app.action('challenge:endless');app.action('start');
-  assert.equal(app.view.game!.config.allowed.length,14);h.key('e');assert.equal(app.view.seedPage,1);assert(app.hits.some(h=>h.id==='seed:icebloom'));
+  assert.equal(app.view.game!.config.allowed.length,18);h.key('e');assert.equal(app.view.seedPage,1);assert(app.hits.some(h=>h.id==='seed:icebloom'));
   h.key('1');assert.equal(app.view.selected,'threepeater');h.key('q');assert.equal(app.view.seedPage,0);
   app.action('pause');const t=app.view.game!.elapsed;app.advance(8);assert.equal(app.view.game!.elapsed,t);app.destroy();
-  assert.equal(Object.keys(ZOMBIES).length,11);
+  assert.equal(Object.keys(ZOMBIES).length,15);
 });

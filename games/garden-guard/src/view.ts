@@ -5,7 +5,7 @@ import type { Rect } from './render/draw';
 export type Screen = 'home' | 'levels' | 'adventure' | 'challenges' | 'almanac' | 'playing' | 'result' | 'perks';
 export type Modal = 'settings' | 'help' | 'pause' | 'brief' | 'leave' | 'new-adventure' | 'detail' | null;
 export interface View {
-  w: number; h: number; safeTop: number; safeBottom: number; time: number;
+  coins?:number; w: number; h: number; safeTop: number; safeBottom: number; time: number;
   screen: Screen; modal: Modal; save: Save; game: Game | null; brief: GameConfig | null;
   selected: PlantKind | null; shovel: boolean; speed: number; chapter: number; almanac: 'plants' | 'zombies';
   seedPage: number; challengePage: number; almanacPage: number;

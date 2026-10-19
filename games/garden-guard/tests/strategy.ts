@@ -8,6 +8,43 @@ export function defend(game: Game) {
   const put = (kind: PlantKind, row: number, col: number) => !game.canPlant(kind, row, col) && game.plant(kind, row, col);
   const guns = (row: number) => game.plants.filter(p => p.row === row && ['pea', 'ice', 'repeater'].includes(p.kind));
   const danger = [...game.zombies].sort((a, b) => a.x - b.x);
+  if(game.config.biome==='roof'){
+    if(game.config.id==='airshow'){
+      for(const z of danger)if(z.x<3)put('pepper',z.row,8);
+      for(let row=0;row<5;row++)if(!has(row,0)){put('sunflower',row,0);break;}
+      for(const z of danger)put('ice',z.row,1);
+      for(let row=0;row<5;row++)put('ice',row,1);
+      for(const z of danger)put('cactus',z.row,2);
+      for(let row=0;row<5;row++)put('cactus',row,2);
+      for(let row=0;row<5;row++)put('sunflower',row,7);
+      for(let row=0;row<5;row++){put('lightning',row,3);put('wallnut',row,5);}
+      if(danger.some(z=>z.x<4))put('icebloom',2,8);
+      return;
+    }
+    if(game.config.id==='roofline'){
+      for(const row of [1,3])put('threepeater',row,1);
+      for(const row of [0,2,4])put('sunflower',row,0);
+      for(const z of danger){if(z.x<4.5)put('pepper',z.row,8);if(z.x<3.5)put('cherry',z.row,Math.min(8,Math.floor(z.x)));}
+      for(const row of [1,3])put('lightning',row,2);
+      return;
+    }
+    // A rear wall catches miners. Establish an inexpensive five-lane defence
+    // before spending on anti-air and a second line of production.
+    for(const z of danger)if(z.x<2.5)put('pepper',z.row,8);
+    for(let row=0;row<5;row++)if(!has(row,0)){put('sunflower',row,0);break;}
+    for(const z of danger)put('pea',z.row,1);
+    for(let row=0;row<5;row++)put('pea',row,1);
+    for(const z of danger)if(z.x<5.5)put('wallnut',z.row,3);
+    if(Array.from({length:5},(_,r)=>has(r,1)&&has(r,0)).some(v=>!v))return;
+    for(let row=0;row<5;row++)put('sunflower',row,row===2?7:6);
+    for(const z of danger)put('ice',z.row,2);
+    for(let row=0;row<5;row++)put('ice',row,2);
+    for(let row=0;row<5;row++)put('sunflower',row,row===2?7:6);
+    if(Array.from({length:5},(_,r)=>has(r,2)).every(Boolean))for(let row=0;row<5;row++){put('cactus',row,5);put('wallnut',row,3);put('clover',row,4);}
+    for(const z of danger)if(z.x<3.8&&game.zombies.filter(k=>Math.abs(k.row-z.row)<=1&&Math.abs(k.x-z.x)<1.6).length>=3)put('cherry',z.row,Math.max(0,Math.floor(z.x)));
+    if(danger.some(z=>z.x<2.5))put('icebloom',2,8);
+    return;
+  }
   if (game.config.id === 'compact') {
     for (const row of [1, 3]) put('threepeater', row, 2);
     for (const row of [0, 2, 4]) put('sunflower', row, 0);
