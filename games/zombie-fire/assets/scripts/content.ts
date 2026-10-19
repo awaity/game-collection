@@ -3,26 +3,29 @@ export type Element='physical'|'fire'|'ice'|'electric'|'energy'|'wind'|'poison';
 export type SkillId='rifle'|'thermo'|'dryice'|'electro'|'guided'|'ray'|'frost'|'cyclone'|'fuel'|'electron'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon'|'pillar'|'orb';
 export type Attack='bullet'|'shell'|'beam'|'guided'|'ray'|'field'|'tornado'|'chain'|'blade'|'vehicle'|'airdrop'|'drone'|'rift'|'matrix'|'dragon'|'pillar'|'orb';
 export interface Skill {id:SkillId;name:string;element:Element;attack:Attack;color:string;damage:number;interval:number;radius:number;pierce:number;duration:number;description:string}
+// Base special-weapon cooldowns match SkillBaseConfg and the level-1 display
+// fields in MagicSkillLevelConfig. Damage, unit mapping and haste stacking remain
+// local tuning; the summoned dragon uses its separate 2-second attack cadence.
 export const SKILLS:readonly Skill[]=[
  {id:'rifle',name:'突击步枪',element:'physical',attack:'bullet',color:'#e3b76c',damage:28,interval:.27,radius:3,pierce:0,duration:0,description:'自动锁定靠近防线的敌人。弹匣耗尽后重新装填。'},
- {id:'thermo',name:'温压弹',element:'fire',attack:'shell',color:'#f29a38',damage:85,interval:3.7,radius:55,pierce:0,duration:0,description:'发射温压弹，命中爆炸并击退范围内敌人。'},
- {id:'dryice',name:'干冰弹',element:'ice',attack:'bullet',color:'#8cdef1',damage:48,interval:2.7,radius:9,pierce:4,duration:0,description:'冰系穿透弹道，可击中多名敌人并轻微击退。'},
- {id:'electro',name:'电磁穿刺',element:'electric',attack:'beam',color:'#c2a0ef',damage:100,interval:4.1,radius:44,pierce:0,duration:0,description:'雷击目标并溅射附近敌人，附带麻痹。'},
- {id:'guided',name:'制导激光',element:'energy',attack:'guided',color:'#efbd75',damage:95,interval:3.2,radius:18,pierce:0,duration:1.4,description:'持续追踪锁定目标，目标倒下后自动转移；升级后可折射。'},
- {id:'ray',name:'高能射线',element:'energy',attack:'ray',color:'#78d9ef',damage:60,interval:3.6,radius:14,pierce:99,duration:0,description:'从枪口向目标射出贯穿整条路径的能量射线。'},
- {id:'frost',name:'冰暴发生器',element:'ice',attack:'field',color:'#67cce9',damage:26,interval:5.2,radius:62,pierce:0,duration:2.7,description:'生成冰暴领域，周期伤害并冻结其中的敌人。'},
- {id:'cyclone',name:'旋风加农',element:'wind',attack:'tornado',color:'#8fdcc8',damage:24,interval:5.8,radius:43,pierce:99,duration:4,description:'旋风持续推进，将敌人卷向中心并造成多次伤害。'},
- {id:'fuel',name:'燃油弹',element:'fire',attack:'field',color:'#e77640',damage:23,interval:5.3,radius:61,pierce:0,duration:4,description:'燃油覆盖地面，持续烧灼范围内的尸群。'},
- {id:'electron',name:'跃迁电子',element:'electric',attack:'chain',color:'#aca0ee',damage:51,interval:3.3,radius:128,pierce:4,duration:0,description:'电子在相邻敌人之间跃迁，适合密集尸群。'},
- {id:'blade',name:'压缩气刃',element:'wind',attack:'blade',color:'#bdddb7',damage:64,interval:3.8,radius:20,pierce:8,duration:0,description:'气刃穿过多个目标，并降低敌人的受治疗量。'},
- {id:'vehicle',name:'装甲车',element:'physical',attack:'vehicle',color:'#bdb79a',damage:55,interval:7,radius:38,pierce:99,duration:4,description:'装甲车从防线出击，沿途碾压并推开敌人。'},
- {id:'airdrop',name:'空投轰炸',element:'fire',attack:'airdrop',color:'#ddab69',damage:130,interval:7.8,radius:70,pierce:0,duration:0,description:'在尸群中标记区域，短暂延迟后实施空中轰炸。'},
- {id:'drone',name:'无人机',element:'physical',attack:'drone',color:'#d5d9c4',damage:42,interval:5.6,radius:15,pierce:99,duration:9,description:'无人机在战场内穿行，碰到边界反弹，可反复撞击沿途敌人。'},
- {id:'rift',name:'时空裂隙',element:'energy',attack:'rift',color:'#ae97e8',damage:22,interval:5.5,radius:66,pierce:0,duration:2.5,description:'生成菱形裂隙，每0.4秒造成伤害；区域内施加的负面状态延长20%。'},
- {id:'matrix',name:'生化矩阵',element:'poison',attack:'matrix',color:'#b0d56b',damage:19,interval:5.2,radius:43,pierce:0,duration:2.5,description:'布下多个毒系矩阵，相邻矩阵合并；持续伤害并逐步禁锢区域内的敌人。'},
+ {id:'thermo',name:'温压弹',element:'fire',attack:'shell',color:'#f29a38',damage:85,interval:6.2,radius:55,pierce:0,duration:0,description:'发射温压弹，命中爆炸并击退范围内敌人。'},
+ {id:'dryice',name:'干冰弹',element:'ice',attack:'bullet',color:'#8cdef1',damage:48,interval:4.1,radius:9,pierce:4,duration:0,description:'冰系穿透弹道，可击中多名敌人并轻微击退。'},
+ {id:'electro',name:'电磁穿刺',element:'electric',attack:'beam',color:'#c2a0ef',damage:100,interval:3.8,radius:44,pierce:0,duration:0,description:'雷击目标并溅射附近敌人，附带麻痹。'},
+ {id:'guided',name:'制导激光',element:'energy',attack:'guided',color:'#efbd75',damage:95,interval:10.3,radius:18,pierce:0,duration:1.4,description:'持续追踪锁定目标，目标倒下后自动转移；升级后可折射。'},
+ {id:'ray',name:'高能射线',element:'energy',attack:'ray',color:'#78d9ef',damage:60,interval:7.5,radius:14,pierce:99,duration:0,description:'从枪口向目标射出贯穿整条路径的能量射线。'},
+ {id:'frost',name:'冰暴发生器',element:'ice',attack:'field',color:'#67cce9',damage:26,interval:6.2,radius:62,pierce:0,duration:2.7,description:'生成冰暴领域，周期伤害并冻结其中的敌人。'},
+ {id:'cyclone',name:'旋风加农',element:'wind',attack:'tornado',color:'#8fdcc8',damage:24,interval:17.1,radius:43,pierce:99,duration:4,description:'旋风持续推进，将敌人卷向中心并造成多次伤害。'},
+ {id:'fuel',name:'燃油弹',element:'fire',attack:'field',color:'#e77640',damage:23,interval:4,radius:61,pierce:0,duration:4,description:'燃油覆盖地面，持续烧灼范围内的尸群。'},
+ {id:'electron',name:'跃迁电子',element:'electric',attack:'chain',color:'#aca0ee',damage:51,interval:6.1,radius:128,pierce:4,duration:0,description:'电子在相邻敌人之间跃迁，适合密集尸群。'},
+ {id:'blade',name:'压缩气刃',element:'wind',attack:'blade',color:'#bdddb7',damage:64,interval:6.5,radius:20,pierce:8,duration:0,description:'气刃穿过多个目标，并降低敌人的受治疗量。'},
+ {id:'vehicle',name:'装甲车',element:'physical',attack:'vehicle',color:'#bdb79a',damage:55,interval:17.4,radius:38,pierce:99,duration:4,description:'装甲车从防线出击，沿途碾压并推开敌人。'},
+ {id:'airdrop',name:'空投轰炸',element:'physical',attack:'airdrop',color:'#ddab69',damage:130,interval:7.7,radius:70,pierce:0,duration:0,description:'在尸群中标记区域，短暂延迟后实施空中轰炸。'},
+ {id:'drone',name:'无人机',element:'physical',attack:'drone',color:'#d5d9c4',damage:42,interval:10,radius:15,pierce:99,duration:9,description:'无人机在战场内穿行，碰到边界反弹，可反复撞击沿途敌人。'},
+ {id:'rift',name:'时空裂隙',element:'energy',attack:'rift',color:'#ae97e8',damage:22,interval:7.5,radius:66,pierce:0,duration:2.5,description:'生成菱形裂隙，每0.4秒造成伤害；区域内施加的负面状态延长20%。'},
+ {id:'matrix',name:'生化矩阵',element:'poison',attack:'matrix',color:'#b0d56b',damage:19,interval:7.5,radius:43,pierce:0,duration:2.5,description:'布下多个毒系矩阵，相邻矩阵合并；持续伤害并逐步禁锢区域内的敌人。'},
  {id:'dragon',name:'冰筑龙体',element:'ice',attack:'dragon',color:'#7cd6e9',damage:62,interval:2,radius:52,pierce:0,duration:0,description:'召唤机械冰龙，以利爪攻击；能量蓄满后释放冰狱坠击。'},
- {id:'pillar',name:'电极柱',element:'electric',attack:'pillar',color:'#79d5f4',damage:29,interval:5.8,radius:9,pierce:0,duration:3.5,description:'地面升起数座电极柱，依次连接；触碰电流连线的敌人持续受到电系伤害。'},
- {id:'orb',name:'多维弹球',element:'physical',attack:'orb',color:'#e0a9dd',damage:38,interval:4.8,radius:10,pierce:0,duration:8,description:'弹球在目标与墙壁间反弹；每施放6次召唤幸运弹球。选词条积攒幸运，超过21重置为1。'},
+ {id:'pillar',name:'电极柱',element:'electric',attack:'pillar',color:'#79d5f4',damage:29,interval:15,radius:9,pierce:0,duration:3.5,description:'地面升起数座电极柱，依次连接；触碰电流连线的敌人持续受到电系伤害。'},
+ {id:'orb',name:'多维弹球',element:'physical',attack:'orb',color:'#e0a9dd',damage:38,interval:8,radius:10,pierce:0,duration:8,description:'弹球在目标与墙壁间反弹；每施放6次召唤幸运弹球。选词条积攒幸运，超过21重置为1。'},
 ];
 export const skillById=Object.fromEntries(SKILLS.map(s=>[s.id,s])) as Record<SkillId,Skill>;
 /** Ordinary and fission timing from the serialized reference; quantized to 60Hz in core. */
@@ -46,9 +49,12 @@ export const SKIN_ABILITIES={
 } as const;
 export const skinAbility=(skin:SkinId)=>skin==='ranger'?null:SKIN_ABILITIES[skin];
 export type Modifier='damage'|'haste'|'count'|'radius'|'pierce'|'duration'|'burn'|'freeze'|'stun'|'bounce'|'crit'|'magazine'|'knock'|'vulnerability'|'repeat'|'size'|'speed';
-export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean;luck?:{min:number;delta:readonly [number,number]}}
+export interface Upgrade {id:string;skill:SkillId;name:string;description:string;max:number;requires:readonly [string,number][];mods:Partial<Record<Modifier,number>>;evolution?:boolean;luck?:{min:number;delta:readonly [number,number]};researchVariant?:{level:number;name:string;description:string;mods:Partial<Record<Modifier,number>>}}
 const upgrade=(id:string,skill:SkillId,name:string,description:string,mods:Upgrade['mods'],requires:Upgrade['requires']=[],max=1,evolution=false):Upgrade=>({id,skill,name,description,mods,requires,max,evolution});
 const orbUpgrade=(id:string,name:string,description:string,mods:Upgrade['mods'],min:number,delta:readonly [number,number],max=1):Upgrade=>({...upgrade('orb:'+id,'orb',name,description,mods,[],max,min===21),luck:{min,delta}});
+export function upgradeForResearch(u:Upgrade,level=0):Upgrade{
+ const variant=u.researchVariant;return variant&&level>=variant.level?{...u,name:variant.name,description:variant.description,mods:variant.mods}:u;
+}
 export const signedLuck=(value:number)=>`${value>=0?'+':''}${value}`;
 export function describeUpgrade(u:Upgrade){
  if(!u.luck)return u.description;
@@ -131,7 +137,7 @@ export const UPGRADES:readonly Upgrade[]=[
  // Signed endpoints from the independently inspected BuildConfig 1502–1521.
  // Inclusive sampling, offer-time rolls, selection gates and rank caps are
  // explicit reconstruction choices; current client dispatch is not yet verified.
- orbUpgrade('rise','升维','伤害降低10%。',{damage:-.1},0,[8,10],3),
+ {...orbUpgrade('rise','升维','伤害降低10%。',{damage:-.1},0,[8,10],3),researchVariant:{level:6,name:'升维+',description:'伤害提高10%。',mods:{damage:.1}}},
  orbUpgrade('heavy','弹球重击','体积增大，击退提高25%，伤害提高20%。',{size:.25,knock:2.5,damage:.2},0,[4,6],2),
  orbUpgrade('wall-split','弹射裂变','撞墙时分裂一枚无强化弹球。',{},0,[4,6]),
  orbUpgrade('salvo','弹球连发','释放个数+1，弹射次数-1。',{count:1,bounce:-1},0,[4,6],2),

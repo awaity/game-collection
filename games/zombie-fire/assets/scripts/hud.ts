@@ -114,6 +114,7 @@ export class BattlefieldUI {
    for(const s of SLOTS){const g=p.gear[s];rows.push({id:s,title:`${SLOT_NAMES[s]}  Lv.${g.level} · ${GRADES[g.tier]}`,detail:`强化 ${70+g.level*35} 金币 / ${2+Math.floor(g.level/3)} 零件 · 宝石 ${g.gems.filter(Boolean).length}/5`,actions:[{id:'gear:'+s,label:g.level>=30?'已满级':'强化',disabled:g.level>=30,run:()=>{a.upgradeGear(s)}},{id:'ascend:'+s,label:g.tier>=5?'已满阶':g.level<(g.tier+1)*5?'需Lv.'+(g.tier+1)*5:'升阶',disabled:g.tier>=5||g.level<(g.tier+1)*5,run:()=>{a.upgradeGear(s,true)}}]});}
    rows.push({id:'gems',title:'宝石工坊',detail:'镶嵌、卸下与三合一。',actions:[{id:'gems',label:'打开',run:()=>this.open('gems')}]},{id:'skins',title:'专属时装',detail:'选择你的防线装扮。',actions:[{id:'skins',label:'打开',run:()=>this.open('skins')}]});
   }
+  if(this.panel==='research')rows.push({id:'research-guide',title:'研究与技能分支',detail:'研究提升伤害。多维弹球达到6级后，升维由减伤10%变为增伤10%。'});
   if(this.panel==='research')for(const s of SKILLS){const level=p.research[s.id]??0;rows.push({id:s.id,title:`${s.name}  Lv.${level}`,detail:`每级增伤 4% · ${100+level*80} 金币 / ${5+level*2} 零件`,tint:s.color,actions:[{id:'research:'+s.id,label:level>=10?'已满级':'研究',disabled:level>=10,run:()=>{a.research(s.id)}}]});}
   if(this.panel==='wall')rows.push({id:'wall',title:`防线加固  Lv.${p.wall}`,detail:`每级增加 120 耐久；现有 ${a.loadout().health}。`,actions:[{id:'upgrade:wall',label:`${100+p.wall*65} 金币`,run:()=>{a.upgradeBase('wall')}}]},{id:'armor',title:'防护与维修',detail:`装备宝石提供减伤与持续维修。当前减伤 ${Math.round(a.loadout().armor*100)}%。`,actions:[{id:'wall:gems',label:'宝石',run:()=>this.open('gems')}]});
   if(this.panel==='merc')for(const m of MERCENARIES)rows.push({id:m.id,title:`${m.name} ${p.mercs[m.id]?'Lv.'+p.mercs[m.id]:'未招募'}`,detail:m.description+' 每级提高效果 18%。',actions:[{id:'merc:upgrade:'+m.id,label:p.mercs[m.id]?'升级':m.cost+'币',run:()=>{a.mercenary(m.id)}},{id:'merc:deploy:'+m.id,label:p.team.includes(m.id)?'撤下':'出战',run:()=>{a.mercenary(m.id,true)}}]});
@@ -127,7 +128,8 @@ export class BattlefieldUI {
   }
   if(this.panel==='codex'){
    if(this.codexTab==='skills'){
-    for(const s of SKILLS)rows.push({id:s.id,title:s.name,detail:s.description,tint:s.color});
+    for(const s of SKILLS)rows.push({id:s.id,title:s.name,detail:s.description+(s.id==='dragon'?' 普攻冷却2秒，坠击冷却6秒。':` 基础冷却 ${s.interval} 秒。`),tint:s.color});
+    rows.push({id:'orb-research',title:'升维研究',detail:'多维弹球研究6级后，升维强化为升维+，每次改为增伤10%；幸运增减和已选次数继续保留。',tint:skillById.orb.color});
     rows.push({id:'orb-luck',title:'弹球幸运值',detail:'卡牌显示本次幸运增减与选择后的点数。10点起出现高维词条，21点开启终极词条；超过21变为1，扣减最低到0。',tint:skillById.orb.color});
     rows.push({id:'orb-lucky',title:'幸运弹球',detail:'多维弹球每施放6次触发，额外连发和裂变不计数。准备后穿透敌人、撞墙反弹，飞行5秒；普通弹球强化不会全部传递给它。',tint:skillById.orb.color});
     rows.push({id:'orb-quality',title:'幸运弹球品质',detail:'辉银、耀紫、鎏金的基础权重为100:50:10。耀紫命中可衍生穿透光球，鎏金再追加爆炸；同一弹球的衍生效果间隔3秒。',tint:LUCKY_ORB.qualities[2].color});

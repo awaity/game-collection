@@ -25,6 +25,15 @@ test('base, gear, research, and mercenary upgrades all enter the combat loadout'
  const a=armory(),before=a.loadout();assert.equal(a.upgradeBase('weapon'),true);assert.equal(a.upgradeBase('wall'),true);assert.equal(a.upgradeGear('gloves'),true);assert.equal(a.research('thermo'),true);assert.equal(a.mercenary('storm'),true);assert.equal(a.mercenary('storm',true),true);assert.equal(a.mercenary('storm'),true);
  const after=a.loadout();assert.ok(after.damage>before.damage);assert.ok(after.health>before.health);assert.equal(after.mercenaryLevels.storm,2);assert.equal(after.research.thermo,1);assert.ok(new Battle(0,'campaign',1,after).stats('thermo').damage>new Battle().stats('thermo').damage);
 });
+test('research variant unlock is atomic, persists, and applies only to later battles',()=>{
+ let writable=true,saved:unknown;const a=new Armory(profile(),p=>{if(!writable)return false;saved=structuredClone(p);return true;},()=>today);
+ for(let n=0;n<5;n++)assert.equal(a.research('orb'),true);
+ const entered=new Battle(0,'campaign',1,a.loadout());entered.learned={orb:1};
+ const before=structuredClone(a.data);writable=false;assert.equal(a.research('orb'),false);assert.deepEqual(a.data,before);writable=true;
+ assert.equal(a.research('orb'),true);assert.equal(a.data.research.orb,6);assert.equal(a.data.coins,before.coins-500);assert.equal(a.data.scrap,before.scrap-15);
+ const restored=new Armory(saved,()=>true,()=>today),next=new Battle(0,'campaign',1,restored.loadout());next.learned={orb:1};
+ assert.equal(entered.availableCards().find(c=>c.id==='orb:rise')!.name,'升维');assert.equal(next.availableCards().find(c=>c.id==='orb:rise')!.name,'升维+');
+});
 test('equipment tiers, research caps, and locked purchases reject without losing currency',()=>{
  const a=armory();assert.equal(a.upgradeGear('weapon',true),false);assert.equal(a.data.coins,10000);for(let i=0;i<5;i++)assert.equal(a.upgradeGear('weapon'),true);assert.equal(a.upgradeGear('weapon',true),true);assert.equal(a.data.gear.weapon.tier,1);
  const p=profile();p.research.thermo=10;p.weapon=30;const capped=armory(p);assert.equal(capped.research('thermo'),false);assert.equal(capped.upgradeBase('weapon'),false);assert.equal(capped.data.coins,10000);

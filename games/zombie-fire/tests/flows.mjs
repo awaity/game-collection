@@ -132,6 +132,42 @@ export async function verify({p,native,target,viewport,state,click,advance,event
   assert.ok(complete(),`lucky effects need actual legal hits: ${JSON.stringify({qualities:[...hitQualities],lightHit,highBurst,paused})}`);
   await writeFile(`artifacts/cocos/zombie-fire/${target}-${viewport.width}-lucky.json`,JSON.stringify({verifiedAt:new Date().toISOString(),evidence,lightHit,highBurst,preparationPause:paused},null,2)+'\n');
  }
+ async function researchVariantBattle(){
+  for(let attempt=0;attempt<3;attempt++){
+   const p=(await state()).profile;if(p.coins>=1800&&p.scrap>=60)break;
+   await click('endless');await play(200000);await home();
+  }
+  await click('open:research');
+  for(let level=1;level<=6;level++){await choose('research:orb');assert.equal((await state()).profile.research.orb,level,'research is bought with normally earned resources');}
+  await fits();await capture('research-orb-six');await home();let evidence=null;
+  for(let attempt=0;attempt<8&&!evidence;attempt++){
+   await click('endless');let s=await state(),selection=null;
+   for(let n=0;n<750&&!evidence;n++){
+    if(s.battlePhase==='choice'){
+     if(!s.learned.orb&&!s.cards.some(c=>c.id==='learn:orb')&&s.rerolls>0){await click('reroll');s=await fresh();continue;}
+     const score=c=>c.id==='learn:orb'?5000:!selection&&c.id==='orb:rise'?4000:c.skill==='rifle'?1000:c.kind!=='learn'&&c.skill!=='orb'?800:c.kind==='learn'?0:100;
+     const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0],before=s;
+     if(card.id==='orb:rise'){
+      assert.equal(card.name,'升维+');assert.match(card.description,/伤害提高10%/);assert.ok(s.labels.includes('升维+'));await fits();await capture('research-rise-choice');
+     }
+     await click('choose:'+s.cards.findIndex(c=>c.id===card.id));s=await fresh();
+     if(card.id==='learn:orb')assert.equal(s.weaponStats.orb.interval,8,'the compiled base orb cooldown is eight seconds');
+     if(card.id==='orb:rise'){
+      assert.ok(s.weaponStats.orb.damage>before.weaponStats.orb.damage,'research changes the actual damage sign');
+      selection={attempt:attempt+1,research:s.profile.research.orb,beforeDamage:before.weaponStats.orb.damage,afterDamage:s.weaponStats.orb.damage,selectedAt:s.tick,luck:s.lastLuck};
+     }
+    }else if(s.battlePhase==='playing'){
+     if(native)await p.evaluate(()=>call({type:'advance',count:24}));else await p.evaluate(()=>__collectionAdvance(24));s=await fresh();
+    }else break;
+    if(!s.learned.orb&&Object.keys(s.learned).length>=5)break;
+    const ball=selection&&s.projectiles.find(p=>p.skill==='orb'&&p.source==='weapon'&&p.hits>0&&Math.abs(p.damage-selection.afterDamage)<1e-8);
+    if(ball){evidence={...selection,tick:s.tick,projectile:ball.id,hits:ball.hits,projectileDamage:ball.damage};await fits();await capture('research-rise-hit');}
+   }
+   await home();
+  }
+  assert.ok(evidence,'researched rise must be chosen visibly and produce a real projectile hit');
+  await writeFile(`artifacts/cocos/zombie-fire/${target}-${viewport.width}-research-rise.json`,JSON.stringify({verifiedAt:new Date().toISOString(),...evidence},null,2)+'\n');
+ }
  async function home(){if((await state()).panel)await click('panel-close');if((await state()).battlePhase==='choice')await click('choose:0');if((await state()).battlePhase==='playing')await click('pause');if((await state()).phase!=='menu')await click('home');}
  async function aim(){
   if((await state()).battlePhase==='choice')await click('choose:0');
@@ -168,6 +204,7 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  for(const [skin,skill]of [['ember','thermo'],['arctic','dryice'],['hazard','blade'],['arc','electro']])await outfitBattle(skin,skill);
  for(const skill of ['drone','rift','matrix','dragon','pillar','orb'])await advancedBattle(skill);
  await luckyBattle();
+ await researchVariantBattle();
  await click('open:supply');await choose('supply:gems');const gem=(await state()).profile.gems[0];await choose('gem:equip:'+gem.id);assert.equal((await state()).profile.gear.weapon.gems[0],gem.id);await fits();await capture('gems');await home();
  await click('open:quests');await choose('claim:first-victory');const claimed=(await state()).coins;await choose('claim:first-victory');assert.equal((await state()).coins,claimed);await fits();await capture('quests-earned');await home();
  await click('settings');for(const id of ['sound','motion','quality','volume'])await choose('setting:'+id);assert.equal((await state()).profile.settings.sound,false);assert.equal((await state()).profile.settings.motion,false);assert.equal((await state()).profile.settings.quality,'low');assert.equal((await state()).profile.settings.volume,1);await fits();await capture('settings');await home();
@@ -177,6 +214,6 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  if(native){const {storage}=await p.evaluate(()=>call({type:'frames',count:0}));assert.ok(storage['zombie-fire.save.v1']);await p.reload();await p.evaluate(({target,storage})=>boot('zombie-fire',target,1,storage),{target,storage});}
  else{await p.reload();await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await p.waitForFunction(()=>!document.querySelector('#collection-entrance'));}
  for(let n=0;n<150;n++){if((await fresh())?.phase==='menu')break;await p.waitForTimeout(50);}
- const restored=await state();assert.equal(restored.coins,saved.coins);assert.equal(restored.skin,'arc');assert.deepEqual(restored.profile.gear,saved.profile.gear);assert.deepEqual(restored.profile.mercs,saved.profile.mercs);assert.deepEqual(restored.profile.settings,saved.profile.settings);assert.equal(restored.profile.tutorial,true);
- return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-boundaries-preserve-target-redirects','orb-fixed-luck-preview-and-selection','lucky-three-qualities-piercing-lights-and-blasts','lucky-preparation-pause','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
+ const restored=await state();assert.equal(restored.coins,saved.coins);assert.equal(restored.skin,'arc');assert.deepEqual(restored.profile.gear,saved.profile.gear);assert.deepEqual(restored.profile.mercs,saved.profile.mercs);assert.deepEqual(restored.profile.settings,saved.profile.settings);assert.deepEqual(restored.profile.research,saved.profile.research);assert.equal(restored.profile.tutorial,true);
+ return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','research-six-replaces-rise-with-real-damage','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-boundaries-preserve-target-redirects','orb-fixed-luck-preview-and-selection','lucky-three-qualities-piercing-lights-and-blasts','lucky-preparation-pause','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
 }

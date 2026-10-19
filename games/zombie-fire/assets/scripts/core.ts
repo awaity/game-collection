@@ -1,4 +1,4 @@
-import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,ORB_MOTION,ORB_TIMING,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,type Element,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId} from './content';
+import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,ORB_MOTION,ORB_TIMING,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,upgradeForResearch,type Element,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId} from './content';
 export const DT=1/60,FIELD={halfWidth:170,height:640,wall:60},LIMITS={enemies:180,projectiles:320,fields:64,events:320,links:12,volleys:32};
 export type Mode='campaign'|'endless'|'daily';
 export type Phase='ready'|'playing'|'choice'|'paused'|'won'|'lost';
@@ -68,7 +68,7 @@ export class Battle {
  availableCards():Card[]{
   const available:Card[]=[];
   if(this.specialCount<4)for(const s of SKILLS)if(!this.learned[s.id])available.push({id:'learn:'+s.id,skill:s.id,name:s.name,description:s.description,kind:'learn',rank:1});
-  for(const u of UPGRADES)if(this.learned[u.skill]&&(this.upgrades[u.id]??0)<u.max&&u.requires.every(([id,n])=>this.rank(id)>=n)&&(!u.luck||this.orbLuck>=u.luck.min))available.push({id:u.id,skill:u.skill,name:u.name,description:describeUpgrade(u),kind:u.evolution?'evolution':'upgrade',rank:(this.upgrades[u.id]??0)+1});
+  for(const base of UPGRADES){const u=upgradeForResearch(base,this.loadout.research[base.skill]);if(this.learned[u.skill]&&(this.upgrades[u.id]??0)<u.max&&u.requires.every(([id,n])=>this.rank(id)>=n)&&(!u.luck||this.orbLuck>=u.luck.min))available.push({id:u.id,skill:u.skill,name:u.name,description:describeUpgrade(u),kind:u.evolution?'evolution':'upgrade',rank:(this.upgrades[u.id]??0)+1});}
   return available.length?available:[{id:'supply:repair',skill:'rifle',name:'战地维修',description:'修复 12% 防线耐久。',kind:'supply',rank:1},{id:'supply:power',skill:'rifle',name:'火力储备',description:'所有武器伤害增加 5%。',kind:'supply',rank:1},{id:'supply:reload',skill:'rifle',name:'紧急装填',description:'立即装满弹匣并重置武器冷却。',kind:'supply',rank:1}];
  }
  private offer(){
@@ -79,8 +79,8 @@ export class Battle {
   // Resolve only the visible cards. Reading the catalogue/snapshot cannot reroll
   // luck, and selection applies exactly the value already shown to the player.
   this.cards=chosen.map(card=>{
-   const def=upgradeById[card.id];if(!def?.luck)return card;
-   const [min,max]=def.luck.delta,luckChange=min+Math.floor(this.random()*(max-min+1));
+   const base=upgradeById[card.id];if(!base?.luck)return card;const def=upgradeForResearch(base,this.loadout.research[base.skill]);
+   const [min,max]=base.luck.delta,luckChange=min+Math.floor(this.random()*(max-min+1));
    return {...card,description:def.description,luckChange,luckAfter:nextLuck(this.orbLuck,luckChange)};
   });this.phase='choice';this.event('level');
  }
@@ -102,7 +102,7 @@ export class Battle {
  private checkLevel(){if(this.phase==='playing'&&this.xp>=this.xpNeeded){this.xp-=this.xpNeeded;this.level++;this.offer();}}
  stats(id:SkillId):Stats{
   const s=skillById[id],mods:Record<Modifier,number>={damage:0,haste:0,count:0,radius:0,pierce:0,duration:0,burn:0,freeze:0,stun:0,bounce:0,crit:0,magazine:0,knock:0,vulnerability:0,repeat:0,size:0,speed:0};
-  for(const u of UPGRADES)if(u.skill===id&&this.upgrades[u.id])for(const [key,value]of Object.entries(u.mods))mods[key as Modifier]+=(value??0)*this.upgrades[u.id];
+  for(const u of UPGRADES)if(u.skill===id&&this.upgrades[u.id])for(const [key,value]of Object.entries(upgradeForResearch(u,this.loadout.research[id]).mods))mods[key as Modifier]+=(value??0)*this.upgrades[u.id];
   return {damage:s.damage*Math.max(.1,1+mods.damage+(this.upgrades['global:power']??0)*.05+(this.loadout.research[id]??0)*.04)*this.loadout.damage,interval:s.interval*Math.max(.24,1-mods.haste)/this.loadout.haste,count:1+mods.count,radius:(s.radius+mods.radius)*Math.max(.25,1+mods.size),pierce:s.pierce+mods.pierce,duration:s.duration+mods.duration,burn:mods.burn,freeze:(id==='frost'?.7:0)+mods.freeze,stun:(id==='electro'?.6:0)+mods.stun,bounce:Math.max(0,(id==='orb'?ORB_MOTION.targetRebounds:id==='electron'?4:0)+mods.bounce),crit:Math.min(.85,this.loadout.crit+mods.crit),magazine:12+mods.magazine+(this.dailyRule?.ammo??0),knock:(id==='thermo'?20:id==='dryice'?7:id==='vehicle'?12:id==='orb'?10:0)+mods.knock,vulnerability:mods.vulnerability,repeat:mods.repeat,speed:1+mods.speed};
  }
  private nextWave(){this.wave++;this.waveTime=0;this.spawnClock=.25;this.spawned=0;this.waveQuota=12+Math.min(72,Math.floor(this.stage*.6)+this.wave*3);this.bossSpawned=false;this.event('wave',0,400,{value:this.wave});}
@@ -438,7 +438,7 @@ export class Battle {
   if(this.learned.dragon)this.stepDragon();
   for(const s of SKILLS)if(this.learned[s.id]&&s.id!=='dragon'){
    this.cooldowns[s.id]=Math.max(0,(this.cooldowns[s.id]??0)-DT);
-   if(this.cooldowns[s.id]!>0||!this.target()||(s.id==='rifle'&&this.reload>0))continue;
+   if(this.cooldowns[s.id]!>1e-8||!this.target()||(s.id==='rifle'&&this.reload>0))continue;
    if(s.id==='rifle'&&this.ammo<=0){this.reload=1.45/this.loadout.haste;this.ammo=this.stats('rifle').magazine;this.event('reload');continue;}
    this.fire(s.id);this.cooldowns[s.id]=this.stats(s.id).interval;if(s.id==='rifle')this.ammo--;
   }
@@ -495,5 +495,5 @@ export class Battle {
   }
   this.checkLevel();
  }
- snapshot(){return {phase:this.phase,mode:this.mode,seed:this.seed,dailyRule:this.dailyRule?.id??null,priority:this.priority,stage:this.stage,map:this.mapIndex,tick:this.tick,time:this.time,wave:this.wave,maxWaves:Number.isFinite(this.maxWaves)?this.maxWaves:null,hp:Math.ceil(this.hp),maxHp:this.maxHp,level:this.level,xp:this.xp,xpNeeded:this.xpNeeded,kills:this.kills,bossKills:this.bossKills,damage:Math.round(this.damageDone),damageTaken:Math.round(this.damageTaken),ammo:this.ammo,reload:this.reload,learned:{...this.learned},upgrades:{...this.upgrades},cards:this.cards.map(c=>({...c})),rerolls:this.rerolls,skin:this.loadout.skin,skinProgress:this.skinProgress,orbLuck:this.orbLuck,luckyProgress:this.luckyProgress,lastLuck:this.lastLuck?{...this.lastLuck}:null,pendingVolleys:this.orbVolleys.length,dragon:this.dragon?{...this.dragon}:null,links:this.links.map(l=>({...l,ids:[...l.ids],damage:{...l.damage}})),counts:{enemies:this.enemies.length,projectiles:this.projectiles.length,fields:this.fields.length,links:this.links.length},fields:this.fields.map(f=>({id:f.id,skill:f.skill,x:f.x,y:f.y,radius:f.radius,life:f.life,delay:f.delay,variant:f.variant,merged:f.merged,pulse:f.pulse,hits:f.hits,nodes:f.nodes?.map(p=>({...p}))})),projectiles:this.projectiles.map(p=>({id:p.id,skill:p.skill,x:p.x,y:p.y,rebounds:p.rebounds,wallRebounds:p.wallRebounds,remaining:p.remaining,hits:p.hits.length,small:p.source==='secondary',source:p.source,quality:p.quality,prepare:p.prepare,life:p.life,radius:p.radius,damage:p.damage})),enemies:this.enemies.map(e=>({id:e.id,kind:e.kind,x:Math.round(e.x),y:Math.round(e.y),hp:Math.ceil(e.hp),shield:Math.ceil(e.shield),freeze:e.freeze,stun:e.stun,burn:e.burn,slow:e.slow,root:e.root,bind:e.bind,haste:e.haste,hinder:e.hinder,orbSlow:e.orbSlow,fractures:e.fractures,warning:e.warning})),randomState:this.randomState};}
+ snapshot(){return {phase:this.phase,mode:this.mode,seed:this.seed,dailyRule:this.dailyRule?.id??null,priority:this.priority,stage:this.stage,map:this.mapIndex,tick:this.tick,time:this.time,wave:this.wave,maxWaves:Number.isFinite(this.maxWaves)?this.maxWaves:null,hp:Math.ceil(this.hp),maxHp:this.maxHp,level:this.level,xp:this.xp,xpNeeded:this.xpNeeded,kills:this.kills,bossKills:this.bossKills,damage:Math.round(this.damageDone),damageTaken:Math.round(this.damageTaken),ammo:this.ammo,reload:this.reload,learned:{...this.learned},weaponStats:Object.fromEntries(Object.keys(this.learned).map(id=>[id,this.stats(id as SkillId)])),upgrades:{...this.upgrades},cards:this.cards.map(c=>({...c})),rerolls:this.rerolls,skin:this.loadout.skin,skinProgress:this.skinProgress,orbLuck:this.orbLuck,luckyProgress:this.luckyProgress,lastLuck:this.lastLuck?{...this.lastLuck}:null,pendingVolleys:this.orbVolleys.length,dragon:this.dragon?{...this.dragon}:null,links:this.links.map(l=>({...l,ids:[...l.ids],damage:{...l.damage}})),counts:{enemies:this.enemies.length,projectiles:this.projectiles.length,fields:this.fields.length,links:this.links.length},fields:this.fields.map(f=>({id:f.id,skill:f.skill,x:f.x,y:f.y,radius:f.radius,life:f.life,delay:f.delay,variant:f.variant,merged:f.merged,pulse:f.pulse,hits:f.hits,nodes:f.nodes?.map(p=>({...p}))})),projectiles:this.projectiles.map(p=>({id:p.id,skill:p.skill,x:p.x,y:p.y,rebounds:p.rebounds,wallRebounds:p.wallRebounds,remaining:p.remaining,hits:p.hits.length,small:p.source==='secondary',source:p.source,quality:p.quality,prepare:p.prepare,life:p.life,radius:p.radius,damage:p.damage})),enemies:this.enemies.map(e=>({id:e.id,kind:e.kind,x:Math.round(e.x),y:Math.round(e.y),hp:Math.ceil(e.hp),shield:Math.ceil(e.shield),freeze:e.freeze,stun:e.stun,burn:e.burn,slow:e.slow,root:e.root,bind:e.bind,haste:e.haste,hinder:e.hinder,orbSlow:e.orbSlow,fractures:e.fractures,warning:e.warning})),randomState:this.randomState};}
 }

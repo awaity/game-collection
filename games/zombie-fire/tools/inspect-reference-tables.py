@@ -343,7 +343,7 @@ def inspect(directory: Path) -> dict:
     buff_attrs = read_variable(tables["BuffAttrConfig"], buff_attr_row, lambda r: (r["id"], r["rank"]))
     skill_attrs = read_skill_attributes(tables["BuffFuncSkillAttrConfig"])
     selected = {}
-    for key in [*range(1401, 1421), *range(1501, 1526), 1553, *range(1560, 1564)]:
+    for key in [*range(1401, 1421), *range(1501, 1530), 1532, *range(1549, 1555), *range(1560, 1564)]:
         row = builds[key]
         require(row["complete"], f"Build {key}: incomplete payload")
         require(row["title"] in texts and row["description"] in texts, f"Build {key}: unresolved text")
@@ -370,6 +370,16 @@ def inspect(directory: Path) -> dict:
                                  "baseField17DisplayComparisons": cooldown_comparisons},
         "selectedSkillLevels": [r for r in levels if r["level"] == 1 or
                                 r["skill"] in (14000, 15000, 18000) and r["descriptionAt16"]],
+        "researchComparisons": {
+            "orbRiseGroups": [g for g in groups if g["build"] in (1504, 1525)],
+            "orbRiseAttributes": [r for r in skill_attrs if r["id"] in (15041, 15251)],
+            "orbLevel31Buff": [r for r in buff_attrs if r["id"] == 152911],
+            "orbReplacementRows": [list(struct.unpack(">7I", raw)) for raw in replacements
+                                   if any(1501 <= n <= 1563 for n in struct.unpack(">7I", raw))],
+            "limits": ["Group 310000 lacks the positive level-6 tuple on build 1525; its mode is unresolved.",
+                       "Research level 31 says 45% chance; build 1529 says hits on stunned targets. Neither text alone proves dispatch.",
+                       "Replacement build 1532 is a different rise variant from research build 1525."],
+        },
         "selectedGroups": [g for g in groups if g["group"] in (1014, 1015, 2002)],
         "selectedWeights": [list(struct.unpack(">21I", raw)) for raw in weights
                             if struct.unpack_from(">I", raw)[0] == 2002],

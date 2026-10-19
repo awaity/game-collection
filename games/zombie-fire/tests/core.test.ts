@@ -22,6 +22,7 @@ function legalSession(seed=71,mode:'campaign'|'endless'|'daily'='campaign'){
 test('fixed-step runs are deterministic and exposed snapshots do not mutate rules',()=>{
  const a=legalSession(),b=legalSession();a.play(12000);b.play(12000);assert.deepEqual(a.battle.snapshot(),b.battle.snapshot());
  const copy=a.battle.snapshot();copy.learned.rifle=99;copy.upgrades.fake=99;assert.notEqual(a.battle.learned.rifle,99);assert.equal(a.battle.upgrades.fake,undefined);
+ copy.weaponStats.rifle.damage=999;assert.notEqual(a.battle.stats('rifle').damage,999);
 });
 test('choice and pause stop combat; invalid choices, extra rerolls, locked evolutions are rejected',()=>{
  const b=new Battle();b.start();assert.equal(b.phase,'choice');const before=b.snapshot();stepsNoChoice(b,60);assert.deepEqual(b.snapshot(),before);
@@ -43,6 +44,30 @@ test('bullets travel before damage, swept collision catches hits and penetration
 });
 test('every weapon produces actual damage with bounded live objects',()=>{
  for(const s of SKILLS){const b=arena(s.id,{...defaultLoadout(),crit:0});b.enemies=[enemy('brute',{hp:100000,maxHp:100000})];steps(b,700);assert.ok(b.damageDone>0,`${s.id} never damaged an enemy`);assert.ok(b.projectiles.length<=LIMITS.projectiles);assert.ok(b.fields.length<=LIMITS.fields);assert.ok(b.events.length<=LIMITS.events);}
+});
+test('reference cooldowns govern actual orb, laser and vehicle casts across pause',()=>{
+ for(const [skill,period]of [['orb',8],['guided',10.3],['vehicle',17.4]] as const){
+  const b=arena(skill,{...defaultLoadout(),crit:0});b.enemies=[enemy('brute',{hp:1000000,maxHp:1000000})];b.step();
+  const ids=()=>[...b.projectiles,...b.fields].filter(p=>p.skill===skill).map(p=>p.id),first=ids();assert.ok(first.length>0);
+  const frames=Math.round(period/DT);stepsNoChoice(b,frames-1);assert.ok(ids().every(id=>first.includes(id)),'no next cast before the configured period');
+  b.pause();const paused=b.snapshot();stepsNoChoice(b,600);assert.deepEqual(b.snapshot(),paused);b.resume();b.step();
+  assert.ok(ids().some(id=>!first.includes(id)),skill+' casts on the first eligible fixed frame');assert.equal(b.stats(skill).interval,period);
+ }
+});
+test('sixth orb research replaces rise damage and the visible card without mutating shared definitions',()=>{
+ for(const level of [5,6,10]){
+  const loadout={...defaultLoadout(),crit:0,research:{orb:level}},b=arena('orb',loadout),card=b.availableCards().find(c=>c.id==='orb:rise')!;
+  const variant=level>=6;assert.equal(card.name,variant?'升维+':'升维');assert.ok(card.description.includes(variant?'伤害提高10%':'伤害降低10%'));
+  b.phase='choice';b.cards=[{...card,luckChange:8,luckAfter:8}];assert.equal(b.choose(card.id),true);assert.equal(b.orbLuck,8);
+  loadout.research.orb=0;assert.equal(b.loadout.research.orb,level,'battle captures research when entering');
+  b.enemies=[enemy('walker',{hp:10000,maxHp:10000})];b.step();b.learned={};
+  const expected=38*(1+level*.04+(variant?.1:-.1));assert.ok(Math.abs(b.projectiles[0].damage-expected)<1e-8);until(b,()=>b.damageDone>0,180);assert.ok(Math.abs(b.damageDone-expected)<1e-8);
+ }
+ const base=arena('orb').availableCards().find(c=>c.id==='orb:rise')!;assert.equal(base.name,'升维');assert.match(base.description,/伤害降低10%/);
+});
+test('airdrop direct explosions use physical resistance, independently of later burning upgrades',()=>{
+ const hit=(kind:EnemyId)=>{const b=arena('airdrop',{...defaultLoadout(),crit:0});b.enemies=[enemy(kind,{hp:10000,maxHp:10000})];stepsNoChoice(b,75);return b.damageDone;};
+ assert.equal(hit('walker'),130);assert.equal(hit('fireguard'),130);assert.ok(Math.abs(hit('armor')-130*.35)<1e-8);
 });
 test('shields absorb first and armored enemies resist physical shots',()=>{
  const b=arena('rifle',{...defaultLoadout(),crit:0});b.enemies=[enemy('shield',{hp:1000,maxHp:1000,shield:1000})];steps(b,40);assert.equal(b.enemies[0].hp,1000);assert.ok(b.enemies[0].shield<1000);assert.ok(b.damageDone<28*2);
@@ -378,9 +403,9 @@ function luckyCast(seed=41,upgrades:Record<string,number>={}){
 }
 test('lucky balls count cooldown casts, not simultaneous shots, delayed volleys or fission',()=>{
  const b=arena('orb',{...defaultLoadout(),crit:0});b.upgrades={'orb:repeat':1,'orb:salvo':1,'orb:split':1};b.enemies=[enemy('butcher',{age:30,hp:1000000,maxHp:1000000})];
- until(b,()=>b.luckyProgress.casts===5,1800);assert.equal(b.luckyProgress.triggers,0);assert.equal(b.luckyProgress.charge,5);assert.ok(b.shots>b.luckyProgress.casts*2);
+ until(b,()=>b.luckyProgress.casts===5,1921);assert.equal(b.tick,1921);assert.equal(b.luckyProgress.triggers,0);assert.equal(b.luckyProgress.charge,5);assert.ok(b.shots>b.luckyProgress.casts*2);
  b.pause();const paused=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),paused);b.resume();
- until(b,()=>b.luckyProgress.triggers===1,400);assert.equal(b.luckyProgress.casts,6);assert.equal(b.luckyProgress.charge,0);
+ stepsNoChoice(b,479);assert.equal(b.luckyProgress.triggers,0);b.step();assert.equal(b.tick,2401);assert.equal(b.luckyProgress.triggers,1);assert.equal(b.luckyProgress.casts,6);assert.equal(b.luckyProgress.charge,0);
  assert.equal(b.projectiles.filter(p=>p.source==='lucky').length,1);const copy=b.snapshot();copy.luckyProgress.charge=999;assert.equal(b.luckyProgress.charge,0);
 });
 test('three lucky qualities replay deterministically, and ordinary card bonuses do not leak into them',()=>{
