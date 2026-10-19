@@ -17,7 +17,8 @@
     "build:mini": "pnpm build:weixin && pnpm build:douyin",
     "typecheck": "tsc --noEmit",
     "test": "pnpm typecheck && tsx --test tests/*.test.ts",
-    "verify:mini": "node ../../packages/build-tools/src/cocos-verify.mjs"
+    "verify:mini": "node ../../packages/build-tools/src/cocos-verify.mjs",
+    "reference:inspect": "python3 tools/inspect-reference-tables.py"
   },
   "devDependencies": {
     "@game-collection/build-tools": "workspace:*",
