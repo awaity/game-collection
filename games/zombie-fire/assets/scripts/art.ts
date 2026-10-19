@@ -1,7 +1,7 @@
 import {Graphics,Node,Layers,UITransform,LabelOutline,Mask} from 'cc';
 import {GameView,color} from 'db://assets/collection/runtime';
 import {Battle,FIELD,type Fx} from './core';
-import {enemyById,skillById} from './content';
+import {LUCKY_ORB,enemyById,skillById} from './content';
 import {drawSoldier,drawDrone,drawDragon} from './illustration';
 import {InfectedPainter} from './infected';
 type Flash=Fx&{age:number};
@@ -109,6 +109,22 @@ export class BattlefieldArt {
   for(const p of b.projectiles){const a=this.point(p.px,p.py),q=this.point(p.x,p.y);
    if(p.skill==='drone'){drawDrone(g,q.x,q.y,p.radius*this.width/360,motion?b.time:0);continue;}
    if(p.skill==='orb'){
+    if(p.quality){
+     const tint=LUCKY_ORB.qualities.find(v=>v.id===p.quality)!.color,r=Math.max(4,p.radius*this.width/360),preparing=(p.prepare??0)>1e-8,light=p.source==='lucky-light';
+     if(preparing){
+      this.poly([[q.x-r-4,q.y-r],[q.x-r-4,q.y+6],[q.x+r+4,q.y+6],[q.x+r+4,q.y-r]],'#28333e',tint,1.5);
+      const fill=1-p.prepare!/LUCKY_ORB.prepare;this.ellipse(q.x,q.y+8,r*.6,r*.6,tint+'55');
+      this.line([[q.x-r,q.y-r-5],[q.x-r+2*r*fill,q.y-r-5]],tint,3);
+      if(motion&&quality==='high')for(let n=0;n<3;n++){const angle=b.time*3+n*Math.PI*2/3;this.ellipse(q.x+Math.cos(angle)*r,q.y+8+Math.sin(angle)*r,2,2,tint);}continue;
+     }
+     if(motion){const speed=Math.hypot(p.vx,p.vy)||1,t=this.point(p.x-p.vx/speed*(light?18:30),p.y-p.vy/speed*(light?18:30));this.line([[t.x,t.y],[q.x,q.y]],tint+'66',r);}
+     this.ellipse(q.x,q.y,r+2,r+2,'#25313e');this.ellipse(q.x,q.y,r,r,tint);this.ellipse(q.x-r*.2,q.y+r*.2,r*.45,r*.45,'#fff5d9');
+     if(!light){
+      const bands=p.quality==='low'?1:2;for(let n=0;n<bands;n++){g.strokeColor=color('#536078');g.lineWidth=1.5;g.ellipse(q.x,q.y,r*.84,r*(n?.7:.3));g.stroke();}
+      if(p.quality==='high')for(let n=0;n<4;n++){const angle=n*Math.PI/2+(motion?b.time:0);this.line([[q.x+Math.cos(angle)*r,q.y+Math.sin(angle)*r],[q.x+Math.cos(angle)*(r+5),q.y+Math.sin(angle)*(r+5)]],tint,2);}
+      if(quality==='high'){g.strokeColor=color(tint+'66');g.lineWidth=1;g.circle(q.x,q.y,r+5);g.stroke();}
+     }continue;
+    }
     const r=Math.max(3,p.radius*this.width/360),c=p.source==='secondary'?'#b9b1c9':'#e0a9dd';
     if(motion){const speed=Math.hypot(p.vx,p.vy)||1,t=this.point(p.x-p.vx/speed*24,p.y-p.vy/speed*24);this.line([[t.x,t.y],[q.x,q.y]],c+'65',r);}
     this.ellipse(q.x,q.y,r+1,r+1,'#333346');this.ellipse(q.x,q.y,r,r,c);
@@ -121,7 +137,7 @@ export class BattlefieldArt {
   }
   for(const e of events)this.flashes.push({...e,age:0});this.flashes=this.flashes.slice(quality==='low'?-32:-90).filter(f=>f.age<.6);
   let label=0;
-  for(const f of this.flashes){f.age+=delta;const p=this.point(f.x,f.y),q=this.point(f.tx??f.x,f.ty??f.y),alpha=Math.round(Math.max(0,1-f.age/.6)*255).toString(16).padStart(2,'0'),tint=f.skill?skillById[f.skill].color:'#f6cf7c';
+  for(const f of this.flashes){f.age+=delta;const p=this.point(f.x,f.y),q=this.point(f.tx??f.x,f.ty??f.y),alpha=Math.round(Math.max(0,1-f.age/.6)*255).toString(16).padStart(2,'0'),tint=f.quality?LUCKY_ORB.qualities.find(q=>q.id===f.quality)!.color:f.skill?skillById[f.skill].color:'#f6cf7c';
    if(f.type==='beam'||f.type==='chain'){
     const electric=f.type==='chain'||f.skill==='electro',dx=q.x-p.x,dy=q.y-p.y;
     const points=electric?Array.from({length:9},(_,n)=>{const off=n===0||n===8?0:Math.sin(n*12+f.id)*.035;return [p.x+dx*n/8+dy*off,p.y+dy*n/8-dx*off];}):[[p.x,p.y],[q.x,q.y]];

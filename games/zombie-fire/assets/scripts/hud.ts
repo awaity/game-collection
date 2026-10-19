@@ -1,7 +1,7 @@
 import {Graphics,UITransform} from 'cc';
 import {GameView,color} from 'db://assets/collection/runtime';
 import {Session} from './session';
-import {DAILY_RULES,ENEMIES,MAPS,SKILLS,STAGES,UPGRADES,describeUpgrade,signedLuck,skinAbility,skillById,upgradeById} from './content';
+import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,SKILLS,STAGES,UPGRADES,describeUpgrade,signedLuck,skinAbility,skillById,upgradeById} from './content';
 import {daySeed,GEM_TYPES,GRADES,MERCENARIES,QUESTS,SKINS,SLOTS,SLOT_NAMES,type Slot} from './profile';
 import type {Mode} from './core';
 import {skillIcon} from './icons';
@@ -54,7 +54,8 @@ export class BattlefieldUI {
   else if(b.skinProgress){const s=b.skinProgress;this.text('skin:charge',`${s.name} ${s.hits}/${s.threshold} · 已触发 ${s.triggers} 次`,0,bottom+6,11,skillById[s.skill].color,w);}
   const learned=Object.entries(b.learned),skillX=Math.min(480,this.ui.width-84)/2+12,spacing=Math.min(67,(top-bottom-98)/Math.max(1,learned.length));
   learned.forEach(([id,rank],i)=>{const y=top-91-i*spacing,size=Math.min(42,spacing-17);this.icon('skill:icon'+i,id as SkillId,skillX,y,size);const caption=id==='orb'?`幸${b.orbLuck}/21`:id==='dragon'&&b.dragon?`${Math.floor(b.dragon.energy)}/${b.dragon.maxEnergy}`:'Lv.'+rank;this.text('skill:'+i,caption,skillX,y-size/2-8,10,skillById[id as SkillId].color,56);});
-  if(b.time<12&&b.phase==='playing')this.text('aim:hint','自动射击 · 轻触敌人可优先集火',0,bottom+55,11,paper,Math.min(350,w-24));
+  if(b.learned.orb){const progress=b.luckyProgress,quality=LUCKY_ORB.qualities.find(q=>q.id===progress.quality);this.text('orb:charge',`幸运弹球 ${progress.charge}/${progress.required}${quality?' · 上次'+quality.name:''}`,0,bottom+55,11,quality?.color??skillById.orb.color,Math.min(350,w-24));}
+  if(b.time<12&&b.phase==='playing')this.text('aim:hint','自动射击 · 轻触敌人可优先集火',0,bottom+(b.learned.orb?77:55),11,paper,Math.min(350,w-24));
   if(b.phase==='choice')this.choices();
   if(b.phase==='paused'){
    this.ui.panel('pause:shade',0,0,this.ui.width,this.ui.height,'#24333de9');this.text('pause:title','战线暂歇',0,105,30,paper,w,true);this.text('pause:detail','返回后可继续当前战斗',0,65,14,'#bdc9c4',w);
@@ -125,6 +126,8 @@ export class BattlefieldUI {
    if(this.codexTab==='skills'){
     for(const s of SKILLS)rows.push({id:s.id,title:s.name,detail:s.description,tint:s.color});
     rows.push({id:'orb-luck',title:'弹球幸运值',detail:'卡牌显示本次幸运增减与选择后的点数。10点起出现高维词条，21点开启终极词条；超过21变为1，扣减最低到0。',tint:skillById.orb.color});
+    rows.push({id:'orb-lucky',title:'幸运弹球',detail:'多维弹球每施放6次触发，额外连发和裂变不计数。准备后穿透敌人、撞墙反弹，飞行5秒；普通弹球强化不会全部传递给它。',tint:skillById.orb.color});
+    rows.push({id:'orb-quality',title:'幸运弹球品质',detail:'辉银、耀紫、鎏金的基础权重为100:50:10。耀紫命中可衍生穿透光球，鎏金再追加爆炸；同一弹球的衍生效果间隔3秒。',tint:LUCKY_ORB.qualities[2].color});
    }
    if(this.codexTab==='evolutions')for(const u of UPGRADES.filter(u=>u.evolution))rows.push({id:u.id,title:'进化 · '+u.name,detail:u.luck?`需要多维弹球幸运值 ${u.luck.min} 点。${describeUpgrade(u)}`:'需要 '+u.requires.map(([id,rank])=>(upgradeById[id]?.name??skillById[id as SkillId]?.name??id)+' '+rank+'级').join(' + '),tint:skillById[u.skill].color});
    if(this.codexTab==='outfits'){

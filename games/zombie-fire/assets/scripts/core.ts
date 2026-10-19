@@ -1,16 +1,16 @@
-import {DAILY_RULES,ENEMIES,MAPS,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,type Element,type EnemyId,type Modifier,type SkillId,type SkinId} from './content';
+import {DAILY_RULES,ENEMIES,LUCKY_ORB,MAPS,SKILLS,SKIN_ABILITIES,STAGES,UPGRADES,describeUpgrade,enemyById,skinAbility,skillById,upgradeById,type Element,type EnemyId,type Modifier,type OrbQuality,type SkillId,type SkinId} from './content';
 export const DT=1/60,FIELD={halfWidth:170,height:640,wall:60},LIMITS={enemies:180,projectiles:320,fields:64,events:320,links:12,volleys:32};
 export type Mode='campaign'|'endless'|'daily';
 export type Phase='ready'|'playing'|'choice'|'paused'|'won'|'lost';
 export interface Loadout {damage:number;haste:number;health:number;crit:number;armor:number;repair:number;research:Partial<Record<SkillId,number>>;mercenaries:string[];mercenaryLevels:Record<string,number>;skin:SkinId}
 export const defaultLoadout=():Loadout=>({damage:1,haste:1,health:1000,crit:.05,armor:0,repair:0,research:{},mercenaries:[],mercenaryLevels:{},skin:'ranger'});
 export interface Enemy {id:number;kind:EnemyId;x:number;y:number;hp:number;maxHp:number;shield:number;speed:number;haste:number;hinder:number;radius:number;attack:number;ability:number;warning:number;burn:number;burnPower:number;freeze:number;stun:number;slow:number;root:number;bind:number;wound:number;vulnerable:number;orbSlow:number;orbSlowPower:number;fractures:number;fractureTime:number;age:number;child:boolean}
-type AttackSource='weapon'|'mercenary'|'skin'|'secondary';
-export interface Projectile {id:number;skill:SkillId;x:number;y:number;px:number;py:number;vx:number;vy:number;radius:number;splash:number;damage:number;remaining:number;hits:number[];life:number;mods:Stats;source?:AttackSource;rebounds?:number;hitTimes?:Record<number,number>}
+type AttackSource='weapon'|'mercenary'|'skin'|'secondary'|'lucky'|'lucky-light';
+export interface Projectile {id:number;skill:SkillId;x:number;y:number;px:number;py:number;vx:number;vy:number;radius:number;splash:number;damage:number;remaining:number;hits:number[];life:number;mods:Stats;source?:AttackSource;rebounds?:number;hitTimes?:Record<number,number>;quality?:OrbQuality;prepare?:number;deriveAt?:number;wallBlast?:boolean;wallBlastAt?:number}
 export interface Field {id:number;skill:SkillId;x:number;y:number;radius:number;life:number;total:number;tick:number;vy:number;delay:number;damage:number;mods:Stats;target?:number;source?:AttackSource;variant?:'plasma'|'ice-storm'|'dragon-slam';pulse?:number;merged?:number;linked?:boolean;nodes?:{x:number;y:number}[];hits?:number}
 export interface Dragon {x:number;y:number;energy:number;maxEnergy:number;hearts:number;attack:number;cooldown:number;animation:number;slams:number}
 export interface QuantumLink {ids:number[];damage:Record<number,number>;life:number;spent:boolean}
-export interface Fx {id:number;type:'shot'|'hit'|'burst'|'beam'|'chain'|'death'|'wall'|'wave'|'level'|'win'|'lose'|'reload';x:number;y:number;tx?:number;ty?:number;skill?:SkillId;value?:number;crit?:boolean}
+export interface Fx {id:number;type:'shot'|'hit'|'burst'|'beam'|'chain'|'death'|'wall'|'wave'|'level'|'win'|'lose'|'reload';x:number;y:number;tx?:number;ty?:number;skill?:SkillId;value?:number;crit?:boolean;quality?:OrbQuality}
 export interface Stats {damage:number;interval:number;count:number;radius:number;pierce:number;duration:number;burn:number;freeze:number;stun:number;bounce:number;crit:number;magazine:number;knock:number;vulnerability:number;repeat:number;speed:number}
 export interface Card {id:string;skill:SkillId;name:string;description:string;kind:'learn'|'upgrade'|'evolution'|'supply';rank:number;luckChange?:number;luckAfter?:number}
 const clamp=(n:number,min:number,max:number)=>Math.max(min,Math.min(max,n));
@@ -29,6 +29,7 @@ export class Battle {
  dragon:Dragon|null=null;links:QuantumLink[]=[];
  orbLuck=0;lastLuck:{before:number;change:number;after:number;overflow:boolean}|null=null;
  private orbVolleys:{delay:number;mods:Stats}[]=[];
+ private orbCasts=0;private luckyCharge=0;private luckyTriggers=0;private luckySpawned=0;private luckyHits=0;private luckyLights=0;private luckyBursts=0;private luckyWallBursts=0;private luckyQuality:OrbQuality|null=null;
  private skinHits=0;private skinTriggers=0;private skinTargetHits=new Map<number,number>();
  private skinQueue:{x:number;y:number;damage:number}[]=[];
  private randomState:number;private serial=0;private eventSerial=0;private mercClock=0;private repairClock=0;private bossSpawned=false;
@@ -46,6 +47,7 @@ export class Battle {
  get maxWaves(){return this.mode==='endless'?Infinity:this.mode==='daily'?10:STAGES[this.stage].waves;}
  get xpNeeded(){return 5+(this.level-1)*3;}
  get specialCount(){return Object.keys(this.learned).filter(k=>k!=='rifle').length;}
+ get luckyProgress(){return {casts:this.orbCasts,charge:this.luckyCharge,required:LUCKY_ORB.casts-(this.upgrades['orb:destroy']?1:0),triggers:this.luckyTriggers,spawned:this.luckySpawned,hits:this.luckyHits,lights:this.luckyLights,bursts:this.luckyBursts,hitBursts:this.luckyBursts-this.luckyWallBursts,wallBursts:this.luckyWallBursts,quality:this.luckyQuality};}
  get skinProgress(){const ability=skinAbility(this.loadout.skin);return ability?{name:ability.name,skill:ability.skill,hits:this.loadout.skin==='arc'?Math.max(0,...Array.from(this.skinTargetHits.values())):this.skinHits,threshold:ability.hits,triggers:this.skinTriggers,targets:this.skinTargetHits.size}:null;}
  isEnraged(e:Enemy){return e.age>=(enemyById[e.kind].boss?25:this.mode==='endless'?45:Infinity);}
  private random(){let x=this.randomState;x^=x<<13;x^=x>>>17;x^=x<<5;this.randomState=x>>>0;return this.randomState/4294967296;}
@@ -174,11 +176,66 @@ export class Battle {
   }
  }
  private launchOrbs(mods:Stats){
-  const used:number[]=[];
+  const used:number[]=[];let fired=0;
   for(let n=0;n<mods.count&&this.projectiles.length<LIMITS.projectiles;n++){
    const target=this.target(used)??this.target();if(!target)break;used.push(target.id);
    const x=(n-(mods.count-1)/2)*16,y=FIELD.wall+mods.radius,angle=Math.atan2(target.y-y,target.x-x);
-   this.addOrb(x,y,angle,mods,false);this.shots++;this.event('shot',x,y,{skill:'orb',tx:target.x,ty:target.y});
+   this.addOrb(x,y,angle,mods,false);this.shots++;fired++;this.event('shot',x,y,{skill:'orb',tx:target.x,ty:target.y});
+  }
+  return fired;
+ }
+ private luckyStats(){
+  // Ordinary orb-card bonuses target 15011/15221, not lucky bullets or their derivatives.
+  const base=skillById.orb.damage*(1+(this.upgrades['global:power']??0)*.05+(this.loadout.research.orb??0)*.04)*this.loadout.damage;
+  return {...this.stats('orb'),damage:base,crit:this.loadout.crit,knock:0,burn:0,freeze:0,stun:0,vulnerability:0};
+ }
+ private launchLucky(){
+  const required=this.luckyProgress.required;
+  if(this.luckyCharge<required||this.projectiles.length>=LIMITS.projectiles)return;
+  const target=this.target();if(!target)return;
+  const defs=LUCKY_ORB.qualities;let roll=this.random()*defs.reduce((n,q)=>n+q.weight,0),index=0;
+  while(index<defs.length-1&&roll>=defs[index].weight)roll-=defs[index++].weight;
+  const quality=defs[index],base=this.luckyStats(),count=1+(this.upgrades['orb:tide']?1:0),radius=quality.radius*(this.upgrades['orb:ultimate']?1.15:1);
+  this.luckyCharge-=required;this.luckyTriggers++;this.luckyQuality=quality.id;
+  for(let n=0;n<count&&this.projectiles.length<LIMITS.projectiles;n++){
+   const x=(n-(count-1)/2)*radius*2.2,y=FIELD.wall+radius,angle=Math.atan2(target.y-y,target.x-x),mods={...base,damage:base.damage*5,radius,count:1};
+   this.projectiles.push({id:++this.serial,skill:'orb',source:'lucky',quality:quality.id,prepare:LUCKY_ORB.prepare,x,y,px:x,py:y,vx:Math.cos(angle)*LUCKY_ORB.speed,vy:Math.sin(angle)*LUCKY_ORB.speed,radius,splash:0,damage:mods.damage,remaining:99999,hits:[],life:LUCKY_ORB.flight,mods,rebounds:0,hitTimes:{},deriveAt:0,wallBlast:!!this.upgrades['orb:cycle'],wallBlastAt:0});
+   this.luckySpawned++;this.shots++;
+  }
+ }
+ private luckyBurst(p:Projectile,wall=false){
+  // Primary bullets carry 5x base damage; light/explosion modifiers address separate skills.
+  const damage=p.damage*(wall?3:4)/5,radius=LUCKY_ORB.blastRadius*(wall?.8:1);
+  for(const e of [...this.enemies])if(e.hp>0&&Math.hypot(e.x-p.x,e.y-p.y)<=radius+e.radius)this.hurt(e,damage,'orb',{...p.mods,damage},false,'secondary');
+  this.event('burst',p.x,p.y,{skill:'orb',value:radius,quality:p.quality});this.luckyBursts++;if(wall)this.luckyWallBursts++;
+ }
+ private deriveLucky(p:Projectile){
+  if(p.quality==='low'||this.tick<(p.deriveAt??0))return;
+  p.deriveAt=this.tick+Math.round(LUCKY_ORB.deriveInterval/DT);
+  if(this.projectiles.length<LIMITS.projectiles){
+   const angle=this.random()*Math.PI*2,damage=p.damage*4/5,radius=LUCKY_ORB.lightRadius;
+   this.projectiles.push({id:++this.serial,skill:'orb',source:'lucky-light',quality:p.quality,x:p.x,y:p.y,px:p.x,py:p.y,vx:Math.cos(angle)*LUCKY_ORB.lightSpeed,vy:Math.sin(angle)*LUCKY_ORB.lightSpeed,radius,splash:0,damage,remaining:99999,hits:[],life:LUCKY_ORB.lightLife,mods:{...p.mods,damage,radius},hitTimes:{}});
+   this.luckyLights++;this.shots++;
+  }
+  if(p.quality==='high')this.luckyBurst(p);
+ }
+ private stepLucky(p:Projectile){
+  if((p.prepare??0)>1e-8){p.prepare=Math.max(0,p.prepare!-DT);return;}
+  p.life-=DT;if(p.life<=1e-8){p.life=0;return;}
+  p.px=p.x;p.py=p.y;p.x+=p.vx*DT;p.y+=p.vy*DT;
+  const main=p.source==='lucky',side=FIELD.halfWidth-p.radius,top=FIELD.height-p.radius,bottom=FIELD.wall+p.radius;
+  let wall=false;
+  if(p.x>side&&p.vx>0||p.x<-side&&p.vx<0){p.x=2*(p.x>0?side:-side)-p.x;p.vx=-p.vx;wall=true;}
+  if(p.y>top&&p.vy>0||p.y<bottom&&p.vy<0){p.y=2*(p.y>top?top:bottom)-p.y;p.vy=-p.vy;wall=true;}
+  if(wall){
+   if(!main){p.life=0;return;}
+   p.rebounds=(p.rebounds??0)+1;
+   if(p.wallBlast&&this.tick>=(p.wallBlastAt??0)){this.luckyBurst(p,true);p.wallBlastAt=this.tick+Math.round(.5/DT);}
+  }
+  const interval=Math.round(LUCKY_ORB.hitInterval/DT);
+  for(const e of [...this.enemies])if(e.hp>0&&this.tick-(p.hitTimes?.[e.id]??-1000)>=interval&&segmentDistance(e.x,e.y,p.px,p.py,p.x,p.y)<=e.radius+p.radius){
+   (p.hitTimes??={})[e.id]=this.tick;p.hits.push(e.id);this.hurt(e,p.damage,'orb',p.mods,false,p.source);this.luckyHits++;
+   if(main)this.deriveLucky(p);
   }
  }
  private addOrb(x:number,y:number,angle:number,mods:Stats,small:boolean){
@@ -228,6 +285,7 @@ export class Battle {
   else {p.vx=-p.vx;p.vy=-p.vy;}
  }
  private stepProjectile(p:Projectile){
+  if(p.source==='lucky'||p.source==='lucky-light'){this.stepLucky(p);return;}
   if(p.skill==='orb'){this.stepOrb(p);return;}
   p.px=p.x;p.py=p.y;p.x+=p.vx*DT;p.y+=p.vy*DT;p.life-=DT;
   if(p.life<=0)return;
@@ -279,7 +337,7 @@ export class Battle {
  private fire(id:SkillId,power=1,source:AttackSource='weapon',count?:number){
   const def=skillById[id],base=this.stats(id),mods={...base,damage:base.damage*power,count:count??base.count},used:number[]=[];
   if(id==='orb'){
-   this.launchOrbs(mods);
+   if(this.launchOrbs(mods)>0){this.orbCasts++;this.luckyCharge=Math.min(this.luckyProgress.required,this.luckyCharge+1);}
    for(let n=0;n<mods.repeat&&this.orbVolleys.length<LIMITS.volleys;n++)this.orbVolleys.push({delay:(n+1)*.22,mods:{...mods}});
    return;
   }
@@ -358,6 +416,7 @@ export class Battle {
    if(s.id==='rifle'&&this.ammo<=0){this.reload=1.45/this.loadout.haste;this.ammo=this.stats('rifle').magazine;this.event('reload');continue;}
    this.fire(s.id);this.cooldowns[s.id]=this.stats(s.id).interval;if(s.id==='rifle')this.ammo--;
   }
+  if(this.learned.orb)this.launchLucky();
   // New child balls begin moving next frame, independent of array iteration details.
   for(const p of [...this.projectiles])this.stepProjectile(p);
   for(const f of this.fields){
@@ -410,5 +469,5 @@ export class Battle {
   }
   this.checkLevel();
  }
- snapshot(){return {phase:this.phase,mode:this.mode,seed:this.seed,dailyRule:this.dailyRule?.id??null,priority:this.priority,stage:this.stage,map:this.mapIndex,tick:this.tick,time:this.time,wave:this.wave,maxWaves:Number.isFinite(this.maxWaves)?this.maxWaves:null,hp:Math.ceil(this.hp),maxHp:this.maxHp,level:this.level,xp:this.xp,xpNeeded:this.xpNeeded,kills:this.kills,bossKills:this.bossKills,damage:Math.round(this.damageDone),damageTaken:Math.round(this.damageTaken),ammo:this.ammo,reload:this.reload,learned:{...this.learned},upgrades:{...this.upgrades},cards:this.cards.map(c=>({...c})),rerolls:this.rerolls,skin:this.loadout.skin,skinProgress:this.skinProgress,orbLuck:this.orbLuck,lastLuck:this.lastLuck?{...this.lastLuck}:null,pendingVolleys:this.orbVolleys.length,dragon:this.dragon?{...this.dragon}:null,links:this.links.map(l=>({...l,ids:[...l.ids],damage:{...l.damage}})),counts:{enemies:this.enemies.length,projectiles:this.projectiles.length,fields:this.fields.length,links:this.links.length},fields:this.fields.map(f=>({id:f.id,skill:f.skill,x:f.x,y:f.y,radius:f.radius,life:f.life,delay:f.delay,variant:f.variant,merged:f.merged,pulse:f.pulse,hits:f.hits,nodes:f.nodes?.map(p=>({...p}))})),projectiles:this.projectiles.map(p=>({id:p.id,skill:p.skill,x:p.x,y:p.y,rebounds:p.rebounds,hits:p.hits.length,small:p.source==='secondary'})),enemies:this.enemies.map(e=>({id:e.id,kind:e.kind,x:Math.round(e.x),y:Math.round(e.y),hp:Math.ceil(e.hp),shield:Math.ceil(e.shield),freeze:e.freeze,stun:e.stun,burn:e.burn,slow:e.slow,root:e.root,bind:e.bind,haste:e.haste,hinder:e.hinder,orbSlow:e.orbSlow,fractures:e.fractures,warning:e.warning})),randomState:this.randomState};}
+ snapshot(){return {phase:this.phase,mode:this.mode,seed:this.seed,dailyRule:this.dailyRule?.id??null,priority:this.priority,stage:this.stage,map:this.mapIndex,tick:this.tick,time:this.time,wave:this.wave,maxWaves:Number.isFinite(this.maxWaves)?this.maxWaves:null,hp:Math.ceil(this.hp),maxHp:this.maxHp,level:this.level,xp:this.xp,xpNeeded:this.xpNeeded,kills:this.kills,bossKills:this.bossKills,damage:Math.round(this.damageDone),damageTaken:Math.round(this.damageTaken),ammo:this.ammo,reload:this.reload,learned:{...this.learned},upgrades:{...this.upgrades},cards:this.cards.map(c=>({...c})),rerolls:this.rerolls,skin:this.loadout.skin,skinProgress:this.skinProgress,orbLuck:this.orbLuck,luckyProgress:this.luckyProgress,lastLuck:this.lastLuck?{...this.lastLuck}:null,pendingVolleys:this.orbVolleys.length,dragon:this.dragon?{...this.dragon}:null,links:this.links.map(l=>({...l,ids:[...l.ids],damage:{...l.damage}})),counts:{enemies:this.enemies.length,projectiles:this.projectiles.length,fields:this.fields.length,links:this.links.length},fields:this.fields.map(f=>({id:f.id,skill:f.skill,x:f.x,y:f.y,radius:f.radius,life:f.life,delay:f.delay,variant:f.variant,merged:f.merged,pulse:f.pulse,hits:f.hits,nodes:f.nodes?.map(p=>({...p}))})),projectiles:this.projectiles.map(p=>({id:p.id,skill:p.skill,x:p.x,y:p.y,rebounds:p.rebounds,hits:p.hits.length,small:p.source==='secondary',source:p.source,quality:p.quality,prepare:p.prepare,life:p.life,radius:p.radius,damage:p.damage})),enemies:this.enemies.map(e=>({id:e.id,kind:e.kind,x:Math.round(e.x),y:Math.round(e.y),hp:Math.ceil(e.hp),shield:Math.ceil(e.shield),freeze:e.freeze,stun:e.stun,burn:e.burn,slow:e.slow,root:e.root,bind:e.bind,haste:e.haste,hinder:e.hinder,orbSlow:e.orbSlow,fractures:e.fractures,warning:e.warning})),randomState:this.randomState};}
 }

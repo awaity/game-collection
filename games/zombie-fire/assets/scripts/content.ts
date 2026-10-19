@@ -22,9 +22,14 @@ export const SKILLS:readonly Skill[]=[
  {id:'matrix',name:'生化矩阵',element:'poison',attack:'matrix',color:'#b0d56b',damage:19,interval:5.2,radius:43,pierce:0,duration:2.5,description:'布下多个毒系矩阵，相邻矩阵合并；持续伤害并逐步禁锢区域内的敌人。'},
  {id:'dragon',name:'冰筑龙体',element:'ice',attack:'dragon',color:'#7cd6e9',damage:62,interval:2,radius:52,pierce:0,duration:0,description:'召唤机械冰龙，以利爪攻击；能量蓄满后释放冰狱坠击。'},
  {id:'pillar',name:'电极柱',element:'electric',attack:'pillar',color:'#79d5f4',damage:29,interval:5.8,radius:9,pierce:0,duration:3.5,description:'地面升起数座电极柱，依次连接；触碰电流连线的敌人持续受到电系伤害。'},
- {id:'orb',name:'多维弹球',element:'physical',attack:'orb',color:'#e0a9dd',damage:38,interval:4.8,radius:10,pierce:0,duration:12,description:'弹球在目标与墙壁间反弹。选词条积攒幸运，21点可选终极词条；超过21重置为1。'},
+ {id:'orb',name:'多维弹球',element:'physical',attack:'orb',color:'#e0a9dd',damage:38,interval:4.8,radius:10,pierce:0,duration:12,description:'弹球在目标与墙壁间反弹；每施放6次召唤幸运弹球。选词条积攒幸运，超过21重置为1。'},
 ];
 export const skillById=Object.fromEntries(SKILLS.map(s=>[s.id,s])) as Record<SkillId,Skill>;
+export type OrbQuality='low'|'mid'|'high';
+/** Cast gate, weights, delay, flight and derivative timing follow serialized reference settings.
+ * World-to-screen units, lifetime start and damage composition are documented local choices. */
+export const LUCKY_ORB={casts:6,prepare:2.8,flight:5,hitInterval:.5,deriveInterval:3,speed:280,lightSpeed:560,lightLife:2,lightRadius:8,blastRadius:64,
+ qualities:[{id:'low',name:'辉银',weight:100,color:'#9bdaef',radius:12},{id:'mid',name:'耀紫',weight:50,color:'#c8a4f2',radius:18},{id:'high',name:'鎏金',weight:10,color:'#f5c76e',radius:18}] as const};
 export type SkinId='ranger'|'ember'|'arctic'|'hazard'|'arc';
 /** Trigger counts and the plasma/blade damage ratios are stated on the official website.
  * Our original outfits reuse those mechanics; storm tuning/volley geometry remain local. */
@@ -137,10 +142,10 @@ export const UPGRADES:readonly Upgrade[]=[
  orbUpgrade('high-repeat','高维连发','释放轮数+2。',{repeat:2},10,[4,8]),
  orbUpgrade('armed','武装弹球','每枚强化弹球的前两次命中必定暴击。',{},10,[4,8]),
  orbUpgrade('cripple','致残撞击','命中减速90%，持续0.5秒。',{},10,[4,8]),
- orbUpgrade('tide','弹球浪潮','弹射次数+2，释放个数、轮数各+1。',{bounce:2,count:1,repeat:1},21,[1,2]),
- orbUpgrade('destroy','毁灭猛击','大小弹球叠加3%易伤，持续3秒，最多20层。',{},21,[1,2]),
- orbUpgrade('cycle','终极循环','冷却-25%，速度+20%，伤害+120%。',{haste:.25,speed:.2,damage:1.2},21,[1,2]),
- orbUpgrade('ultimate','终极破坏','伤害提高300%。',{damage:3},21,[1,2]),
+ orbUpgrade('tide','弹球浪潮','弹射次数+2，释放个数、轮数各+1；幸运弹球数量+1。',{bounce:2,count:1,repeat:1},21,[1,2]),
+ orbUpgrade('destroy','毁灭猛击','大小弹球叠加3%易伤，持续3秒，最多20层；幸运弹球少施放1次触发。',{},21,[1,2]),
+ orbUpgrade('cycle','终极循环','冷却-25%，速度+20%，伤害+120%；幸运弹球撞墙爆炸。',{haste:.25,speed:.2,damage:1.2},21,[1,2]),
+ orbUpgrade('ultimate','终极破坏','伤害提高300%；幸运弹球体积+15%。',{damage:3},21,[1,2]),
 ];
 export const upgradeById=Object.fromEntries(UPGRADES.map(u=>[u.id,u])) as Record<string,Upgrade>;
 

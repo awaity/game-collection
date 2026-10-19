@@ -78,6 +78,44 @@ export async function verify({p,native,target,viewport,state,click,advance,event
   }
   assert.ok(observed,skill+' must be acquired through visible cards and produce its actual battle effect');
  }
+ async function luckyBattle(){
+  const hitQualities=new Set(),prepared=new Set(),evidence=[];let lightHit=false,highBurst=false,paused=false;
+  const complete=()=>hitQualities.size===3&&lightHit&&highBurst&&paused;
+  for(let attempt=0;attempt<12&&!complete();attempt++){
+   await click('endless');let s=await state();
+   for(let n=0;n<1000&&!complete();n++){
+    if(s.battlePhase==='choice'){
+     if(!s.learned.orb&&!s.cards.some(c=>c.id==='learn:orb')&&s.rerolls>0){await click('reroll');s=await fresh();continue;}
+     // Only visible choices influence the strategy; quality is never predicted from RNG state.
+     const score=c=>c.id==='learn:orb'?5000:c.id==='orb:haste'?1500:c.skill==='rifle'?1000:c.kind==='learn'&&['frost','electron','thermo'].includes(c.skill)?800:c.kind==='learn'?0:c.id==='orb:cycle'?10:500;
+     const card=[...s.cards].sort((a,b)=>score(b)-score(a))[0];await click('choose:'+s.cards.findIndex(c=>c.id===card.id));
+    }else if(s.battlePhase==='playing'){
+     const count=s.projectiles.some(p=>p.quality)?12:120;
+     if(native)await p.evaluate(count=>call({type:'advance',count}),count);else await p.evaluate(count=>__collectionAdvance(count),count);
+    }else break;
+    s=await fresh();if(!s.learned.orb&&Object.keys(s.learned).length>=5)break;
+    const progress=s.luckyProgress;
+    assert.ok(progress.charge>=0&&progress.charge<=progress.required);assert.ok(s.counts.projectiles<=320);
+    if(s.battlePhase!=='playing')continue;
+    for(const ball of s.projectiles.filter(p=>p.source==='lucky')){
+     if(ball.prepare>1e-8&&!prepared.has(ball.quality)){
+      prepared.add(ball.quality);await fits();await capture('lucky-'+ball.quality+'-prepare');
+      if(!paused){
+       await click('pause');const before=await state();await advance(120);const after=await state();assert.equal(after.tick,before.tick);assert.deepEqual(after.luckyProgress,before.luckyProgress);assert.deepEqual(after.projectiles,before.projectiles);await click('resume');paused=true;
+      }
+     }
+     if(ball.hits>0&&!hitQualities.has(ball.quality)){
+      hitQualities.add(ball.quality);evidence.push({attempt:attempt+1,quality:ball.quality,casts:progress.casts,triggers:progress.triggers,hits:ball.hits,tick:s.tick});await fits();await capture('lucky-'+ball.quality+'-combat');
+     }
+    }
+    if(!lightHit&&s.projectiles.some(p=>p.source==='lucky-light'&&p.hits>0)){lightHit=true;await capture('lucky-light-hit');}
+    if(!highBurst&&progress.hitBursts>0&&s.projectiles.some(p=>p.source==='lucky'&&p.quality==='high'&&p.hits>0)){highBurst=true;await capture('lucky-high-burst');}
+   }
+   await home();
+  }
+  assert.ok(complete(),`lucky effects need actual legal hits: ${JSON.stringify({qualities:[...hitQualities],lightHit,highBurst,paused})}`);
+  await writeFile(`artifacts/cocos/zombie-fire/${target}-${viewport.width}-lucky.json`,JSON.stringify({verifiedAt:new Date().toISOString(),evidence,lightHit,highBurst,preparationPause:paused},null,2)+'\n');
+ }
  async function home(){if((await state()).panel)await click('panel-close');if((await state()).battlePhase==='choice')await click('choose:0');if((await state()).battlePhase==='playing')await click('pause');if((await state()).phase!=='menu')await click('home');}
  async function aim(){
   if((await state()).battlePhase==='choice')await click('choose:0');
@@ -113,6 +151,7 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  await click('open:gear');await choose('skins');for(const id of ['ranger','ember','arctic','hazard','arc']){await choose('skin:'+id);assert.equal((await state()).skin,id);await fits();}const owned=(await state()).coins;await choose('skin:arc');assert.equal((await state()).coins,owned);await capture('skins');await home();
  for(const [skin,skill]of [['ember','thermo'],['arctic','dryice'],['hazard','blade'],['arc','electro']])await outfitBattle(skin,skill);
  for(const skill of ['drone','rift','matrix','dragon','pillar','orb'])await advancedBattle(skill);
+ await luckyBattle();
  await click('open:supply');await choose('supply:gems');const gem=(await state()).profile.gems[0];await choose('gem:equip:'+gem.id);assert.equal((await state()).profile.gear.weapon.gems[0],gem.id);await fits();await capture('gems');await home();
  await click('open:quests');await choose('claim:first-victory');const claimed=(await state()).coins;await choose('claim:first-victory');assert.equal((await state()).coins,claimed);await fits();await capture('quests-earned');await home();
  await click('settings');for(const id of ['sound','motion','quality','volume'])await choose('setting:'+id);assert.equal((await state()).profile.settings.sound,false);assert.equal((await state()).profile.settings.motion,false);assert.equal((await state()).profile.settings.quality,'low');assert.equal((await state()).profile.settings.volume,1);await fits();await capture('settings');await home();
@@ -123,5 +162,5 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  else{await p.reload();await p.waitForFunction(()=>window.__collectionSnapshot?.controls?.length,null,{timeout:90000});await p.waitForFunction(()=>!document.querySelector('#collection-entrance'));}
  for(let n=0;n<150;n++){if((await fresh())?.phase==='menu')break;await p.waitForTimeout(50);}
  const restored=await state();assert.equal(restored.coins,saved.coins);assert.equal(restored.skin,'arc');assert.deepEqual(restored.profile.gear,saved.profile.gear);assert.deepEqual(restored.profile.mercs,saved.profile.mercs);assert.deepEqual(restored.profile.settings,saved.profile.settings);assert.equal(restored.profile.tutorial,true);
- return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-fixed-luck-preview-and-selection','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
+ return ['legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-fixed-luck-preview-and-selection','lucky-three-qualities-piercing-lights-and-blasts','lucky-preparation-pause','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
 }

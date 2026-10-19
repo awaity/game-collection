@@ -10,8 +10,8 @@ function enemy(kind:EnemyId='walker',patch:Partial<Enemy>={}):Enemy {
  return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,haste:0,hinder:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child:false,...patch};
 }
 // Isolated fixtures exercise collision and status rules. Full victories below use only public inputs.
-function arena(skill?:SkillId,loadout:Loadout=defaultLoadout()) {
- const b=new Battle(0,'campaign',41,loadout);b.phase='playing';b.wave=1;b.spawnClock=999;b.waveQuota=999;
+function arena(skill?:SkillId,loadout:Loadout=defaultLoadout(),seed=41) {
+ const b=new Battle(0,'campaign',seed,loadout);b.phase='playing';b.wave=1;b.spawnClock=999;b.waveQuota=999;
  b.learned=skill?{[skill]:1}:{};return b;
 }
 function steps(b:Battle,count:number){for(let n=0;n<count;n++){if(b.phase==='choice')b.choose(b.cards[0].id);b.step();}}
@@ -324,5 +324,72 @@ test('cripple expires, enraged enemies resist it, and vulnerability stacks have 
  stepsNoChoice(b,31);assert.equal(b.enemies[0].orbSlowPower,0);assert.equal(b.enemies[0].fractures,1);
  for(let n=0;n<25;n++){const e=b.enemies[0];b.projectiles=[orb(b,{x:e.x-20,y:e.y,remaining:0,mods:{...b.stats('orb'),knock:0,crit:0}})];b.step();}
  assert.equal(b.enemies[0].fractures,20);stepsNoChoice(b,181);assert.equal(b.enemies[0].fractures,0);assert.equal(b.enemies[0].fractureTime,0);
+});
+
+function luckyCast(seed=41,upgrades:Record<string,number>={}){
+ const b=arena('orb',{...defaultLoadout(),crit:0},seed);b.upgrades={...upgrades};b.enemies=[enemy('butcher',{age:30,hp:1000000,maxHp:1000000})];
+ // Isolate the cast event from cooldown tuning. Runtime flows retain real cooldowns.
+ for(let n=0;n<b.luckyProgress.required;n++){b.cooldowns.orb=0;b.step();}
+ assert.equal(b.luckyProgress.triggers,1);const p=b.projectiles.find(p=>p.source==='lucky')!;assert.ok(p);return {b,p};
+}
+test('lucky balls count cooldown casts, not simultaneous shots, delayed volleys or fission',()=>{
+ const b=arena('orb',{...defaultLoadout(),crit:0});b.upgrades={'orb:repeat':1,'orb:salvo':1,'orb:split':1};b.enemies=[enemy('butcher',{age:30,hp:1000000,maxHp:1000000})];
+ until(b,()=>b.luckyProgress.casts===5,1800);assert.equal(b.luckyProgress.triggers,0);assert.equal(b.luckyProgress.charge,5);assert.ok(b.shots>b.luckyProgress.casts*2);
+ b.pause();const paused=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),paused);b.resume();
+ until(b,()=>b.luckyProgress.triggers===1,400);assert.equal(b.luckyProgress.casts,6);assert.equal(b.luckyProgress.charge,0);
+ assert.equal(b.projectiles.filter(p=>p.source==='lucky').length,1);const copy=b.snapshot();copy.luckyProgress.charge=999;assert.equal(b.luckyProgress.charge,0);
+});
+test('three lucky qualities replay deterministically, and ordinary card bonuses do not leak into them',()=>{
+ const seen=new Set();
+ for(let seed=1;seed<=160;seed++){
+  const mixed=Math.imul(seed,0x9e3779b1)>>>0,a=luckyCast(mixed),b=luckyCast(mixed);assert.deepEqual(a.b.snapshot(),b.b.snapshot());seen.add(a.p.quality);
+  assert.equal(a.p.damage,190);assert.equal(a.p.source,'lucky');assert.equal(a.p.quality,a.b.luckyProgress.quality);
+ }
+ assert.deepEqual([...seen].sort(),['high','low','mid']);
+ const plain=luckyCast(),power=luckyCast(41,{'orb:power':3,'orb:armed':1,'orb:rain':1,'orb:high-repeat':1,'orb:cripple':1,'orb:hinder':1});
+ assert.equal(power.p.damage,plain.p.damage);assert.equal(power.p.radius,plain.p.radius);assert.ok(Math.abs(Math.hypot(power.p.vx,power.p.vy)-Math.hypot(plain.p.vx,plain.p.vy))<1e-8);assert.equal(power.b.luckyProgress.spawned,1);
+});
+test('lucky preparation cannot move or hit; flight pierces, respects armor and expires',()=>{
+ const {b,p}=luckyCast();b.learned={};b.projectiles=[p];p.quality='low';p.prepare=2.8;p.x=p.px=0;p.y=p.py=200;p.vx=0;p.vy=280;
+ b.enemies=[enemy('walker',{y:260,hp:10000,maxHp:10000}),enemy('armor',{id:2,y:320,hp:10000,maxHp:10000})];const initialDamage=b.damageDone;
+ stepsNoChoice(b,168);assert.equal(p.y,200);assert.equal(b.damageDone,initialDamage);assert.ok(p.prepare!<1e-8);
+ b.pause();const paused=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),paused);b.resume();
+ until(b,()=>p.hits.length===2,80);assert.deepEqual(p.hits,[1,2]);assert.equal(b.enemies[0].hp,9810);assert.ok(Math.abs(b.enemies[1].hp-(10000-190*.35))<1e-8);assert.equal(p.vy,280);
+ until(b,()=>p.rebounds!>0,150);assert.equal(p.vy,-280);assert.ok(p.life>0,'walls reflect without consuming the ordinary rebound budget');
+ until(b,()=>b.projectiles.length===0,400);assert.ok(b.luckyProgress.hits>=2);assert.equal(b.luckyProgress.triggers,1);
+});
+test('mid and high lucky hits spawn real nonrecursive light damage; high adds a bounded explosion',()=>{
+ for(const quality of ['low','mid','high'] as const){
+  const {b,p}=luckyCast();b.learned={};b.projectiles=[p];p.quality=quality;p.prepare=0;p.x=p.px=-36;p.y=p.py=300;p.vx=600;p.vy=0;
+  b.upgrades={'orb:split':1,'orb:wall-split':1,'orb:armed':1,'orb:cripple':1,'orb:hinder':1};
+  b.enemies=[enemy('walker',{y:300,hp:10000,maxHp:10000}),enemy('walker',{id:2,x:45,y:300,hp:10000,maxHp:10000})];
+  b.step();assert.equal(p.hits.length,1);assert.equal(b.luckyProgress.lights,quality==='low'?0:1);assert.equal(b.luckyProgress.bursts,quality==='high'?1:0);
+  assert.equal(b.enemies[0].hp,10000-190-(quality==='high'?152:0));assert.equal(b.enemies[1].hp,10000-(quality==='high'?152:0));assert.equal(b.enemies[0].hinder,0);assert.equal(b.enemies[0].orbSlow,0);
+  const light=b.projectiles.find(p=>p.source==='lucky-light');
+  if(light){
+   assert.equal(light.hits.length,0);assert.equal(light.damage,152);b.projectiles=[light];light.x=light.px=-26;light.y=light.py=300;light.vx=600;light.vy=0;const before=b.enemies[0].hp;
+   until(b,()=>light.hits.length>0,5);assert.equal(b.enemies[0].hp,before-152);assert.equal(b.luckyProgress.lights,1);assert.equal(b.luckyProgress.bursts,quality==='high'?1:0);
+   until(b,()=>b.projectiles.length===0,180);
+  }
+ }
+});
+test('repeat contacts respect half-second damage and three-second derivative intervals',()=>{
+ const {b,p}=luckyCast();b.learned={};p.quality='mid';p.prepare=0;p.x=p.px=0;p.y=p.py=300;p.vx=p.vy=0;b.projectiles=[p];b.enemies=[enemy('walker',{y:300,hp:100000,maxHp:100000})];
+ b.step();assert.equal(p.hits.length,1);assert.equal(b.luckyProgress.lights,1);stepsNoChoice(b,29);assert.equal(p.hits.length,1);b.step();assert.equal(p.hits.length,2);
+ stepsNoChoice(b,149);assert.equal(b.luckyProgress.lights,1);b.step();assert.equal(b.luckyProgress.lights,2);assert.equal(b.luckyProgress.triggers,1);
+});
+test('lucky evolution effects change count, size, cast threshold and real wall explosions',()=>{
+ const plain=luckyCast(),tide=luckyCast(41,{'orb:tide':1}),large=luckyCast(41,{'orb:ultimate':1}),fast=luckyCast(41,{'orb:destroy':1}),cycle=luckyCast(41,{'orb:cycle':1,'orb:wall-blast':1});
+ assert.equal(tide.b.luckyProgress.spawned,2);assert.equal(tide.b.luckyProgress.casts,6);assert.equal(large.p.radius,plain.p.radius*1.15);assert.equal(large.p.damage,190);
+ assert.equal(fast.b.luckyProgress.casts,5);assert.equal(fast.b.luckyProgress.required,5);assert.equal(fast.b.luckyProgress.charge,0);
+ const {b,p}=cycle;b.learned={};b.projectiles=[p];p.quality='low';p.prepare=0;p.x=p.px=FIELD.halfWidth-p.radius-.1;p.y=p.py=350;p.vx=120;p.vy=0;b.enemies=[enemy('walker',{x:p.x-10,y:395,hp:10000,maxHp:10000})];
+ b.step();assert.equal(b.enemies[0].hp,10000-114);assert.equal(p.hits.length,0);assert.equal(b.luckyProgress.bursts,1);assert.ok(p.vx<0);
+ assert.equal(p.damage,190);assert.equal(b.events.at(-1)?.quality,'low');
+});
+test('lucky derivatives respect the shared projectile limit and all expire',()=>{
+ const {b,p}=luckyCast();b.learned={};p.quality='high';p.prepare=0;p.x=p.px=0;p.y=p.py=300;p.vx=p.vy=0;
+ b.enemies=[enemy('walker',{y:300,hp:100000,maxHp:100000})];b.projectiles=[p,...Array.from({length:LIMITS.projectiles-1},(_,i)=>({...p,id:i+500,source:'lucky-light' as const,quality:undefined,x:150,px:150,y:600,py:600,hits:[],hitTimes:{}}))];
+ b.step();assert.equal(b.projectiles.length,LIMITS.projectiles);assert.equal(b.luckyProgress.lights,0);assert.equal(b.luckyProgress.bursts,1);
+ stepsNoChoice(b,310);assert.equal(b.projectiles.length,0);assert.ok(b.events.length<=LIMITS.events);
 });
 
