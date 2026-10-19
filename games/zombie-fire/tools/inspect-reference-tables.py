@@ -265,7 +265,7 @@ def inspect(directory: Path) -> dict:
     buff_attrs = read_variable(tables["BuffAttrConfig"], buff_attr_row, lambda r: (r["id"], r["rank"]))
     skill_attrs = read_skill_attributes(tables["BuffFuncSkillAttrConfig"])
     selected = {}
-    for key in [*range(1401, 1421), *range(1501, 1526), *range(1560, 1564)]:
+    for key in [*range(1401, 1421), *range(1501, 1526), 1553, *range(1560, 1564)]:
         row = builds[key]
         require(row["complete"], f"Build {key}: incomplete payload")
         require(row["title"] in texts and row["description"] in texts, f"Build {key}: unresolved text")
@@ -277,7 +277,9 @@ def inspect(directory: Path) -> dict:
         "scope": "offline configuration evidence; not client execution or a complete decryption",
         "tables": {name: table.summary() for name, table in tables.items()},
         "selectedBuilds": selected,
-        "selectedGroups": [g for g in groups if g["group"] in (1014, 1015)],
+        "selectedGroups": [g for g in groups if g["group"] in (1014, 1015, 2002)],
+        "selectedWeights": [list(struct.unpack(">21I", raw)) for raw in weights
+                            if struct.unpack_from(">I", raw)[0] == 2002],
         "orbMechanics": {
             "texts": {key: texts[key] for key in (402915000, 416002055, 416102055, 470281301,
                                                    407401561, 407401562, 407401563, 407401564, 407401567)},
@@ -286,6 +288,15 @@ def inspect(directory: Path) -> dict:
             "buffs": [r for r in buffs if r["id"] in (150111, 150112, 150113, 156011, 156012, 156013)],
             "buffAttributes": [r for r in buff_attrs if r["id"] in (150111, 150112, 150113, 156011, 156012, 156013)],
             "skillAttributes": [r for r in skill_attrs if 15000 <= r["id"] < 15700],
+        },
+        # Cross-check unknown dispatch enums with cards whose text names the effect.
+        # These comparisons do not establish the runtime meaning of other subtypes.
+        "dispatchComparisons": {
+            "buffAttributes": [r for r in buff_attrs
+                               if r["id"] in (150112, 150113, 181101, 16001041, 16001351)],
+            "builds": {key: {**builds[key], "name": texts[builds[key]["title"]]["text"],
+                             "descriptionText": texts[builds[key]["description"]]["text"]}
+                       for key in (1600104, 1600135)},
         },
         "selectedLibraries": [list(struct.unpack(">2I", raw)) for raw in libraries
                               if struct.unpack(">2I", raw)[1] in (1014, 1015, 14000, 15000)],
