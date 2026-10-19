@@ -1,13 +1,13 @@
 {
-  "verifiedAt": "2026-10-19T11:45:45.087869+00:00",
-  "milestone": "independent-reconstruction-with-official-outfit-triggers-not-full-reference-parity",
+  "verifiedAt": "2026-10-19T12:29:23.573Z",
+  "milestone": "seventeen-weapons-and-original-comic-art-not-full-reference-parity",
   "creator": "3.8.8",
-  "unitTests": 37,
+  "unitTests": 47,
   "localCampaign": {
     "configuredStages": 36,
     "successfulClears": 36,
     "maps": 6,
-    "verifiedAt": "2026-10-19T11:42:46.022Z"
+    "verifiedAt": "2026-10-19T12:12:17.132Z"
   },
   "outfitAbilities": [
     "thermo-volley-after-12-hits",
@@ -18,29 +18,29 @@
   "exports": {
     "web": {
       "target": "web-mobile",
-      "sourceHash": "2b48a894ffb407de0603610ffe1920b162de8dfd74f29d9ecd58b7cfc1e041a4",
-      "builtAt": "2026-10-19T11:38:33.675Z",
+      "sourceHash": "5dfa1bec290fae917d499072c11fcb40fbf738d47df7cb1e4f0f755edfbf6cc9",
+      "builtAt": "2026-10-19T12:22:01.402Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "weixin": {
       "target": "wechatgame",
-      "sourceHash": "154493ea00bdc9e28539b538697b1660b0097fd03bea0d906c2f5b826c65a192",
-      "builtAt": "2026-10-19T11:39:53.335Z",
+      "sourceHash": "cd8e28387b63c54719c5cc4ef0cdc05485049746cf3da3658acf6d739924dd77",
+      "builtAt": "2026-10-19T12:23:51.280Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     },
     "douyin": {
       "target": "bytedance-mini-game",
-      "sourceHash": "a6fd3781504e11be177443c022aaada0f21ddbde69bff8485a3b021af228f483",
-      "builtAt": "2026-10-19T11:41:02.568Z",
+      "sourceHash": "48031e74f40d475590f863b64f2eba59b5aa2563646ef22b0df7481d9193b8d4",
+      "builtAt": "2026-10-19T12:24:48.562Z",
       "cliExitCode": 36,
       "appIdConfigured": false
     }
   },
   "web": [
     {
-      "verifiedAt": "2026-10-19T11:39:47.189Z",
+      "verifiedAt": "2026-10-19T12:23:50.576Z",
       "target": "web",
       "viewport": {
         "width": 390,
@@ -58,6 +58,10 @@
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
+        "drone-wall-rebound",
+        "diamond-rift",
+        "merging-matrix",
+        "energy-gated-dragon-slam",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -68,10 +72,11 @@
       "errors": [],
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
-      ]
+      ],
+      "sourceHash": "5dfa1bec290fae917d499072c11fcb40fbf738d47df7cb1e4f0f755edfbf6cc9"
     },
     {
-      "verifiedAt": "2026-10-19T11:41:12.085Z",
+      "verifiedAt": "2026-10-19T12:25:26.114Z",
       "target": "web",
       "viewport": {
         "width": 1440,
@@ -89,6 +94,10 @@
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
+        "drone-wall-rebound",
+        "diamond-rift",
+        "merging-matrix",
+        "energy-gated-dragon-slam",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -97,10 +106,11 @@
         "persistent-restart"
       ],
       "errors": [],
-      "diagnostics": []
+      "diagnostics": [],
+      "sourceHash": "5dfa1bec290fae917d499072c11fcb40fbf738d47df7cb1e4f0f755edfbf6cc9"
     },
     {
-      "verifiedAt": "2026-10-19T11:42:16.623Z",
+      "verifiedAt": "2026-10-19T12:26:37.518Z",
       "target": "web",
       "viewport": {
         "width": 844,
@@ -118,6 +128,10 @@
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
+        "drone-wall-rebound",
+        "diamond-rift",
+        "merging-matrix",
+        "energy-gated-dragon-slam",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -128,10 +142,11 @@
       "errors": [],
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
-      ]
+      ],
+      "sourceHash": "5dfa1bec290fae917d499072c11fcb40fbf738d47df7cb1e4f0f755edfbf6cc9"
     },
     {
-      "verifiedAt": "2026-10-19T11:43:17.297Z",
+      "verifiedAt": "2026-10-19T12:27:40.105Z",
       "target": "web",
       "viewport": {
         "width": 320,
@@ -149,6 +164,10 @@
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
+        "drone-wall-rebound",
+        "diamond-rift",
+        "merging-matrix",
+        "energy-gated-dragon-slam",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -159,12 +178,13 @@
       "errors": [],
       "diagnostics": [
         "Ignored attempt to cancel a touchcancel event with cancelable=false, for example because scrolling is in progress and cannot be interrupted."
-      ]
+      ],
+      "sourceHash": "5dfa1bec290fae917d499072c11fcb40fbf738d47df7cb1e4f0f755edfbf6cc9"
     }
   ],
   "native": [
     {
-      "verifiedAt": "2026-10-19T11:42:51.622Z",
+      "verifiedAt": "2026-10-19T12:27:06.819Z",
       "target": "weixin",
       "viewport": {
         "width": 390,
@@ -182,6 +202,10 @@
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
+        "drone-wall-rebound",
+        "diamond-rift",
+        "merging-matrix",
+        "energy-gated-dragon-slam",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -198,14 +222,15 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 527,
+        "colors": 531,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
+      "sourceHash": "cd8e28387b63c54719c5cc4ef0cdc05485049746cf3da3658acf6d739924dd77",
       "audioBeforeRestart": 7
     },
     {
-      "verifiedAt": "2026-10-19T11:44:15.988Z",
+      "verifiedAt": "2026-10-19T12:28:43.673Z",
       "target": "douyin",
       "viewport": {
         "width": 390,
@@ -223,6 +248,10 @@
         "mercenary-upgrade",
         "five-skins",
         "four-hit-triggered-outfits",
+        "drone-wall-rebound",
+        "diamond-rift",
+        "merging-matrix",
+        "energy-gated-dragon-slam",
         "gem-equip",
         "idempotent-rewards",
         "codex-with-outfit-rules",
@@ -239,15 +268,36 @@
       },
       "graphics": {
         "error": 0,
-        "colors": 527,
+        "colors": 530,
         "version": "WebGL 1.0 (OpenGL ES 2.0 Chromium)"
       },
       "sounds": 0,
+      "sourceHash": "48031e74f40d475590f863b64f2eba59b5aa2563646ef22b0df7481d9193b8d4",
       "audioBeforeRestart": 3
     }
   ],
   "officialDeveloperTools": false,
   "realDevices": false,
   "catalogIntegrated": false,
-  "newGamePublished": false
+  "newGamePublished": false,
+  "testedImplementationRevision": "ca57b2ba25a2bc67ea0533fef8ed2d5698d61c15",
+  "flowSourceHash": "9b1965429f4cb29c9592eb34b2a100962c45b2913570413273fdd915b5be2641",
+  "localContent": {
+    "weapons": 17,
+    "upgrades": 99,
+    "evolutions": 24,
+    "enemies": 17,
+    "maps": 6
+  },
+  "additionalMechanisms": [
+    "drone-reflection-repeat-hits-and-rifle-ricochet",
+    "diamond-rift-status-extension-teleport-and-quantum-link",
+    "merging-poison-matrix-progressive-root-and-attraction",
+    "mechanical-dragon-claws-full-energy-slam-and-hearts"
+  ],
+  "visualEvidence": {
+    "actualCombat": "artifacts/cocos/zombie-fire/*-advanced-{drone,rift,matrix,dragon}.png",
+    "originalEnemyGallery": "artifacts/cocos/zombie-fire/original-enemy-gallery.png",
+    "galleryScope": "authored-art inspection only; not combat or clear evidence"
+  }
 }
