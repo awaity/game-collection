@@ -6,6 +6,7 @@
 
 | 游戏 | 在线入口 | 共用技术 | 构建目标 |
 | --- | --- | --- | --- |
+| 向僵尸开炮 | [守卫](https://awaity.github.io/game-collection/games/zombie-fire/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
 | 山海逃亡 | [逃亡](https://awaity.github.io/game-collection/games/shanhai-run/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
 | 无尽长夜 | [提灯](https://awaity.github.io/game-collection/games/endless-night/) | Cocos Creator 3.8.8 + TypeScript + Rapier | Web / 微信 / 抖音 |
 | 雪原小营 | [经营](https://awaity.github.io/game-collection/games/frost-trail/) | Cocos Creator 3.8.8 + TypeScript | Web / 微信 / 抖音 |
@@ -16,7 +17,7 @@
 | 尸潮防线 | [守线](https://awaity.github.io/game-collection/games/zombie-lane/) | TypeScript + Canvas 2D | Web / 微信 / 抖音 |
 | 弹幕小队 | [出击](https://awaity.github.io/game-collection/games/volley-run/) | JavaScript + Three.js r140 | Web / 微信 / 抖音 |
 
-九款游戏均提供独立原生小游戏 `game.js` 工程。平台包纳入构建和无 DOM 模拟宿主验证；五款复杂游戏由官方 Cocos Creator 导出，弹幕小队使用实际 WebGL 和本地 GLB 模型。**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
+十款游戏均提供独立原生小游戏 `game.js` 工程。平台包纳入构建和无 DOM 模拟宿主验证；六款复杂游戏由官方 Cocos Creator 导出，弹幕小队使用实际 WebGL 和本地 GLB 模型。**官方微信／抖音开发者工具、真机和平台审核尚未完成**，具体范围见 [验证记录](docs/MULTIPLATFORM-VERIFICATION.md)。网页发布不代表小游戏已上线平台。
 
 五款游戏新增独立金币、签到、每日任务、成就、五套皮肤和三项永久强化。无尽模式提供双倍击破金币与波次奖金。具体内容与存档规则见 [本轮扩展说明](docs/EXPANSION-2026-10.md)。
 
@@ -24,6 +25,7 @@
 
 ```text
 apps/portal/                  Vue 3 + Vite + TS 大厅
+games/zombie-fire/             射击塔防，三十六关、技能构筑与无尽尸潮
 games/shanhai-run/             山海跑酷，四区域、八试炼与无尽逃亡
 games/endless-night/           无尽长夜，四角色、五烽火与守夜人试炼
 games/frost-trail/             雪原小营，采集生产、扩张与四种终局
@@ -46,7 +48,7 @@ dist/site/                    完整静态站点（不提交源码分支）
 
 大厅不加载游戏引擎；游戏核心不引用 DOM、`wx` 或 `tt`。平台能力经适配器注入。微信、抖音工程不依赖网页大厅、WebView 或 WXML 小程序页面。架构、平台差异与 AppID 说明见 [三端工程说明](docs/PLATFORMS.md)。
 
-统一标识、资源就绪后的入场动画、跳过与加载恢复见 [品牌与入场规范](docs/BRAND-ENTRANCE.md)。九款游戏共享交互，各自保留玩法与存档。
+统一标识、资源就绪后的入场动画、跳过与加载恢复见 [品牌与入场规范](docs/BRAND-ENTRANCE.md)。十款游戏共享交互，各自保留玩法与存档。
 
 ## 开发与验证
 
@@ -89,6 +91,8 @@ pnpm run deploy
 
 发布命令重新运行全部检查，要求工作区干净、站点版本等于 HEAD；在发布提交和 `release.json` 中记录源码 SHA，并保留 `gh-pages` 历史。GitHub Pages 配置为 **Deploy from a branch → gh-pages → / (root)**。微信与抖音的工程导入、真机测试和发布是各平台独立流程。
 
+Git HTTPS 不可用但官方 API 可访问时，可在同一份干净源码上运行 `pnpm check && node scripts/publish.mjs --transport=api`。根脚本通过现有 Git 凭据助手认证，依次上传源码和整站，逐项核对 Git 文件、目录树及提交 SHA；仅作非强制分支更新，保留发布历史。不更改全局 Git 配置或另建凭据文件。
+
 ## 新增游戏
 
 1. 在 `games/<slug>/` 新建工作区，提供 `build`、`test`、`build:weixin`、`build:douyin`；复用共享平台和构建包。
@@ -100,6 +104,7 @@ pnpm run deploy
 
 ## 文档
 
+- [向僵尸开炮说明](games/zombie-fire/README.md) · [当前版本发布范围](docs/ZOMBIE-FIRE-PREVIEW.md)
 - [山海逃亡说明](games/shanhai-run/README.md) · [跑酷验收范围](docs/SHANHAI-RUN-PLAN.md)
 - [无尽长夜说明](games/endless-night/README.md) · [雪原小营说明](games/frost-trail/README.md)
 - [电涌小队说明](games/surge-squad/README.md) · [最后一道门说明](games/final-door/README.md)

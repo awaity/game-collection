@@ -161,10 +161,10 @@ try {
       // on touch 393px and desktop 1440px to keep software WebGL CI bounded.
       const scenarios =
         size.width === 320
-          ? games.filter((g) => ['plane-battle', 'garden-guard'].includes(g.slug))
+          ? games.filter((g) => ['plane-battle', 'garden-guard', 'zombie-fire'].includes(g.slug))
           : games;
       for (const game of scenarios.filter(game=>!process.env.VERIFY_GAME||game.slug===process.env.VERIFY_GAME)) {
-        if (['frost-trail','endless-night'].includes(game.slug)) {
+        if (['frost-trail','endless-night','zombie-fire'].includes(game.slug)) {
           await page.goto(`${origin}${base}games/${game.slug}/?qa=1`);
           const ready = async () => {
             await page.waitForFunction(() => window.__collectionSnapshot, null, {timeout:90000});
@@ -189,6 +189,14 @@ try {
           if(game.slug==='endless-night'){
             await page.locator('.collection-return').waitFor({state:'visible'});
             await choose('play');await choose('story-next');await choose('heroes-next');await choose('stages-next');await choose('begin');await ready();
+          }
+          if(game.slug==='zombie-fire'){
+            await page.locator('.collection-return').waitFor({state:'visible'});
+            await clickId('start');
+            assert.equal(await page.evaluate(()=>__collectionSnapshot.battlePhase),'choice');
+            await clickId('choose:0');
+            await page.evaluate(()=>__collectionAdvance(90));await ready();
+            assert.equal(await page.evaluate(()=>__collectionSnapshot.battlePhase),'playing');
           }
           await page.waitForFunction(()=>document.documentElement.dataset.collectionState==='playing');
           assert.equal(await page.locator('.collection-return').isVisible(),false);

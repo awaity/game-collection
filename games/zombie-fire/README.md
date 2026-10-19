@@ -47,4 +47,4 @@ node scripts/verify-cocos-game.mjs zombie-fire native
 
 场景、敌人、角色、时装和技能图标由 `art.ts`、`infected.ts`、`illustration.ts`、`icons.ts` 原创绘制。`tools/make-assets.py` 用 Python 标准库生成原创合成音频和稳定 Creator 元数据。资源清单见 [ASSETS.md](docs/ASSETS.md)。参考官网的图片只在忽略目录用于比较，不进入发行包。
 
-发布必须由仓库根脚本聚合全站；此游戏不能独立覆盖 `gh-pages`。完整验收前不加入已发布的大厅目录。
+发布必须由仓库根脚本聚合全站；此游戏不能独立覆盖 `gh-pages`。用户已认可当前复刻阶段并要求先发布查看效果，本版本加入大厅供试玩；后续参考差异仍如实保留，详见 [当前发布范围](../../docs/ZOMBIE-FIRE-PREVIEW.md)。

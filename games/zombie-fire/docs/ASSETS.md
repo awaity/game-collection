@@ -9,6 +9,7 @@
 | 枪声、爆炸、冰、电、换弹、受击、升级、胜负提示及音乐 | 本仓库原创合成 | `tools/make-assets.py` | 16 kHz 单声道 PCM WAV，跨端 AudioSource |
 | 开局游戏标识及入场 | 合集原创共享资源 | `shared/brand/mark.svg`、共享平台适配 | 沿用统一三端品牌入口 |
 | 中文字体 | 系统字体回退 | Cocos Label 的 Noto Sans CJK SC 字体族 | 无外部字体文件或在线字体依赖 |
+| 大厅封面 | 当前游戏实战截图 | 根目录 `scripts/capture-zombie-fire-cover.mjs` | 840×630 WebP，正常无尽第一波的枪手、尸群与跃迁电子；原图和状态保存在 `artifacts/zombie-fire-preview/` |
 
 在游戏目录运行 `python3 tools/make-assets.py` 可复现 WAV 与缺失的稳定 `.meta`。已有入口脚本和场景 UUID 不会重写。
 

@@ -62,7 +62,7 @@ try {
  }else{
   const normal=await createMiniHost(),cocos=await createMiniHost({cocos:true});hosts=[normal,cocos];
   const labels={'plane-battle':'即刻起飞  →','zombie-lane':'开始守线    ›','garden-guard':'开始守卫','volley-run':'全员出击 →'};
-  const phases={'shanhai-run':'menu','surge-squad':'ready','endless-night':'menu','frost-trail':'playing','final-door':'playing'};
+  const phases={'zombie-fire':'menu','shanhai-run':'menu','surge-squad':'ready','endless-night':'menu','frost-trail':'playing','final-door':'playing'};
   for(const game of games)for(const target of ['weixin','douyin']){
    const isCocos=targets[game.slug].engine==='cocos',p=await browser.newPage({viewport:{width:390,height:844}});
    try{

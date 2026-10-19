@@ -1,4 +1,11 @@
 {
+  "zombie-fire": {
+    "workspace": "zombie-fire",
+    "engine": "cocos",
+    "webDir": "games/zombie-fire/dist/web",
+    "requiredAssets": ["favicon.svg", "cocos-js/cc.js", "creator-build.json"],
+    "miniTargets": ["weixin", "douyin"]
+  },
   "volley-run": {
     "workspace": "volley-run",
     "webDir": "games/volley-run/dist/client",
