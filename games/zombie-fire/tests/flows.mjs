@@ -15,6 +15,11 @@ export async function verify({p,native,target,viewport,state,click,advance,event
    if(e.kind==='fireguard'){assert.equal(e.burn,0);assert.equal(e.freeze,0);}
    if(e.kind==='shield'){assert.equal(e.burn,0);assert.equal(e.stun,0);assert.equal(e.shield,0);traits.shieldWithoutExtraBarrier++;}
    if(e.kind==='splitter')assert.equal(e.stun,0);
+   assert.ok(Number.isInteger(e.armorHits)&&e.armorHits>=0&&e.armorHits<=6,'armor layers stay bounded in actual exports');
+   if(e.armorHits>0){
+    assert.equal(e.kind,'armor');assert.equal(e.hp,e.maxHp,'protected targets cannot lose health');
+    for(const key of ['freeze','paralysis','stun','burn','slow','root','bind','hinder','orbSlow','fractures'])assert.equal(e[key],0,'armor prevents '+key);
+   }
   }
   const caps={'orb:power':3,'orb:bounce':2,'orb:rise':2,'orb:haste':2};
   for(const card of s?.cards??[])if(card.id.startsWith('orb:')){
@@ -26,6 +31,34 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  };
  const fresh=async()=>{if(native)await p.evaluate(()=>call({type:'frames',count:2}));else await presentCocos(p);return state();};
  async function play(count){if(native)await p.evaluate(count=>call({type:'zombie-fire-play',count}),count);else await p.evaluate(count=>__zombieFire.play(count),count);return fresh();}
+ async function armorBattle(){
+  let intact=null,broken=null,paused=false;const observed=new Map(),transitions=[];
+  for(let attempt=1;attempt<=3&&!broken;attempt++){
+   await click('endless');observed.clear();let s=await state();
+   for(let n=0;n<1200&&!broken;n++){
+    if(s.battlePhase!=='playing'&&s.battlePhase!=='choice')break;
+    s=await play(s.wave<9?240:24);
+    for(const e of s.enemies.filter(e=>e.kind==='armor')){
+     const before=observed.get(e.id);assert.ok(!before||e.armorHits<=before.armorHits,'armor cannot regenerate between hits');
+     if(!before&&e.armorHits===6)observed.set(e.id,{...e});
+     if(before&&e.armorHits!==before.armorHits){
+      if(transitions.length<30)transitions.push({attempt,tick:s.tick,id:e.id,before:before.armorHits,after:e.armorHits,hp:e.hp,maxHp:e.maxHp});
+      observed.set(e.id,{...e});
+     }
+     if(!intact&&e.armorHits>0&&e.y<600&&s.battlePhase==='playing'){
+      intact={attempt,tick:s.tick,enemy:{...e},progress:s.armorProgress};await fits();await capture('armor-active');
+      await click('pause');const frozen=await state();await advance(120);const after=await state();assert.deepEqual(after.enemies,frozen.enemies);assert.deepEqual(after.armorProgress,frozen.armorProgress);await click('resume');paused=true;
+     }
+     if(intact&&before&&e.armorHits===0&&e.hp<e.maxHp&&s.battlePhase==='playing'){
+      broken={attempt,tick:s.tick,enemy:{...e},progress:s.armorProgress};assert.ok(s.armorProgress.blocked>=6*s.armorProgress.broken);assert.ok(s.armorProgress.broken>0);await fits();await capture('armor-broken');break;
+     }
+    }
+   }
+   await home();
+  }
+  assert.ok(intact&&broken&&paused,'normal endless combat must spawn, block with, and break armor');
+  await writeFile(`artifacts/cocos/zombie-fire/${target}-${viewport.width}-armor.json`,JSON.stringify({verifiedAt:new Date().toISOString(),intact,broken,paused,transitions},null,2)+'\n');
+ }
  async function choose(id){for(let n=0;n<30;n++){if((await state()).controls.some(b=>b.id===id)){await click(id);return;}await click('page-next');}throw Error('missing '+id);}
  async function outfitBattle(skin,skill){
   await click('open:gear');await choose('skins');await choose('skin:'+skin);await home();let triggered=false;
@@ -252,7 +285,7 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  await click('settings');for(const id of ['sound','motion','quality','volume'])await choose('setting:'+id);assert.equal((await state()).profile.settings.sound,false);assert.equal((await state()).profile.settings.motion,false);assert.equal((await state()).profile.settings.quality,'low');assert.equal((await state()).profile.settings.volume,1);await fits();await capture('settings');await home();
  await click('codex');for(const tab of ['skills','evolutions','enemies','outfits']){await click('codex:'+tab);await fits();await capture('codex-'+tab);await click('page-next');await fits();}await home();
  await click('codex');await click('codex:enemies');
- const traitText=['弹道伤害降低70%','免疫燃烧和冻结','冰伤与冻结时长减半','麻痹时长减半'],seenText=new Set();
+ const traitText=['弹道伤害降低70%','免疫燃烧和冻结','冰伤与冻结时长减半','麻痹时长减半','格挡6次伤害及负面状态'],seenText=new Set();
  for(let page=0;page<20&&seenText.size<traitText.length;page++){
   const current=await state();let changed=false;
   for(const text of traitText)if(!seenText.has(text)&&current.labels.some(label=>label.includes(text))){seenText.add(text);changed=true;}
@@ -260,6 +293,7 @@ export async function verify({p,native,target,viewport,state,click,advance,event
   if(seenText.size<traitText.length)await click('page-next');
  }
  assert.equal(seenText.size,traitText.length,'the codex must describe actual exported traits');await home();
+ await armorBattle();
  await click('daily');const daily=await state();await play(300);await home();await click('daily');assert.equal((await state()).randomState,daily.randomState);await home();
  const saved=await state();
  if(native){const {storage}=await p.evaluate(()=>call({type:'frames',count:0}));assert.ok(storage['zombie-fire.save.v1']);await p.reload();await p.evaluate(({target,storage})=>boot('zombie-fire',target,1,storage),{target,storage});}
@@ -269,5 +303,5 @@ export async function verify({p,native,target,viewport,state,click,advance,event
  assert.ok(checkedOrbOffers>0);assert.equal(restored.profile.research.orb,10);
  assert.ok(traits.paralyzed>0&&traits.frozen>0&&traits.shieldWithoutExtraBarrier>0,'actual exports must exercise separate control and shield traits');
  await writeFile(`artifacts/cocos/zombie-fire/${target}-${viewport.width}-enemy-traits.json`,JSON.stringify({verifiedAt:new Date().toISOString(),...traits},null,2)+'\n');
- return ['enemy-traits-and-distinct-paralysis','legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','research-six-replaces-rise-with-real-damage','research-ten-unlocks-tide-and-real-volley','orb-offers-enforce-caps-and-prerequisites','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-boundaries-preserve-target-redirects','orb-fixed-luck-preview-and-selection','lucky-three-qualities-piercing-lights-and-blasts','lucky-preparation-pause','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
+ return ['six-hit-armor-block-break-and-pause','enemy-traits-and-distinct-paralysis','legal-first-clear','three-choice-and-reroll','priority-aim-and-touch-cancel','pause-freezes-rules','endless-waves','checkin-and-free-supply','actual-weapon-and-wall-upgrades','research','research-six-replaces-rise-with-real-damage','research-ten-unlocks-tide-and-real-volley','orb-offers-enforce-caps-and-prerequisites','mercenary-upgrade','five-skins','four-hit-triggered-outfits','drone-wall-rebound','diamond-rift','merging-matrix','energy-gated-dragon-slam','electrode-wire-hits','orb-lucky-21-evolution-and-rebounds','orb-boundaries-preserve-target-redirects','orb-fixed-luck-preview-and-selection','lucky-three-qualities-piercing-lights-and-blasts','lucky-preparation-pause','gem-equip','idempotent-rewards','codex-with-outfit-rules','sound-motion-quality-volume','daily-seed','persistent-restart'];
 }

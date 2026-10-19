@@ -7,7 +7,7 @@ import {Session} from '../assets/scripts/session';
 
 function enemy(kind:EnemyId='walker',patch:Partial<Enemy>={}):Enemy {
  const def=enemyById[kind];
- return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,speed:0,haste:0,hinder:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,paralysis:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child:false,...patch};
+ return {id:1,kind,x:0,y:270,hp:def.hp,maxHp:def.hp,shield:0,armorHits:def.armorHits??0,speed:0,haste:0,hinder:0,radius:def.radius,attack:999,ability:999,warning:0,burn:0,burnPower:0,freeze:0,paralysis:0,stun:0,slow:0,root:0,bind:0,wound:0,vulnerable:0,orbSlow:0,orbSlowPower:0,fractures:0,fractureTime:0,age:0,child:false,...patch};
 }
 // Isolated fixtures exercise collision and status rules. Full victories below use only public inputs.
 function arena(skill?:SkillId,loadout:Loadout=defaultLoadout(),seed=41) {
@@ -100,12 +100,87 @@ test('ordinary orb rank limits stop further cards and reject a retained exhauste
  }
 });
 test('airdrop direct explosions use physical resistance, independently of later burning upgrades',()=>{
- const hit=(kind:EnemyId)=>{const b=arena('airdrop',{...defaultLoadout(),crit:0});b.enemies=[enemy(kind,{hp:10000,maxHp:10000})];stepsNoChoice(b,75);return b.damageDone;};
- assert.equal(hit('walker'),130);assert.equal(hit('fireguard'),130);assert.ok(Math.abs(hit('armor')-130*.35)<1e-8);
+ const hit=(kind:EnemyId)=>{const b=arena('airdrop',{...defaultLoadout(),crit:0});b.enemies=[enemy(kind,{hp:10000,maxHp:10000,armorHits:0})];stepsNoChoice(b,75);return b.damageDone;};
+ assert.equal(hit('walker'),130);assert.equal(hit('fireguard'),130);assert.ok(Math.abs(hit('armor')-130*.5)<1e-8);
 });
 test('shields absorb first and armored enemies resist physical shots',()=>{
  const b=arena('rifle',{...defaultLoadout(),crit:0});b.enemies=[enemy('shield',{hp:1000,maxHp:1000,shield:1000})];steps(b,40);assert.equal(b.enemies[0].hp,1000);assert.ok(b.enemies[0].shield<1000);assert.ok(b.damageDone<28*2);
- const a=arena('rifle',{...defaultLoadout(),crit:0}),c=arena('rifle',{...defaultLoadout(),crit:0});a.enemies=[enemy('armor',{hp:1000,maxHp:1000})];c.enemies=[enemy('walker',{hp:1000,maxHp:1000})];steps(a,50);steps(c,50);assert.ok(a.damageDone<c.damageDone*.4);
+ const a=arena('rifle',{...defaultLoadout(),crit:0}),c=arena('rifle',{...defaultLoadout(),crit:0});a.enemies=[enemy('armor',{hp:1000,maxHp:1000,armorHits:0})];c.enemies=[enemy('walker',{hp:1000,maxHp:1000})];steps(a,50);steps(c,50);assert.equal(a.damageDone,c.damageDone*.5);
+});
+function contact(b:Battle,e:Enemy,skill:SkillId='rifle',patch:Partial<Projectile>={}){
+ const p:Projectile={id:900+b.tick,skill,x:e.x,y:e.y,px:e.x,py:e.y,vx:0,vy:1,radius:3,splash:0,damage:100,remaining:0,hits:[],life:1,source:'weapon',mods:{...b.stats(skill),crit:0,knock:0},...patch};
+ b.projectiles=[p];b.step();return p;
+}
+test('spawned armor starts with six independent layers and snapshots and pause cannot consume them',()=>{
+ const b=new Battle(STAGES.find(s=>s.map===1)!.id,'campaign',41);b.start();
+ for(let n=0;n<1000&&!b.enemies.some(e=>e.kind==='armor');n++)steps(b,1);
+ const e=b.enemies.find(e=>e.kind==='armor');assert.ok(e);assert.equal(e.armorHits,6);assert.equal(e.hp,e.maxHp);assert.ok(b.armorProgress.spawned>0);
+ const copy=b.snapshot();copy.enemies.find(v=>v.id===e.id)!.armorHits=0;copy.armorProgress.blocked=999;assert.equal(e.armorHits,6);assert.equal(b.armorProgress.blocked,0);
+ b.pause();const before=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),before);
+});
+test('all six armor contacts block damage and attached statuses, including the breaking hit',()=>{
+ const b=arena(undefined,{...defaultLoadout(),crit:0,skin:'hazard'}),e=enemy('armor',{hp:10000,maxHp:10000});b.enemies=[e];
+ const mods={...b.stats('blade'),crit:0,burn:20,freeze:2,paralysis:2,stun:2,vulnerability:.2,knock:10};
+ for(let remaining=5;remaining>=0;remaining--){
+  const p=contact(b,e,'blade',{mods});assert.equal(p.life,0);assert.deepEqual(p.hits,[e.id]);assert.equal(e.armorHits,remaining);assert.equal(e.hp,10000);assert.equal(e.y,270);
+  for(const key of ['burn','freeze','paralysis','stun','slow','wound','vulnerable'] as const)assert.equal(e[key],0,key);
+  assert.equal(b.damageDone,0);assert.equal(b.skinProgress!.hits,0);assert.equal(b.skinProgress!.triggers,0);
+  const events=b.drainEvents();assert.equal(events.filter(f=>f.type==='block').length,1);assert.equal(events.find(f=>f.type==='block')!.value,remaining);assert.ok(!events.some(f=>f.type==='hit'));
+ }
+ assert.equal(b.armorProgress.blocked,6);assert.equal(b.armorProgress.broken,1);
+ contact(b,e,'blade',{mods});assert.equal(e.armorHits,0);assert.equal(e.hp,9900);assert.equal(e.burn,3);assert.equal(e.freeze,2);assert.equal(e.paralysis,2);assert.equal(e.stun,2);assert.equal(e.wound,5);assert.equal(e.vulnerable,.2);assert.equal(e.y,280);assert.equal(b.skinProgress!.hits,1);assert.equal(b.armorProgress.blocked,6);
+});
+test('armor precedes absorption shields while zero damage and immune delivery do not strip layers',()=>{
+ const b=arena(),e=enemy('armor',{armorHits:1,shield:100});b.enemies=[e];contact(b,e,'rifle',{damage:0});assert.equal(e.armorHits,1);
+ contact(b,e);assert.equal(e.armorHits,0);assert.equal(e.shield,100);assert.equal(e.hp,e.maxHp);contact(b,e);assert.equal(e.shield,50);assert.equal(e.hp,e.maxHp);
+ const a=arena(),bat=enemy('bat',{armorHits:2,y:300});a.enemies=[bat];a.fields=[field(a,'fuel',{damage:20,mods:{...a.stats('fuel'),burn:20,freeze:2}})];a.step();assert.equal(bat.armorHits,2);assert.equal(bat.burn,0);assert.equal(bat.freeze,0);
+});
+test('broken armor halves physical damage, takes extra energy damage and has no fire resistance',()=>{
+ for(const [skill,ratio]of [['rifle',.5],['ray',1.5],['thermo',1]] as [SkillId,number][]){
+  const b=arena(skill,{...defaultLoadout(),crit:0}),e=enemy('armor',{armorHits:0,hp:10000,maxHp:10000});b.enemies=[e];b.step();b.learned={};until(b,()=>b.damageDone>0,180);
+  assert.ok(Math.abs(b.damageDone-b.stats(skill).damage*ratio)<1e-8,skill);assert.equal(b.armorProgress.blocked,0);
+ }
+});
+test('piercing projectiles pass blocked targets and a breaking orb still consumes its redirect without debuffs',()=>{
+ const b=arena(),a=enemy('armor',{y:270}),next=enemy('walker',{id:2,y:280,hp:1000,maxHp:1000});b.enemies=[a,next];
+ const p=contact(b,a,'dryice',{vy:600,remaining:1});assert.deepEqual(p.hits,[1,2]);assert.equal(a.hp,a.maxHp);assert.equal(a.armorHits,5);assert.equal(next.hp,900);assert.equal(p.life,0);
+ const o=arena(),e=enemy('armor',{armorHits:1,y:300,hp:1000,maxHp:1000});o.enemies=[e];o.upgrades={'orb:hinder':1,'orb:cripple':1,'orb:destroy':1};
+ const ball=orb(o,{x:-25,px:-25,remaining:0});o.projectiles=[ball];o.step();assert.equal(e.armorHits,0);assert.equal(e.hp,1000);assert.equal(e.hinder,0);assert.equal(e.orbSlow,0);assert.equal(e.fractures,0);assert.equal(ball.life,0);assert.equal(ball.rebounds,1);
+ const after=orb(o,{x:-25,px:-25,remaining:0});o.projectiles=[after];o.step();assert.equal(e.hp,981);assert.ok(e.hinder>0&&e.orbSlow>0);assert.equal(e.fractures,1);
+});
+test('death-spread fire cannot ignite armor or consume layers without a damaging hit',()=>{
+ const b=arena();b.upgrades['thermo:spread']=1;
+ b.enemies=[enemy('walker',{hp:.01,burn:2,burnPower:50}),enemy('armor',{id:2,x:10}),enemy('armor',{id:3,x:20,armorHits:0,hp:1000,maxHp:1000})];b.step();
+ const intact=b.enemies.find(e=>e.id===2)!,broken=b.enemies.find(e=>e.id===3)!;assert.equal(intact.armorHits,6);assert.equal(intact.hp,intact.maxHp);assert.equal(intact.burn,0);assert.equal(intact.burnPower,0);assert.ok(broken.burn>0&&broken.hp<1000);
+});
+test('matrix binding and attraction wait until armor is broken and respect anchored shields',()=>{
+ const b=arena(),a=enemy('armor',{x:40,y:300,hp:10000,maxHp:10000}),shield=enemy('shield',{id:2,x:50,y:300});b.enemies=[a,shield];b.upgrades['matrix:core']=1;
+ const f=field(b,'matrix',{radius:100,life:6,total:6,merged:2,damage:0});b.fields=[f];stepsNoChoice(b,90);
+ assert.equal(a.armorHits,6);assert.equal(a.bind,0);assert.equal(a.root,0);assert.equal(a.x,40);assert.equal(shield.x,50);
+ f.damage=1;
+ for(let n=0;n<240&&a.armorHits>0;n++){b.step();assert.equal(a.bind,0);assert.equal(a.root,0);assert.equal(a.x,40);}
+ assert.equal(a.armorHits,0);assert.equal(a.hp,10000);assert.equal(b.armorProgress.blocked,6);
+ stepsNoChoice(b,65);assert.ok(a.bind>=1&&a.root>0);assert.ok(a.x<40);assert.equal(shield.x,50);assert.ok(a.hp<10000);
+});
+test('cyclone does not pull on its final blocked pulse, and can pull on the next damaging pulse',()=>{
+ const b=arena(),e=enemy('armor',{armorHits:1,x:20,y:300,hp:1000,maxHp:1000});b.enemies=[e];b.fields=[field(b,'cyclone')];
+ b.step();assert.equal(e.armorHits,0);assert.equal(e.hp,1000);assert.equal(e.x,20);assert.equal(e.y,300);
+ stepsNoChoice(b,22);assert.ok(e.hp<1000);assert.ok(e.x<20&&e.y>300);
+});
+test('rift linking and collapse exclude intact armor without spending its layers',()=>{
+ const b=arena();b.upgrades['rift:quantum']=1;b.fields=[field(b,'rift',{damage:0})];b.enemies=[enemy('armor',{y:300}),enemy('walker',{id:2,x:145,y:500}),enemy('walker',{id:3,x:-145,y:500})];
+ b.step();assert.equal(b.links.length,0);assert.equal(b.enemies[0].armorHits,6);
+ for(let n=0;n<6;n++)contact(b,b.enemies[0]);stepsNoChoice(b,24);assert.equal(b.links.length,1);assert.ok(b.links[0].ids.includes(1));
+ const a=arena();a.upgrades['rift:fall']=1;a.fields=[field(a,'rift',{damage:0,life:DT,total:DT})];a.enemies=[enemy('armor',{y:300}),enemy('armor',{id:2,y:300,armorHits:0})];a.step();
+ assert.equal(a.enemies[0].y,300);assert.equal(a.enemies[0].armorHits,6);assert.ok(a.enemies[1].y>=FIELD.height-40);
+});
+test('lucky contacts pierce armor and each derived damaging effect consumes its own layer',()=>{
+ for(const quality of ['low','high'] as const){
+  const {b,p}=luckyCast();b.learned={};b.projectiles=[p];p.quality=quality;p.prepare=0;p.x=p.px=-36;p.y=p.py=300;p.vx=600;p.vy=0;
+  const e=enemy('armor',{y:300});b.enemies=[e];const before=b.damageDone,hits=b.luckyProgress.hits;b.step();
+  assert.deepEqual(p.hits,[1]);assert.equal(p.vx,600);assert.equal(e.hp,e.maxHp);assert.equal(e.armorHits,quality==='low'?5:4);assert.equal(b.damageDone,before);assert.equal(b.luckyProgress.hits,hits+1);
+  assert.equal(b.luckyProgress.lights,quality==='low'?0:1);assert.equal(b.luckyProgress.bursts,quality==='low'?0:1);
+ }
 });
 test('freeze and paralysis stop movement; elemental resistance shortens rather than removes control',()=>{
  const b=arena();b.enemies=[enemy('runner',{speed:24,freeze:2}),enemy('runner',{id:2,speed:24,paralysis:2})];steps(b,60);assert.deepEqual(b.enemies.map(e=>e.y),[270,270]);steps(b,80);assert.ok(b.enemies.every(e=>e.y<270));
@@ -388,9 +463,9 @@ test('hinder halves only haste, expires independently of cripple, freezes while 
  const enraging=hit(.3);enraging.enemies[0].kind='butcher';enraging.enemies[0].age=26;close(movement(enraging),2.34);assert.equal(enraging.enemies[0].hinder,0);
 });
 test('balls travel between living targets, deal physical damage and have finite enemy redirects',()=>{
- const b=arena();b.enemies=[enemy('walker',{x:0,y:300,hp:10000,maxHp:10000}),enemy('armor',{id:2,x:100,y:330,hp:10000,maxHp:10000})];
+ const b=arena();b.enemies=[enemy('walker',{x:0,y:300,hp:10000,maxHp:10000}),enemy('armor',{id:2,x:100,y:330,hp:10000,maxHp:10000,armorHits:0})];
  const p=orb(b,{x:-40,px:-40});b.projectiles=[p];until(b,()=>p.hits.length===1,20);assert.equal(b.enemies[0].hp,9962);assert.equal(b.enemies[1].hp,10000,'retargeting cannot deal instant damage');assert.ok(p.vx>0&&p.vy>0);
- until(b,()=>p.hits.length===2,60);assert.ok(Math.abs(b.enemies[1].hp-(10000-38*.35))<1e-6);assert.deepEqual(p.hits,[1,2]);
+ until(b,()=>p.hits.length===2,60);assert.ok(Math.abs(b.enemies[1].hp-(10000-38*.5))<1e-6);assert.deepEqual(p.hits,[1,2]);
  until(b,()=>b.projectiles.length===0,900);assert.ok(p.hits.length<=4,'three redirects allow at most four target contacts');
 });
 test('armed balls guarantee their first two contact criticals, then use normal critical chance',()=>{
@@ -493,10 +568,10 @@ test('three lucky qualities replay deterministically, and ordinary card bonuses 
 });
 test('lucky preparation cannot move or hit; flight pierces, respects armor and expires',()=>{
  const {b,p}=luckyCast();b.learned={};b.projectiles=[p];p.quality='low';p.prepare=2.8;p.x=p.px=0;p.y=p.py=200;p.vx=0;p.vy=280;
- b.enemies=[enemy('walker',{y:260,hp:10000,maxHp:10000}),enemy('armor',{id:2,y:320,hp:10000,maxHp:10000})];const initialDamage=b.damageDone;
+ b.enemies=[enemy('walker',{y:260,hp:10000,maxHp:10000}),enemy('armor',{id:2,y:320,hp:10000,maxHp:10000,armorHits:0})];const initialDamage=b.damageDone;
  stepsNoChoice(b,168);assert.equal(p.y,200);assert.equal(b.damageDone,initialDamage);assert.ok(p.prepare!<1e-8);
  b.pause();const paused=b.snapshot();stepsNoChoice(b,120);assert.deepEqual(b.snapshot(),paused);b.resume();
- until(b,()=>p.hits.length===2,80);assert.deepEqual(p.hits,[1,2]);assert.equal(b.enemies[0].hp,9810);assert.ok(Math.abs(b.enemies[1].hp-(10000-190*.35))<1e-8);assert.equal(p.vy,280);
+ until(b,()=>p.hits.length===2,80);assert.deepEqual(p.hits,[1,2]);assert.equal(b.enemies[0].hp,9810);assert.ok(Math.abs(b.enemies[1].hp-(10000-190*.5))<1e-8);assert.equal(p.vy,280);
  until(b,()=>p.rebounds!>0,150);assert.equal(p.vy,-280);assert.ok(p.life>0,'walls reflect without consuming the ordinary rebound budget');
  until(b,()=>b.projectiles.length===0,400);assert.ok(b.luckyProgress.hits>=2);assert.equal(b.luckyProgress.triggers,1);
 });

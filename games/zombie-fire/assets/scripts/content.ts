@@ -168,7 +168,7 @@ export const UPGRADES:readonly Upgrade[]=[
 export const upgradeById=Object.fromEntries(UPGRADES.map(u=>[u.id,u])) as Record<string,Upgrade>;
 
 export type EnemyId='walker'|'runner'|'brute'|'shield'|'armor'|'spitter'|'healer'|'splitter'|'bat'|'bomber'|'fireguard'|'frostguard'|'shockguard'|'burrower'|'butcher'|'mech'|'queen';
-export interface EnemyDefinition {id:EnemyId;name:string;hp:number;speed:number;damage:number;interval:number;radius:number;xp:number;color:string;resist?:Partial<Record<Element,number>>;deliveryResist?:Partial<Record<DamageDelivery,number>>;statusDuration?:Partial<Record<StatusKind,number>>;knockback?:number;traction?:number;boss?:boolean;description:string}
+export interface EnemyDefinition {id:EnemyId;name:string;hp:number;speed:number;damage:number;interval:number;radius:number;xp:number;color:string;armorHits?:number;resist?:Partial<Record<Element,number>>;deliveryResist?:Partial<Record<DamageDelivery,number>>;statusDuration?:Partial<Record<StatusKind,number>>;knockback?:number;traction?:number;boss?:boolean;description:string}
 // Five trait sets follow reference descriptions/attributes; identities, art and
 // base stats remain local. Frost fire vulnerability uses the description (50%);
 // its conflicting raw +100% slot is preserved in ENEMY-TRAITS.md, not hidden.
@@ -177,7 +177,7 @@ export const ENEMIES:readonly EnemyDefinition[]=[
  {id:'runner',name:'狂奔者',hp:46,speed:24,damage:4,interval:1.2,radius:13,xp:2,color:'#a3b487',description:'移动迅速，控制技能可争取集火时间。'},
  {id:'brute',name:'臃肿怪',hp:230,speed:8,damage:13,interval:2,radius:22,xp:5,color:'#a2ae72',description:'血量很高，倒下时掉落更多经验。'},
  {id:'shield',name:'持盾者',hp:108,speed:11,damage:8,interval:1.7,radius:17,xp:3,color:'#90a594',resist:{electric:1.5},deliveryResist:{projectile:.3},statusDuration:{burn:0,stun:0},knockback:0,traction:0,description:'弹道伤害降低70%，电伤提高50%；免疫燃烧、眩晕、击退与牵引，可被麻痹。'},
- {id:'armor',name:'装甲感染者',hp:160,speed:9,damage:9,interval:1.8,radius:18,xp:4,color:'#7e999a',resist:{physical:.35,fire:.8},description:'厚重护甲克制普通弹道，冰电伤害更有效。'},
+ {id:'armor',name:'装甲感染者',hp:160,speed:9,damage:9,interval:1.8,radius:18,xp:4,color:'#7e999a',armorHits:6,resist:{physical:.5,energy:1.5},description:'初始护甲格挡6次伤害及负面状态；物理伤害减半，能量伤害增加50%。'},
  {id:'spitter',name:'酸液投手',hp:100,speed:12,damage:13,interval:3,radius:16,xp:3,color:'#91ba7a',description:'接近到射程后投掷酸液，优先消灭。'},
  {id:'healer',name:'孢子医师',hp:125,speed:9,damage:5,interval:2,radius:17,xp:4,color:'#b0a5c3',description:'周期治疗周围敌人；气刃重伤可抑制恢复。'},
  {id:'splitter',name:'裂殖体',hp:142,speed:10,damage:8,interval:1.7,radius:20,xp:4,color:'#79b29c',resist:{fire:1.5,electric:1.5},statusDuration:{stun:0},description:'免疫眩晕，火与电伤提高50%；倒下后分裂成两只小型感染者。'},

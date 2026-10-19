@@ -558,7 +558,7 @@ def monster_attribute_links(monsters: list, attributes: list, texts: dict) -> di
             "MonsterCfg: unresolved attribute or unexpected slot method")
     selected = []
     for row in monsters:
-        if row["id"] not in (10, 20, 30, 40, 50, 60, 70, 80, 90, 100):
+        if row["id"] not in (10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 3110):
             continue
         selected.append({"id": row["id"], "name": texts[row["nameReferenceAt9"]]["text"],
                          "description": texts[row["descriptionReferenceAt13"]]["text"],
@@ -607,7 +607,7 @@ def monster_references(monsters: list, manual_table: Table, texts: dict) -> dict
         "selectedMonsters": [{**row, "name": texts.get(row["nameReferenceAt9"], {}).get("text"),
                               "description": texts.get(row["descriptionReferenceAt13"], {}).get("text")}
                              for row in monsters if row["id"] in (10, 20, 30, 40, 50, 60, 70,
-                                                                  80, 90, 100, 5300, 6001, 8014)],
+                                                                  80, 90, 100, 110, 3110, 5300, 6001, 8014)],
         "limits": ["Names and descriptions are static text references, not observed combat behavior.",
                    "Manual offset 4 has three unresolved rows; do not replace them by the manual row ID.",
                    "Health, damage, resistance, animation and mode-specific attribute merging remain unverified."],
