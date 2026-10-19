@@ -24,3 +24,29 @@
 战斗规则沿用已经通过94项规则/存档测试、36个本地关卡合法成长及六组完整流程的版本，见 [游戏验证记录](../games/zombie-fire/docs/VERIFICATION.md)。本轮新增全站入口、开局选卡和品牌入场覆盖。
 
 原版完整关卡、敌人和数值等未等价项继续保留在 [参考记录](../games/zombie-fire/docs/REFERENCE.md)。微信和抖音当前为官方导出与模拟宿主验证，未宣称完成官方开发者工具、真机或平台上线。
+
+## 本次接入验证
+
+2026-10-20 07:29（北京时间），根目录 `pnpm check` 完整执行成功，退出码 0。覆盖全站构建、251 项规则 / 存档等测试、站点检查、双原生构建及验证、网页入口、全部 Cocos 游戏流程和五款游戏的四尺寸成长回归。命令起止时间与结果保存在 `artifacts/zombie-fire-preview/check-command.json`，完整日志为同目录 `check.log`。
+
+检查启动时的大厅集成提交为 `80b41fb`。之后仅变更发布器及其测试、CI 日志归档与发布文档，没有变更游戏运行时；修复后的发布器另行执行 4 项测试并通过。最终提交后重新构建以写入正确的发布 SHA，并核对与本轮检查产物的文件差异。
+
+| 检查 | 已执行结果 | 本地证据 |
+| --- | --- | --- |
+| 三端产物 | 十款 Web 游戏与二十个微信 / 抖音目标构建、来源和包体检查通过 | artifacts/zombie-fire-preview/check.log |
+| 统一入场 | 十个 Web 入口、二十个原生入口通过 | artifacts/entrance/ |
+| 大厅导航 | 十款游戏在 393px / 1440px 的进入、刷新及返回通过；新游戏另覆盖 320px | artifacts/web/ |
+| 新游戏完整网页流程 | 390×844、1440×900、844×390、320×568，各 32 项通过，无未处理错误 | artifacts/cocos/zombie-fire/web-verification.json |
+| 新游戏原生流程 | 微信与抖音无 DOM 宿主各 32 项通过 | artifacts/cocos/zombie-fire/native-verification.json |
+| 普通玩家流程 | 390px / 1440px，新存档正常启动、选卡、实时战斗、暂停、恢复、回营地和返回大厅；未启用 QA 或手动时钟 | artifacts/zombie-fire-preview/normal-local/report.json |
+| 视觉核对 | 实战封面、手机单列和桌面双列大厅、手机选卡及桌面战斗截图已复核 | artifacts/zombie-fire-preview/visual-review.json |
+
+以上是本地验证证据。公开站点部署后另运行普通玩家流程和十款游戏的入口回归，线上报告保存在 `artifacts/zombie-fire-preview/online/report.json`，不以本地预览代替线上验证。
+
+## 发布方式与云端构建记录
+
+由根目录 `node scripts/publish.mjs --transport=api` 发布整个站点。Git HTTPS 在本次环境中连接停滞，因此使用 GitHub Git 数据接口上传同一批文件、目录树和提交；上传后逐项核对 Git SHA，以非强制方式推进 `main` 和 `gh-pages`，保留历史。源码工作区必须干净，`dist/site/release.json` 必须对应当前提交。
+
+本地本轮构建复用了经过源码指纹和文件清单校验的官方 Creator 3.8.8 导出；不将缓存复用写成重新执行了 Creator CLI。最终提交后重新组装站点，并与整套检查使用的 630 份文件进行 SHA-256 比较，核对运行时代码与资源是否发生变化。
+
+Windows 云端检查另有失败记录：[运行 39336715144](https://github.com/awaity/game-collection/actions/runs/39336715144) 在 Creator 的 Web 引擎编译阶段返回 34，具体为无法从 `cocos/core/platform/debug.ts` 解析 `../../../DebugInfos`。该文件存在于校验通过的官方安装包和本地安装中，云端解析失败的根因尚未解决；不能把它归因为缺少账号、授权或安装包文件。现已归档所有子游戏的 Creator 日志。本地发布检查、GitHub Pages 部署与此 Windows 构建工作流分别记录结果。
