@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {presentCocos} from '../../../scripts/cocos-browser.mjs';
 export async function verify({p,native,target,viewport,state,click,advance,event,fits,capture}){
  const pulse=async()=>native?await p.evaluate(()=>call({type:'frames',count:2})):await presentCocos(p);
- const fresh=async()=>{await pulse();return state();};
+ const fresh=async()=>{await pulse();const s=await state();if(s?.controls?.length){assert.ok(Array.isArray(s.geometry),'current export exposes actual drawing counts');for(const batch of s.geometry)if(batch.active&&batch.drawn!==null)assert.equal(batch.drawn,batch.vertices,`dynamic draw count ${batch.id}`);}return s;};
  async function play(count){if(native)await p.evaluate(count=>call({type:'shanhai-play',count}),count);else await p.evaluate(count=>__shanhai.play(count),count);return fresh();}
  async function choose(id){for(let n=0;n<12;n++){if((await state()).controls.some(b=>b.id===id)){await click(id);return;}await click('page-next');}throw Error('missing '+id);}
  async function home(){const s=await state();if(s.panel)await click('panel-close');if((await state()).phase==='playing')await click('pause');if((await state()).phase!=='menu')await click('home');}

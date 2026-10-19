@@ -79,7 +79,7 @@ export class ShanhaiRun extends Component {
     ui.begin();this.art.draw(s,j.skin,delta,this.idle,settings.quality,!settings.motion||ui.services.reducedMotion);this.hud.draw(s,j);
     const phase=s.phase==='ready'?'menu':s.phase==='paused'?'paused':['dead','won'].includes(s.phase)?'result':'playing';
     ui.platform.state(phase);
-    ui.end({slug:'shanhai-run',...s.snapshot(),phase,runPhase:s.phase,mode:s.mode,trial:s.trial,panel:this.hud.panel,lesson:this.session.lesson,waiting:this.session.waiting,coins:j.data.coins,skin:j.data.skin,unlocked:j.data.unlocked,stars:j.data.stars,lore:j.data.lore,settings:j.data.settings,upgrades:j.data.upgrades,tutorial:j.data.tutorial,revived:s.revived,profileSerial:j.data.serial,renderObjects:ui.objects.size});
+    ui.end({slug:'shanhai-run',...s.snapshot(),phase,runPhase:s.phase,mode:s.mode,trial:s.trial,panel:this.hud.panel,lesson:this.session.lesson,waiting:this.session.waiting,coins:j.data.coins,skin:j.data.skin,unlocked:j.data.unlocked,stars:j.data.stars,lore:j.data.lore,settings:j.data.settings,upgrades:j.data.upgrades,tutorial:j.data.tutorial,revived:s.revived,profileSerial:j.data.serial,renderObjects:ui.objects.size,geometry:this.art.metrics()});
   }
   onDestroy(){this.session?.save();this.audio?.stop();this.music?.stop();this.art?.destroy();this.ui?.destroy();}
 }

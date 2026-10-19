@@ -1,4 +1,4 @@
-import {EffectAsset,Material,Mesh,Vec3,Vec4,Color,resources,utils} from 'cc';
+import {EffectAsset,Material,Mesh,MeshRenderer,Vec3,Vec4,Color,resources,utils} from 'cc';
 import {GameView} from 'db://assets/collection/runtime';
 import {Geometry} from './geometry';
 import {AREAS,Random,Run,LANE_WIDTH,type Segment,type Hazard} from './core';
@@ -10,7 +10,13 @@ class Batch {
   readonly geometry:Geometry;
   readonly mesh:Mesh;
   constructor(capacity:number){this.geometry=new Geometry(capacity);const b=this.geometry;this.mesh=utils.MeshUtils.createDynamicMesh(0,{positions:b.positions,colors:b.colors,indices16:b.indices},undefined,{maxSubMeshes:1,maxSubMeshVertices:capacity,maxSubMeshIndices:capacity});}
-  draw(ui:GameView,id:string,material:Material){if(!this.geometry.count)return;this.mesh.updateSubMesh(0,this.geometry.dynamic());ui.meshNode(id,this.mesh,material,0,0,0);}
+  draw(ui:GameView,id:string,material:Material){
+    if(!this.geometry.count)return;
+    this.mesh.updateSubMesh(0,this.geometry.dynamic());
+    // Creator retains the input assembler's previous count and bounds until
+    // notified, even when the underlying vertex/index buffers have changed.
+    ui.meshNode(id,this.mesh,material,0,0,0).getComponent(MeshRenderer)!.onGeometryChanged();
+  }
 }
 
 function roof(g:Geometry,x:number,y:number,z:number,width:number,depth:number,hex:string){
@@ -264,5 +270,9 @@ export class ShanhaiArt {
     }
     this.effects.draw(ui,'air-and-magic',this.material);
   }
+  metrics(){return [['actors',this.actors],['collectibles',this.items],['air-and-magic',this.effects]].map(([id,batch])=>{
+    const node=this.ui.objects.get(id as string),renderer=node?.getComponent(MeshRenderer);
+    return {id,active:(batch as Batch).geometry.count>0&&(node?.active??false),vertices:(batch as Batch).geometry.count,drawn:renderer?.model?.subModels[0]?.inputAssembler?.indexCount??null};
+  });}
   destroy(){for(const mesh of [...this.staticMeshes.values(),...this.roads.values(),...this.scenery.values()])mesh.destroy();this.actors.mesh.destroy();this.items.mesh.destroy();this.effects.mesh.destroy();this.water.destroy();this.material.destroy();this.waterMaterial.destroy();}
 }
